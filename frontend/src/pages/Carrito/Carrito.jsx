@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom'; 
 import Navbar from '../Navbar/Navbar.jsx';
 import './Carrito.css';
 
 const Carrito = () => {
-    const [cart, setCart] = useState(JSON.parse(localStorage.getItem('cart')) || []);
+    // Inicialización segura del estado
+    const [cart, setCart] = useState(() => {
+        const savedCart = localStorage.getItem('cart');
+        return savedCart ? JSON.parse(savedCart) : [];
+    });
 
+    // Sincronización con localStorage
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
@@ -28,17 +34,21 @@ const Carrito = () => {
 
     return (
         <div className="cart-page">
+            {/* Calculamos el conteo total para la Navbar */}
             <Navbar cartCount={cart.reduce((a, b) => a + b.cantidad, 0)} />
+            
             <div className="cart-container">
                 <header className="cart-header">
                     <h1>Tu Carrito</h1>
-                    <p>{cart.length} artículos listos para enviar</p>
+                    <p>{cart.length === 0 ? 'Está vacío' : `${cart.length} artículos listos para enviar`}</p>
                 </header>
 
+                {/* Lógica de Renderizado Condicional */}
                 {cart.length === 0 ? (
+                    // Cambia esta parte en tu Carrito.jsx
                     <div className="cart-empty">
-                        <ShoppingBag size={64} />
-                        <p>Tu carrito está vacío</p>
+                        <ShoppingBag size={80} strokeWidth={1.5} />
+                        <p>Parece que aún no has elegido nada.</p>
                         <Link to="/" className="btn-back">Explorar Telas</Link>
                     </div>
                 ) : (
@@ -55,11 +65,17 @@ const Carrito = () => {
                                         </div>
                                         <div className="cart-item-actions">
                                             <div className="quantity-controls">
-                                                <button onClick={() => modificarCantidad(item.id, 'resta')}><Minus size={14}/></button>
+                                                <button onClick={() => modificarCantidad(item.id, 'resta')}>
+                                                    <Minus size={14}/>
+                                                </button>
                                                 <span>{item.cantidad}</span>
-                                                <button onClick={() => modificarCantidad(item.id, 'suma')}><Plus size={14}/></button>
+                                                <button onClick={() => modificarCantidad(item.id, 'suma')}>
+                                                    <Plus size={14}/>
+                                                </button>
                                             </div>
-                                            <p className="item-subtotal">${(item.precio * item.cantidad).toLocaleString()}</p>
+                                            <p className="item-subtotal">
+                                                ${(item.precio * item.cantidad).toLocaleString()}
+                                            </p>
                                             <button className="btn-remove" onClick={() => eliminarItem(item.id)}>
                                                 <Trash2 size={18} />
                                             </button>

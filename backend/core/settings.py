@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import locale
+import os
+
+os.environ['PYTHONIOENCODING'] = 'utf-8'
+locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8') # Fuerza el locale de Argentina
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,14 +90,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Telas-App',
+        'NAME': 'appecomercce',
         'USER': 'postgres',
-        'PASSWORD': 'Nacho2003',
+        'PASSWORD': 'Matias2003',
         'HOST': 'localhost',
         'PORT': '3000',
     }
 }
-
+ 
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
