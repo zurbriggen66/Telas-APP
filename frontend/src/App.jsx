@@ -18,13 +18,17 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redirigimos la raíz al dashboard por ahora */}
         <Route path="/" element={<Home />} />
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/producto/:id" element={<DetalleProducto />} />
-        {/* Ruta Padre: Dashboard (Acá está el Sidebar y el Outlet) */}
+        
+        {/* Ruta Padre: Dashboard */}
         <Route path="/dashboard" element={<Dashboard />}>
-          <Route index element={<VistaInicio />} />
+          {/* Si entran a /dashboard los mandamos a /dashboard/inicio */}
+          <Route index element={<Navigate to="inicio" replace />} />
+          
+          {/* ¡Acá está la corrección! Ahora sí existe la ruta "inicio" */}
+          <Route path="inicio" element={<VistaInicio />} />
           <Route path="productos" element={<VistaProductos />} />
           <Route path="categorias" element={<VistaCategorias />} />
           <Route path="diseno" element={<VistaDiseno />} />

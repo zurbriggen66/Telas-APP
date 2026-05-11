@@ -137,3 +137,12 @@ html, body {
     padding: 10px 20px;
     box-sizing: border-box;
 }
+
+/* El dashboard necesita ocupar todo el viewport sin restricciones */
+#root:has(.dashboard-root) {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  text-align: left;
+  border-inline: none;
+}

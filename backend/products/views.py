@@ -34,18 +34,21 @@ def get_main_banner(request):
         # Si el cliente mandó un archivo corrupto, le avisamos
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+# ... (tus imports y get_main_banner quedan exactamente igual) ...
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     """
     Este ViewSet proporciona automáticamente las acciones:
     `list`, `create`, `retrieve`, `update` (PATCH) y `destroy` (DELETE).
     """
-    queryset = Categoria.objects.all()
+    # OPTIMIZACIÓN: Usamos select_related para traer los datos del "padre" en la misma consulta a la DB
+    queryset = Categoria.objects.select_related('categoria_padre').all()
     serializer_class = CategoriaSerializer
 
 
 class ProductoViewSet(viewsets.ModelViewSet):
-    queryset = Producto.objects.all()
+    # OPTIMIZACIÓN: Usamos select_related para traer los datos de la categoría en la misma consulta
+    queryset = Producto.objects.select_related('categoria').all()
     serializer_class = ProductoSerializer
 
     def create(self, request, *args, **kwargs):

@@ -26,4 +26,6 @@ export const icons = {
   category:   "M4 4h6v6H4z M14 4h6v6h-6z M4 14h6v6H4z M14 14h6v6h-6z",
   edit:       "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7 M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z",
   x:          "M18 6L6 18 M6 6l12 12",
+  menu: "M4 6h16M4 12h16M4 18h16",
+  x: "M6 18L18 6M6 6l12 12",
 };

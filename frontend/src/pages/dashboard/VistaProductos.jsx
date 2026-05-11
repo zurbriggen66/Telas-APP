@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-
-// Importamos los componentes visuales que separaste
 import Header from '../../components/Header';
 import Card from '../../components/Card';
 import ImageUploader from '../../components/ImageUploader';
@@ -9,20 +7,156 @@ import { Icon, icons } from '../../components/Icons';
 
 const API = 'http://127.0.0.1:8000/api';
 
-const VistaProductos = () => {
-  const [showForm,    setShowForm]    = useState(false);
-  const [form,        setForm]        = useState({ nombre: '', precio: '', descripcion: '', talle: '', categoria: '' });
-  const [images,      setImages]      = useState([]);
-  const [statusMsg,   setStatusMsg]   = useState('');
-  const [loading,     setLoading]     = useState(false);
-  const [productos,   setProductos]   = useState([]);
-  const [categorias,  setCategorias]  = useState([]);
-  const [fetching,    setFetching]    = useState(true);
-  const [editando,    setEditando]    = useState(null); 
-  // NUEVO ESTADO: Para recordar qué imágenes de la galería venían del backend
-  const [imagenesOriginales, setImagenesOriginales] = useState([]); 
+// --- COMPONENTE: TARJETA DE EDICIÓN RÁPIDA ---
+const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, onQuickSave }) => {
+  const [precio, setPrecio] = useState(prod.precio_por_metro);
+  const [stock, setStock] = useState(prod.stock_metros);
+  const [guardando, setGuardando] = useState(false);
 
-  const talles = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Único'];
+  const tieneCambios = Number(precio) !== Number(prod.precio_por_metro) || Number(stock) !== Number(prod.stock_metros);
+
+  const handleGuardarRapido = async () => {
+    setGuardando(true);
+    await onQuickSave(prod.id, { precio_por_metro: precio, stock_metros: stock });
+    setGuardando(false);
+  };
+
+  const bgAlternado = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+
+  return (
+    <div style={{ 
+      display: 'flex', flexDirection: isMobile ? 'column' : 'row', 
+      alignItems: isMobile ? 'stretch' : 'center', 
+      justifyContent: 'space-between',
+      padding: '20px', borderBottom: '1px solid #e2e8f0', gap: isMobile ? '16px' : '20px',
+      backgroundColor: bgAlternado,
+      cursor: 'pointer',
+      transition: 'background-color 0.2s'
+    }}
+    onClick={() => onEditarCompleto(prod)} 
+    onMouseEnter={(e) => !isMobile && (e.currentTarget.style.backgroundColor = '#f1f5f9')} 
+    onMouseLeave={(e) => !isMobile && (e.currentTarget.style.backgroundColor = bgAlternado)} 
+    >
+      
+      {/* SECCIÓN 1: Imagen y Títulos */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: isMobile ? 'none' : 1, minWidth: 0 }}>
+        <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', background: '#e2e8f0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {prod.imagen ? <img src={prod.imagen} alt={prod.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon d={icons.image} size={24} color="#cbd5e1" />}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {prod.categoria_nombre || 'Sin categoría'} • {prod.ancho_cm}cm ancho
+          </div>
+        </div>
+      </div>
+
+      {/* SECCIÓN 2: Inputs Rápidos adaptables al 100% */}
+      <div 
+        style={{ 
+          display: 'flex', flexDirection: isMobile && tieneCambios ? 'column' : 'row', 
+          alignItems: isMobile && tieneCambios ? 'stretch' : 'center', 
+          gap: '12px', width: isMobile ? '100%' : 'auto' 
+        }}
+        onClick={(e) => e.stopPropagation()} 
+      >
+        <div style={{ 
+          background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '10px 14px', 
+          display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: '12px', alignItems: 'center',
+          boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)', flex: 1
+        }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>PRECIO /M</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ color: '#475569', fontWeight: 600 }}>$</span>
+              <input 
+                type="number" min="0" value={precio} onChange={e => setPrecio(e.target.value)}
+                style={{ width: '100%', border: 'none', background: 'transparent', fontWeight: 700, fontSize: '15px', color: '#0f172a', outline: 'none', minWidth: 0 }}
+              />
+            </div>
+          </div>
+          
+          <div style={{ width: '1px', height: '100%', background: '#e2e8f0' }}></div>
+          
+          <div style={{ paddingLeft: '4px' }}>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#94a3b8', marginBottom: '4px' }}>STOCK</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <input 
+                type="number" min="0" step="0.1" value={stock} onChange={e => setStock(e.target.value)}
+                style={{ width: '100%', border: 'none', background: 'transparent', fontWeight: 700, fontSize: '15px', color: '#0f172a', outline: 'none', minWidth: 0 }}
+              />
+              <span style={{ color: '#475569', fontWeight: 600, fontSize: '13px' }}>m</span>
+            </div>
+          </div>
+        </div>
+
+        {tieneCambios && (
+          <button 
+            onClick={handleGuardarRapido} disabled={guardando}
+            style={{ 
+              background: '#10b981', color: 'white', border: 'none', padding: '12px 16px', borderRadius: '10px', 
+              fontWeight: 700, fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)', width: isMobile ? '100%' : 'auto'
+            }}>
+            {guardando ? 'Guardando...' : <><Icon d={icons.check} size={14} color="white" /> Guardar</>}
+          </button>
+        )}
+      </div>
+
+      {/* SECCIÓN 3: Etiqueta Visual y Acciones */}
+      <div style={{ 
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+        gap: '16px', flexShrink: 0,
+        borderTop: isMobile ? '1px dashed #e2e8f0' : 'none',
+        paddingTop: isMobile ? '16px' : '0'
+      }}>
+        <span style={{ 
+          padding: '4px 10px', borderRadius: '20px', fontWeight: 700, fontSize: '11px',
+          background: Number(prod.stock_metros) <= 2 ? '#fef2f2' : '#f0fdf4', 
+          color: Number(prod.stock_metros) <= 2 ? '#ef4444' : '#15803d' 
+        }}>
+          {Number(prod.stock_metros) <= 2 ? 'STOCK BAJO' : 'EN STOCK'}
+        </span>
+
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onEditarCompleto(prod); }} 
+            title="Editar completo" style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Icon d={icons.edit} size={16} color="#6366f1" />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onEliminar(prod.id); }} 
+            title="Eliminar" style={{ padding: '8px', borderRadius: '8px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Icon d={icons.trash} size={16} color="#ef4444" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- VISTA PRINCIPAL ---
+const VistaProductos = () => {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categoria: '' });
+  const [images, setImages] = useState([]);
+  const [statusMsg, setStatusMsg] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [fetching, setFetching] = useState(true);
+  const [editando, setEditando] = useState(null); 
+  const [imagenesOriginales, setImagenesOriginales] = useState([]); 
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  
+  // NUEVO: Estado para controlar qué categoría estamos filtrando
+  const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = async () => {
     setFetching(true);
@@ -34,8 +168,7 @@ const VistaProductos = () => {
       setProductos(Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.results || []);
       setCategorias(Array.isArray(catRes.data) ? catRes.data : catRes.data.results || []);
     } catch {
-      setProductos([]);
-      setCategorias([]);
+      setProductos([]); setCategorias([]);
     } finally {
       setFetching(false);
     }
@@ -43,106 +176,75 @@ const VistaProductos = () => {
 
   useEffect(() => { fetchData(); }, []);
 
+  const handleQuickSave = async (id, data) => {
+    try {
+      await axios.patch(`${API}/productos/${id}/`, data);
+      setProductos(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+    } catch {
+      alert("Error al actualizar rápidamente. Por favor, intentá de nuevo.");
+    }
+  };
+
   const abrirEditar = (prod) => {
     setEditando(prod.id);
     setForm({
-      nombre: prod.nombre,
-      precio: prod.precio,
-      descripcion: prod.descripcion || '',
-      talle: prod.talle,
-      categoria: prod.categoria || ''
+      nombre: prod.nombre, precio_por_metro: prod.precio_por_metro, descripcion: prod.descripcion || '',
+      ancho_cm: prod.ancho_cm, stock_metros: prod.stock_metros, categoria: prod.categoria || ''
     });
 
-    // 1. CARGAR IMÁGENES EXISTENTES PARA LA VISTA PREVIA
     const imagenesCargadas = [];
     const idsOriginales = [];
-
-    // Agregar la imagen principal si existe
-    if (prod.imagen) {
-      imagenesCargadas.push({ preview: prod.imagen, id: 'main', file: null }); // file es null porque ya está en el servidor
-    }
-
-    // Agregar las imágenes de la galería si existen
+    if (prod.imagen) imagenesCargadas.push({ preview: prod.imagen, id: 'main', file: null });
     if (prod.imagenes_galeria && Array.isArray(prod.imagenes_galeria)) {
       prod.imagenes_galeria.forEach((imgObj) => {
         imagenesCargadas.push({ preview: imgObj.imagen, id: imgObj.id, file: null });
-        idsOriginales.push(imgObj.id); // Guardamos el ID original
+        idsOriginales.push(imgObj.id);
       });
     }
 
-    setImagenesOriginales(idsOriginales); // Guardamos la lista en el estado
-    setImages(imagenesCargadas); // Cargamos las imágenes existentes
-    
-    setShowForm(true);
-    setStatusMsg('');
+    setImagenesOriginales(idsOriginales); setImages(imagenesCargadas); setShowForm(true); setStatusMsg('');
   };
 
   const resetForm = () => {
     setShowForm(false);
-    setForm({ nombre: '', precio: '', descripcion: '', talle: '', categoria: '' });
-    setImages([]);
-    setImagenesOriginales([]); // Reseteamos la lista de originales
-    setEditando(null);
-    setStatusMsg('');
+    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categoria: '' });
+    setImages([]); setImagenesOriginales([]); setEditando(null); setStatusMsg('');
   };
 
   const handleSubmit = async () => {
-    if (!form.nombre || !form.precio || !form.talle) {
-      setStatusMsg('Completá nombre, precio y talle.');
-      return;
+    if (!form.nombre || !form.precio_por_metro || !form.ancho_cm || !form.stock_metros) {
+      setStatusMsg('Completá nombre, precio, ancho y stock.'); return;
     }
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append('nombre',      form.nombre);
-      formData.append('precio',      form.precio);
-      formData.append('talle',       form.talle);
+      formData.append('nombre', form.nombre);
+      formData.append('precio_por_metro', form.precio_por_metro);
+      formData.append('ancho_cm', form.ancho_cm);
+      formData.append('stock_metros', form.stock_metros);
       formData.append('descripcion', form.descripcion);
       if (form.categoria) formData.append('categoria', form.categoria);
       
-      // 1. Enviar archivos nuevos
-      images.forEach((img, i) => {
-        if (img.file) {
-           formData.append(i === 0 ? 'imagen' : `imagen_extra_${i}`, img.file);
-        }
-      });
+      images.forEach((img, i) => { if (img.file) formData.append(i === 0 ? 'imagen' : `imagen_extra_${i}`, img.file); });
 
-      // 2. Lógica de eliminación (SOLO si estamos editando)
       if (editando) {
-        // Obtenemos los IDs de las imágenes de galería que AÚN están en el array visual
         const idsActuales = images.map(img => img.id).filter(id => id && id !== 'main');
-        
-        // Filtramos cuáles de las originales ya no están
         const idsEliminados = imagenesOriginales.filter(id => !idsActuales.includes(id));
-        
-        // Las agregamos al FormData para que el backend las borre
-        idsEliminados.forEach(id => {
-          formData.append('eliminar_imagenes', id);
-        });
-      }
-
-      if (editando) {
-        await axios.patch(`${API}/productos/${editando}/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        idsEliminados.forEach(id => formData.append('eliminar_imagenes', id));
+        await axios.patch(`${API}/productos/${editando}/`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       } else {
-        await axios.post(`${API}/productos/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await axios.post(`${API}/productos/`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       }
-
-      setStatusMsg('ok');
-      resetForm();
-      await fetchData(); 
+      setStatusMsg('ok'); resetForm(); await fetchData(); 
     } catch {
-      setStatusMsg('Error al guardar. Verificá la conexión.');
+      setStatusMsg('Error al guardar. Verificá los datos e intentá de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm('¿Eliminar este producto?')) return;
+    if (!window.confirm('¿Eliminar esta tela del catálogo?')) return;
     try {
       await axios.delete(`${API}/productos/${id}/`);
       setProductos(prev => prev.filter(p => p.id !== id));
@@ -151,254 +253,176 @@ const VistaProductos = () => {
     }
   };
 
-  const inputStyle = {
-    width: '100%', padding: '11px 14px', borderRadius: 8,
-    border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-    outline: 'none', color: '#1e293b', background: 'white', boxSizing: 'border-box',
-    transition: 'border-color 0.15s',
-  };
-  const labelStyle = { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'block' };
+  // Lógica de Filtrado
+  const productosFiltrados = categoriaFiltro === 'todas' 
+    ? productos 
+    : productos.filter(p => p.categoria === categoriaFiltro);
 
-  const getNombreCategoria = (id) => {
-    const cat = categorias.find(c => c.id === id || c.id === Number(id));
-    return cat ? cat.nombre : '—';
-  };
+  const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: 'none', color: '#1e293b', background: 'white', boxSizing: 'border-box' };
+  const labelStyle = { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'block' };
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-        <Header title="Productos & Stock" subtitle="Gestioná tu catálogo de productos" />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 10 }}>
+        <Header title="Productos & Stock" subtitle="Gestioná tu catálogo de telas" />
         <button onClick={() => { resetForm(); setShowForm(true); }} style={{
           display: 'flex', alignItems: 'center', gap: 8, padding: '11px 20px',
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white',
-          border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700,
-          fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-          boxShadow: '0 4px 12px rgba(99,102,241,0.3)',
+          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 14
         }}>
-          <Icon d={icons.plus} size={16} color="white" />
-          Agregar producto
+          <Icon d={icons.plus} size={16} color="white" /> Agregar Tela
         </button>
       </div>
 
       {showForm && (
-        <Card style={{ maxWidth: 600, marginBottom: 28 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-            <Icon d={icons.tag} size={20} color="#6366f1" />
-            <span style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>
-               {editando ? 'Editar Producto' : 'Nuevo Producto'}
-            </span>
+        <Card style={{ width: '100%', marginBottom: 28, padding: isMobile ? '16px' : '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Icon d={icons.tag} size={20} color="#6366f1" />
+                <span style={{ fontWeight: 700, fontSize: 16, color: '#0f172a' }}>{editando ? 'Editar Tela' : 'Nueva Tela'}</span>
+            </div>
+            <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+              <Icon d={icons.x} size={18} color="#94a3b8" />
+            </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
             <div style={{ gridColumn: '1/-1' }}>
-              <label style={labelStyle}>Nombre del producto *</label>
-              <input style={inputStyle} placeholder="Ej: Remera básica blanca"
-                value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+              <label style={labelStyle}>Nombre de la tela *</label>
+              <input style={inputStyle} placeholder="Ej: Gamuzado Premium" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
             </div>
 
             <div>
-              <label style={labelStyle}>Precio (ARS) *</label>
-              <input style={inputStyle} type="number" placeholder="0.00"
-                value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+              <label style={labelStyle}>Precio por Metro (ARS) *</label>
+              <input style={inputStyle} type="number" min="0" step="100" placeholder="0.00" value={form.precio_por_metro} onChange={e => setForm({ ...form, precio_por_metro: e.target.value })} />
             </div>
 
             <div>
-              <label style={labelStyle}>Talle *</label>
-              <select style={inputStyle} value={form.talle}
-                onChange={e => setForm({ ...form, talle: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                onBlur={e => e.target.style.borderColor = '#e2e8f0'}>
-                <option value="">Seleccioná un talle</option>
-                {talles.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+              <label style={labelStyle}>Ancho de fábrica (cm) *</label>
+              <input style={inputStyle} type="number" min="1" placeholder="Ej: 150" value={form.ancho_cm} onChange={e => setForm({ ...form, ancho_cm: e.target.value })} />
             </div>
 
-            <div style={{ gridColumn: '1/-1' }}>
-              <label style={labelStyle}>
-                Categoría
-                {categorias.length === 0 && (
-                  <span style={{ fontWeight: 400, color: '#f59e0b', fontSize: 12, marginLeft: 8 }}>
-                    (No hay categorías creadas)
-                  </span>
-                )}
-              </label>
-              <select
-                style={inputStyle}
-                value={form.categoria}
-                onChange={e => setForm({ ...form, categoria: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                onBlur={e => e.target.style.borderColor = '#e2e8f0'}
-                disabled={categorias.length === 0}
-              >
+            <div>
+              <label style={labelStyle}>Stock disponible (Metros) *</label>
+              <input style={inputStyle} type="number" min="0" step="0.1" placeholder="Ej: 8.5" value={form.stock_metros} onChange={e => setForm({ ...form, stock_metros: e.target.value })} />
+            </div>
+
+            <div>
+              <label style={labelStyle}>Categoría</label>
+              <select style={inputStyle} value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })}>
                 <option value="">Sin categoría</option>
-                {categorias.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.nombre}</option>
-                ))}
+                {categorias.map(cat => <option key={cat.id} value={cat.id}>{cat.nombre_padre ? `${cat.nombre_padre} > ${cat.nombre}` : cat.nombre}</option>)}
               </select>
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
               <label style={labelStyle}>Descripción</label>
-              <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 80 }}
-                placeholder="Describí el producto..."
-                value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })}
-                onFocus={e => e.target.style.borderColor = '#6366f1'}
-                onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
+              <textarea style={{ ...inputStyle, resize: 'vertical', minHeight: 80 }} placeholder="Detalles de la tela, composición..." value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
               <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Icon d={icons.grid} size={14} color="#6366f1" />
-                Imágenes del producto
-                <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: 12 }}>(opcional · hasta 5)</span>
+                <Icon d={icons.grid} size={14} color="#6366f1" /> Imágenes (opcional · hasta 5)
               </label>
               <ImageUploader images={images} setImages={setImages} max={5} />
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 12, marginTop: 24 }}>
-            <button onClick={handleSubmit} disabled={loading} style={{
-              flex: 1, padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer',
-              background: loading ? '#c7d2fe' : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              color: 'white', fontWeight: 700, fontSize: 15, fontFamily: "'DM Sans', sans-serif",
-            }}>
-              {loading ? 'Guardando...' : editando ? 'Actualizar producto' : 'Guardar producto'}
+            <button onClick={handleSubmit} disabled={loading} style={{ flex: 1, padding: '12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: loading ? '#c7d2fe' : '#6366f1', color: 'white', fontWeight: 700 }}>
+              {loading ? 'Guardando...' : 'Guardar tela'}
             </button>
-            <button onClick={resetForm} style={{
-              padding: '12px 20px', borderRadius: 8, border: '1.5px solid #e2e8f0',
-              background: 'white', color: '#64748b', fontWeight: 600, fontSize: 14,
-              cursor: 'pointer', fontFamily: "'DM Sans', sans-serif",
-            }}>
+            <button onClick={resetForm} style={{ padding: '12px 20px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 600, cursor: 'pointer' }}>
               Cancelar
             </button>
           </div>
 
           {statusMsg === 'ok' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14,
-              background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px' }}>
-              <Icon d={icons.check} size={16} color="#16a34a" />
-              <span style={{ color: '#15803d', fontWeight: 600, fontSize: 14 }}>¡Producto guardado!</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 14, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px' }}>
+              <Icon d={icons.check} size={16} color="#16a34a" /><span style={{ color: '#15803d', fontWeight: 600 }}>¡Tela guardada!</span>
             </div>
           )}
-          {statusMsg && statusMsg !== 'ok' && (
-            <p style={{ marginTop: 12, color: '#ef4444', fontSize: 13, fontWeight: 600 }}>{statusMsg}</p>
-          )}
+          {statusMsg && statusMsg !== 'ok' && <p style={{ marginTop: 12, color: '#ef4444', fontSize: 13, fontWeight: 600 }}>{statusMsg}</p>}
         </Card>
       )}
 
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         {fetching ? (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
-            <p style={{ fontWeight: 600 }}>Cargando productos...</p>
-          </div>
+          <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}><p style={{ fontWeight: 600 }}>Cargando telas...</p></div>
         ) : productos.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
             <Icon d={icons.package} size={40} color="#e2e8f0" />
-            <p style={{ marginTop: 12, fontWeight: 600 }}>No hay productos cargados aún</p>
-            <p style={{ fontSize: 13, margin: '4px 0 0' }}>Usá el botón de arriba para agregar tu primer producto</p>
+            <p style={{ marginTop: 12, fontWeight: 600 }}>No hay telas cargadas aún</p>
           </div>
         ) : (
-          <>
-            <div style={{
-              display: 'grid', gridTemplateColumns: '56px 1fr 100px 80px 120px 100px',
-              padding: '12px 20px', borderBottom: '1px solid #f1f5f9',
-              color: '#94a3b8', fontSize: 12, fontWeight: 600,
-              textTransform: 'uppercase', letterSpacing: '0.05em', gap: 12
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            
+            {/* NUEVA BARRA DE FILTROS SUPERIOR */}
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', 
+              borderBottom: '1px solid #e2e8f0', overflowX: 'auto',
+              scrollbarWidth: 'none', msOverflowStyle: 'none'
             }}>
-              <span>Img</span>
-              <span>Nombre</span>
-              <span>Precio</span>
-              <span>Talle</span>
-              <span>Categoría</span>
-              <span>Acciones</span>
-            </div>
+              <span style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', letterSpacing: '0.5px', flexShrink: 0 }}>
+                FILTRAR POR:
+              </span>
 
-            {productos.map(prod => (
-              <div key={prod.id} style={{
-                display: 'grid', gridTemplateColumns: '56px 1fr 100px 80px 120px 100px',
-                alignItems: 'center', padding: '14px 20px',
-                borderBottom: '1px solid #f8fafc', gap: 12,
-                transition: 'background 0.1s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
-                onMouseLeave={e => e.currentTarget.style.background = 'white'}
+              <button
+                onClick={() => setCategoriaFiltro('todas')}
+                style={{
+                  padding: '8px 16px', borderRadius: '24px', border: categoriaFiltro === 'todas' ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                  background: categoriaFiltro === 'todas' ? '#0f172a' : 'white',
+                  color: categoriaFiltro === 'todas' ? 'white' : '#475569',
+                  fontWeight: 700, fontSize: '13px', cursor: 'pointer', flexShrink: 0, transition: 'all 0.2s'
+                }}
               >
-                <div style={{
-                  width: 48, height: 48, borderRadius: 8, overflow: 'hidden',
-                  background: '#f1f5f9', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  {prod.imagen
-                    ? <img src={prod.imagen} alt={prod.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <Icon d={icons.image} size={20} color="#cbd5e1" />
-                  }
-                </div>
+                Todos
+              </button>
 
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: '#1e293b' }}>{prod.nombre}</div>
-                  {prod.descripcion && (
-                    <div style={{
-                      fontSize: 12, color: '#94a3b8', marginTop: 2,
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 260
-                    }}>{prod.descripcion}</div>
-                  )}
-                </div>
-
-                <div style={{ fontWeight: 700, color: '#10b981', fontSize: 14 }}>
-                  ${Number(prod.precio).toLocaleString('es-AR')}
-                </div>
-
-                <div>
-                  <span style={{
-                    display: 'inline-block', padding: '3px 10px', borderRadius: 20,
-                    background: '#f0f0ff', color: '#6366f1', fontWeight: 700, fontSize: 12
-                  }}>{prod.talle}</span>
-                </div>
-
-                <div style={{ fontSize: 13, color: '#64748b' }}>
-                  {prod.categoria ? getNombreCategoria(prod.categoria) : <span style={{ color: '#cbd5e1' }}>Sin categoría</span>}
-                </div>
-
-                <div style={{ display: 'flex', gap: 6 }}>
+              {categorias.map(cat => {
+                const isActive = categoriaFiltro === cat.id;
+                return (
                   <button
-                    onClick={() => abrirEditar(prod)}
+                    key={cat.id}
+                    onClick={() => setCategoriaFiltro(cat.id)}
                     style={{
-                      padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0',
-                      background: 'white', color: '#6366f1', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600
+                      padding: cat.imagen ? '4px 16px 4px 6px' : '8px 16px',
+                      borderRadius: '24px', border: isActive ? '1px solid #0f172a' : '1px solid #e2e8f0',
+                      background: isActive ? '#0f172a' : 'white',
+                      color: isActive ? 'white' : '#475569',
+                      fontWeight: 700, fontSize: '13px', cursor: 'pointer', flexShrink: 0,
+                      display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s'
                     }}
-                    title="Editar producto"
                   >
-                    <Icon d={icons.edit} size={13} color="#6366f1" />
+                    {cat.imagen && (
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={cat.imagen} alt={cat.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
+                    {cat.nombre}
                   </button>
-                  <button
-                    onClick={() => handleEliminar(prod.id)}
-                    style={{
-                      padding: '6px 10px', borderRadius: 7, border: '1.5px solid #fee2e2',
-                      background: '#fff5f5', color: '#ef4444', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: 4,
-                      fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 600
-                    }}
-                    title="Eliminar producto"
-                  >
-                    <Icon d={icons.trash} size={13} color="#ef4444" />
-                  </button>
-                </div>
-              </div>
-            ))}
-
-            <div style={{
-              padding: '12px 20px', borderTop: '1px solid #f1f5f9',
-              fontSize: 13, color: '#94a3b8', textAlign: 'right'
-            }}>
-              {productos.length} producto{productos.length !== 1 ? 's' : ''} en total
+                )
+              })}
             </div>
-          </>
+
+            {/* LISTA DE PRODUCTOS FILTRADOS */}
+            {productosFiltrados.length === 0 ? (
+               <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
+                 <p style={{ fontWeight: 600 }}>No hay telas en esta categoría.</p>
+               </div>
+            ) : (
+               productosFiltrados.map((prod, index) => (
+                 <TarjetaProducto 
+                   key={prod.id} 
+                   prod={prod}
+                   index={index}
+                   isMobile={isMobile}
+                   onEditarCompleto={abrirEditar} 
+                   onEliminar={handleEliminar}
+                   onQuickSave={handleQuickSave}
+                 />
+               ))
+            )}
+          </div>
         )}
       </Card>
     </div>
