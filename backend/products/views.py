@@ -1,7 +1,11 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
+import mercadopago
 from rest_framework import status, viewsets
+from django.conf import settings
+from rest_framework.views import APIView
+from .models import StoreConfiguration, Categoria, Producto, ProductoImagen
 
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen
 from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer
@@ -84,3 +88,56 @@ class ProductoViewSet(viewsets.ModelViewSet):
         for key, file in request.FILES.items():
             if key.startswith('imagen_extra_'):
                 ProductoImagen.objects.create(producto=producto, imagen=file)
+
+
+
+class MercadoPagoPreferenceView(APIView):
+    def post(self, request):
+        try:
+            # Verifica que el Token sea el correcto (Sugerencia: Usa TEST-)
+            sdk = mercadopago.SDK("APP_USR-6162698134775253-051118-002193f6db26c59485499973ba07b7d9-3395671684")
+
+            cart_items = request.data.get('items', [])
+            items_for_mp = []
+
+            for item in cart_items:
+                items_for_mp.append({
+                    "id": str(item.get('id')),
+                    "title": item.get('nombre'),
+                    "quantity": int(item.get('cantidad')),
+                    "unit_price": float(item.get('precio')),
+                    "currency_id": "ARS",
+                })
+
+            # Asegúrate de que preference_data sea EXACTAMENTE así
+            # Asegúrate de que preference_data sea EXACTAMENTE así
+            preference_data = {
+                "items": items_for_mp,
+                "back_urls": {
+                    "success": "http://127.0.0.1:5173",  # Sin barra al final para probar
+                    "failure": "http://127.0.0.1:5173",
+                    "pending": "http://127.0.0.1:5173"
+                },
+                #"auto_return": "approved",
+                "binary_mode": True,
+            }
+
+            # CREACIÓN DE PREFERENCIA
+            preference_response = sdk.preference().create(preference_data)
+            
+            # --- AQUÍ ESTÁ EL TRUCO PARA DEBUGEAR ---
+            status_code = preference_response["status"]
+            response_data = preference_response["response"]
+
+            if status_code >= 400:
+                print("--- ERROR DE MERCADO PAGO ---")
+                print(f"Status: {status_code}")
+                print(f"Respuesta: {response_data}")
+                return Response(response_data, status=status_code)
+
+            # Si llega acá, todo salió bien
+            return Response({'id': response_data['id']}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            print(f"Excepción en el código: {str(e)}")
+            return Response({"error": str(e)}, status=500)

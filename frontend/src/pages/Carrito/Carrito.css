@@ -249,3 +249,14 @@
         align-items: center;
     }
 }
+
+.mercadopago-button-container {
+    margin-top: 25px;
+    width: 100%;
+    min-height: 48px; /* Evita saltos visuales mientras carga el SDK */
+}
+
+.btn-checkout:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

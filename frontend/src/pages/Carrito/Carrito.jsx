@@ -1,19 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom'; 
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react'; 
 import Navbar from '../Navbar/Navbar.jsx';
 import './Carrito.css';
 
+// IMPORTANTE: Si tu Access Token en Django empieza con TEST-, 
+// tu Public Key aquí TAMBIÉN debe empezar con TEST-.
+initMercadoPago('APP_USR-1c7ff523-0d79-493c-88a7-e584d06465ab'); 
+
 const Carrito = () => {
-    // Inicialización segura del estado
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // Sincronización con localStorage
+    const [preferenceId, setPreferenceId] = useState(null);
+    const [loading, setLoading] = useState(false); // Definido como 'loading'
+
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
+        setPreferenceId(null); 
     }, [cart]);
 
     const total = cart.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
@@ -32,20 +39,47 @@ const Carrito = () => {
         setCart(prev => prev.filter(item => item.id !== id));
     };
 
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+        const response = await fetch('http://localhost:8000/api/mercadopago/preference/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: cart }),
+        });
+
+        const data = await response.json();
+        
+        if (data.id) {
+            // REDIRECCIÓN DIRECTA
+            // Esto lleva al usuario a la pantalla de pago sin mostrar el botón azul
+            window.location.href = `https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${data.id}`;
+        } else {
+            console.error("Error en la respuesta del servidor:", data);
+            alert("Error al generar el pago.");
+        }
+    } catch (error) {
+        console.error("Error de conexión:", error);
+        alert("No se pudo conectar con el servidor.");
+    } finally {
+        // No hace falta poner setLoading(false) aquí porque 
+        // la página se está redirigiendo, pero por seguridad lo dejamos
+        setLoading(false);
+    }
+};
+
     return (
         <div className="cart-page">
-            {/* Calculamos el conteo total para la Navbar */}
-            <Navbar cartCount={cart.reduce((a, b) => a + b.cantidad, 0)} />
+            {/* Agregamos una validación simple por si el carrito está vacío al reducir */}
+            <Navbar cartCount={cart.length > 0 ? cart.reduce((a, b) => a + b.cantidad, 0) : 0} />
             
             <div className="cart-container">
                 <header className="cart-header">
                     <h1>Tu Carrito</h1>
-                    <p>{cart.length === 0 ? 'Está vacío' : `${cart.length} artículos listos para enviar`}</p>
+                    <p>{cart.length === 0 ? 'Está vacío' : `${cart.length} artículos listos`}</p>
                 </header>
 
-                {/* Lógica de Renderizado Condicional */}
                 {cart.length === 0 ? (
-                    // Cambia esta parte en tu Carrito.jsx
                     <div className="cart-empty">
                         <ShoppingBag size={80} strokeWidth={1.5} />
                         <p>Parece que aún no has elegido nada.</p>
@@ -53,7 +87,6 @@ const Carrito = () => {
                     </div>
                 ) : (
                     <div className="cart-layout">
-                        {/* Columna de Productos */}
                         <div className="cart-items-list">
                             {cart.map(item => (
                                 <div key={item.id} className="cart-item-card">
@@ -65,17 +98,11 @@ const Carrito = () => {
                                         </div>
                                         <div className="cart-item-actions">
                                             <div className="quantity-controls">
-                                                <button onClick={() => modificarCantidad(item.id, 'resta')}>
-                                                    <Minus size={14}/>
-                                                </button>
+                                                <button onClick={() => modificarCantidad(item.id, 'resta')}><Minus size={14}/></button>
                                                 <span>{item.cantidad}</span>
-                                                <button onClick={() => modificarCantidad(item.id, 'suma')}>
-                                                    <Plus size={14}/>
-                                                </button>
+                                                <button onClick={() => modificarCantidad(item.id, 'suma')}><Plus size={14}/></button>
                                             </div>
-                                            <p className="item-subtotal">
-                                                ${(item.precio * item.cantidad).toLocaleString()}
-                                            </p>
+                                            <p className="item-subtotal">${(item.precio * item.cantidad).toLocaleString()}</p>
                                             <button className="btn-remove" onClick={() => eliminarItem(item.id)}>
                                                 <Trash2 size={18} />
                                             </button>
@@ -85,7 +112,6 @@ const Carrito = () => {
                             ))}
                         </div>
 
-                        {/* Columna de Resumen (Sticky) */}
                         <aside className="cart-summary-card">
                             <h2>Resumen de compra</h2>
                             <div className="summary-details">
@@ -103,10 +129,18 @@ const Carrito = () => {
                                     <span>${total.toLocaleString()}</span>
                                 </div>
                             </div>
-                            <button className="btn-checkout">
-                                Finalizar Pedido
+
+                            <button 
+                                className="btn-checkout" 
+                                onClick={handleCheckout} 
+                                disabled={loading || cart.length === 0}
+                            >
+                                {loading ? (
+                                    "Procesando pago..." 
+                                ) : (
+                                    "Finalizar Pedido"
+                                )}
                             </button>
-                            <p className="secure-checkout">🔒 Pago seguro y encriptado</p>
                         </aside>
                     </div>
                 )}
