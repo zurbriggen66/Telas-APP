@@ -5,55 +5,28 @@ import Navbar from '../Navbar/Navbar';
 import './Success.css';
 
 const Success = () => {
-    const [estado, setEstado] = useState('procesando'); // Puede ser: procesando, exito, error
+    const [estado, setEstado] = useState('procesando');
     const navigate = useNavigate();
-    
-    // Usamos useRef para evitar que React (en modo estricto) dispare el descuento 2 veces
     const peticionHecha = useRef(false); 
 
     useEffect(() => {
         if (peticionHecha.current) return;
         peticionHecha.current = true;
 
-        const confirmarPago = async () => {
-            const cartGuardado = localStorage.getItem('cart');
-            
-            // Si el carrito está vacío, asumimos que ya se procesó antes o entró por error
-            if (!cartGuardado || JSON.parse(cartGuardado).length === 0) {
-                setEstado('exito');
-                return;
-            }
+        // El webhook del backend ya se encargó del stock de forma invisible.
+        // Nosotros solo vaciamos el carrito del navegador.
+        localStorage.removeItem('cart');
+        
+        // Le damos 1.5 segundos de "procesando" para que quede profesional
+        setTimeout(() => {
+            setEstado('exito');
+        }, 1500);
 
-            const cart = JSON.parse(cartGuardado);
-
-            try {
-                // Le avisamos a tu backend en Django que descuente los metros de la base de datos
-                const response = await fetch('http://localhost:8000/api/pedidos/confirmar/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ items: cart })
-                });
-
-                if (response.ok) {
-                    // Si Django responde OK, vaciamos el carrito del navegador
-                    localStorage.removeItem('cart');
-                    setEstado('exito');
-                } else {
-                    console.error("Error al descontar stock");
-                    setEstado('error');
-                }
-            } catch (error) {
-                console.error("Error de conexión:", error);
-                setEstado('error');
-            }
-        };
-
-        confirmarPago();
     }, []);
 
     return (
         <div className="success-page">
-            <Navbar cartCount={0} /> {/* Forzamos el 0 porque ya se compró */}
+            <Navbar cartCount={0} />
             
             <div className="success-container">
                 {estado === 'procesando' && (
@@ -70,17 +43,6 @@ const Success = () => {
                         <p>Tu pago se ha procesado con éxito y tus telas ya están reservadas.</p>
                         <p className="success-details">Nos pondremos en contacto contigo pronto para coordinar la entrega.</p>
                         
-                        <button className="btn-home" onClick={() => navigate('/')}>
-                            Volver a la tienda
-                        </button>
-                    </div>
-                )}
-
-                {estado === 'error' && (
-                    <div className="success-card">
-                        <h2>Hubo un detalle con tu orden</h2>
-                        <p>Tu pago se realizó correctamente en Mercado Pago, pero tuvimos un inconveniente sincronizando el stock.</p>
-                        <p>Por favor, contactanos por WhatsApp con tu comprobante.</p>
                         <button className="btn-home" onClick={() => navigate('/')}>
                             Volver a la tienda
                         </button>

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Categoria, Producto, ProductoImagen, StoreConfiguration
+from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration
 
 # 1. Serializer para la configuración (Banner)
 class StoreConfigurationSerializer(serializers.ModelSerializer):
@@ -37,3 +37,10 @@ class ProductoSerializer(serializers.ModelSerializer):
             'ancho_cm', 'stock_metros', 'categoria', 'categoria_nombre', 
             'imagen', 'imagenes_galeria'
         ]
+
+# Acordate de importar el Pedido arriba: from .models import ..., Pedido
+
+class PedidoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pedido
+        fields = '__all__'

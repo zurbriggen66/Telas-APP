@@ -50,21 +50,34 @@
   }
 }
 
+/* =========================================
+   ESTRUCTURA BASE (CORREGIDA)
+   ========================================= */
+
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    background: var(--bg);
+}
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left;
+  border: none !important; /* Eliminamos el borde lateral de Vite */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-h1,
-h2 {
+/* Tipografía y elementos comunes */
+h1, h2 {
   font-family: var(--heading);
   font-weight: 500;
   color: var(--text-h);
@@ -74,11 +87,13 @@ h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+  text-align: center;
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
   }
 }
+
 h2 {
   font-size: 24px;
   line-height: 118%;
@@ -88,12 +103,10 @@ h2 {
     font-size: 20px;
   }
 }
-p {
-  margin: 0;
-}
 
-code,
-.counter {
+p { margin: 0; }
+
+code, .counter {
   font-family: var(--mono);
   display: inline-flex;
   border-radius: 4px;
@@ -106,30 +119,26 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
-/* Esto elimina los espacios en blanco que el navegador pone por defecto */
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    overflow-x: hidden; /* Evita el scroll horizontal */
-}
 
-/* Forzamos que la Navbar ignore cualquier contenedor padre */
+/* =========================================
+   COMPONENTES GLOBALES
+   ========================================= */
+
 .navbar {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw; /* 100% del ancho de la ventana */
+    width: 100%;
     margin: 0;
     padding: 0;
     background: white;
-    z-index: 9999; /* Siempre arriba de todo */
+    z-index: 9999;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .navbar-container {
     width: 100%;
-    max-width: 1200px; /* El contenido se centra, pero la barra sigue al 100% */
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
@@ -138,11 +147,10 @@ html, body {
     box-sizing: border-box;
 }
 
-/* El dashboard necesita ocupar todo el viewport sin restricciones */
+/* Ajuste específico para cuando el Dashboard está activo */
 #root:has(.dashboard-root) {
   width: 100%;
   max-width: 100%;
   margin: 0;
-  text-align: left;
-  border-inline: none;
+  border: none;
 }

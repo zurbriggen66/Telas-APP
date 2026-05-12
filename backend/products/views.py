@@ -2,35 +2,35 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 import mercadopago
+from decimal import Decimal
 from rest_framework import status, viewsets
 from django.conf import settings
 from rest_framework.views import APIView
-from django.db import transaction # NUEVO IMPORT PARA SEGURIDAD DE STOCK
+from django.db import transaction
+from django.shortcuts import redirect
+from django.core.mail import send_mail
 
-from .models import Producto, StoreConfiguration, Categoria, ProductoImagen
-from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer
+# ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
+from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido
+from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
 
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser, FormParser])
 def get_main_banner(request):
     config = StoreConfiguration.objects.filter(is_active=True).first()
-    
     if request.method == 'GET':
         if config:
             serializer = StoreConfigurationSerializer(config, context={'request': request})
             return Response(serializer.data)
         return Response({"error": "No hay configuración activa"}, status=status.HTTP_404_NOT_FOUND)
-        
     elif request.method == 'POST':
         if config:
             serializer = StoreConfigurationSerializer(config, data=request.data, partial=True, context={'request': request})
         else:
             serializer = StoreConfigurationSerializer(data=request.data, context={'request': request})
-            
         if serializer.is_valid():
             serializer.save(is_active=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoriaViewSet(viewsets.ModelViewSet):
@@ -50,10 +50,8 @@ class ProductoViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         producto_id = kwargs.get('pk')
         imagenes_a_eliminar = request.data.getlist('eliminar_imagenes')
-        
         if imagenes_a_eliminar:
             ProductoImagen.objects.filter(id__in=imagenes_a_eliminar, producto_id=producto_id).delete()
-
         response = super().update(request, *args, **kwargs)
         producto = self.get_object()
         self._guardar_imagenes_galeria(request, producto)
@@ -63,13 +61,18 @@ class ProductoViewSet(viewsets.ModelViewSet):
         for key, file in request.FILES.items():
             if key.startswith('imagen_extra_'):
                 ProductoImagen.objects.create(producto=producto, imagen=file)
+
+# --- NUEVO VIEWSET PARA PEDIDOS ---
+class PedidoViewSet(viewsets.ModelViewSet):
+    queryset = Pedido.objects.all().order_by('-fecha_creacion')
+    serializer_class = PedidoSerializer
+
 class MercadoPagoPreferenceView(APIView):
     def post(self, request):
         try:
-            # ACÁ PUSIMOS TU ACCESS TOKEN DE PRUEBA
             sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
-
             cart_items = request.data.get('items', [])
+            payer_data = request.data.get('payer', {}) 
             items_for_mp = []
 
             for item in cart_items:
@@ -81,57 +84,112 @@ class MercadoPagoPreferenceView(APIView):
                     "currency_id": "ARS",
                 })
 
-            # Aseguramos el formato exacto que pide MP usando localhost
+            # TU URL DE NGROK AQUÍ
+            ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
+
             preference_data = {
                 "items": items_for_mp,
+                "payer": {
+                    "name": payer_data.get('nombre', ''),
+                    "surname": payer_data.get('apellido', ''),
+                    "email": payer_data.get('email', ''), 
+                    "identification": {"type": "DNI", "number": str(payer_data.get('dni', ''))}
+                },
+                "metadata": {"email_contacto": payer_data.get('email', '')},
                 "back_urls": {
-                    "success": "http://localhost:5173/success",
+                    "success": f"{ngrok_url}/api/mercadopago/success/", 
                     "failure": "http://localhost:5173/checkout",
                     "pending": "http://localhost:5173/checkout"
                 },
-                #"auto_return": "approved",#
-                "binary_mode": True
+                "auto_return": "approved",
+                "binary_mode": True,
+                "notification_url": f"{ngrok_url}/api/mercadopago/webhook/"
             }
 
             preference_response = sdk.preference().create(preference_data)
-            status_code = preference_response["status"]
-            response_data = preference_response["response"]
-
-            if status_code >= 400:
-                print("\n❌ --- ERROR DE MERCADO PAGO --- ❌")
-                print(response_data)
-                print("❌ ----------------------------- ❌\n")
-                return Response(response_data, status=status_code)
-
-            return Response({'id': response_data['id']}, status=status.HTTP_201_CREATED)
-
+            
+            if preference_response["status"] >= 400:
+                return Response(preference_response["response"], status=status.HTTP_400_BAD_REQUEST)
+            return Response({'id': preference_response["response"]['id']}, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
-            print(f"\n❌ ERROR DE PYTHON: {str(e)} ❌\n")
-            return Response({"error": str(e)}, status=500)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# NUEVA LÓGICA DE DESCUENTO DE STOCK
+@api_view(['GET'])
+def success_redirect(request):
+    return redirect("http://localhost:5173/success")
+
 @api_view(['POST'])
-def confirmar_pedido(request):
+def webhook_mercadopago(request):
     try:
-        # with transaction.atomic() asegura que si algo falla, no se guarda nada en la base de datos
-        with transaction.atomic():
-            cart_items = request.data.get('items', [])
+        data = request.data
+        topic = request.GET.get('topic') or request.GET.get('type') or data.get('type')
+        payment_id = request.GET.get('data.id') or request.GET.get('id') or data.get('data', {}).get('id')
+        
+        if topic == 'payment' and payment_id:
+            if PagoProcesado.objects.filter(pago_id=payment_id).exists():
+                return Response({"status": "ya procesado"}, status=status.HTTP_200_OK)
+
+            sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
+            payment_info = sdk.payment().get(payment_id)
             
-            for item in cart_items:
-                producto = Producto.objects.select_for_update().get(id=item['id'])
-                metros_comprados = float(item['cantidad'])
-                
-                # Validamos que siga habiendo stock al momento de pagar
-                if producto.stock_metros >= metros_comprados:
-                    producto.stock_metros -= metros_comprados
-                    producto.save()
-                else:
-                    return Response(
-                        {"error": f"Oops, alguien compró {producto.nombre} antes que vos y nos quedamos sin stock suficiente."}, 
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
+            if payment_info["status"] == 200:
+                payment = payment_info["response"]
+                if payment["status"] == "approved":
+                    PagoProcesado.objects.create(pago_id=payment_id)
+                    items_comprados = payment.get("additional_info", {}).get("items", [])
+                    payer_info = payment.get("payer", {})
+                    metadata = payment.get("metadata", {})
                     
-            return Response({"mensaje": "Stock descontado con éxito"}, status=status.HTTP_200_OK)
-            
+                    email_cliente = metadata.get("email_contacto")
+                    if not email_cliente:
+                        email_cliente = payer_info.get("email", "No especificado")
+                        
+                    monto_total = payment.get("transaction_amount", 0)
+                    detalle_productos_mail = ""
+                    
+                    with transaction.atomic():
+                        for item in items_comprados:
+                            try:
+                                producto = Producto.objects.select_for_update().get(id=item.get("id"))
+                                metros = Decimal(str(item.get("quantity", 0)))
+                                if producto.stock_metros >= metros:
+                                    producto.stock_metros -= metros
+                                    producto.save()
+                                    detalle_productos_mail += f"• {item.get('title')}: {metros} metros\n"
+                            except Producto.DoesNotExist:
+                                continue
+
+                    # ---------------------------------------------------------
+                    # 📝 GUARDAR EL PEDIDO EN LA BASE DE DATOS
+                    # ---------------------------------------------------------
+                    try:
+                        Pedido.objects.create(
+                            mp_id=payment_id,
+                            email_cliente=email_cliente,
+                            total=monto_total,
+                            metodo_pago="Mercado Pago",
+                            estado="Aprobado",
+                            detalle_items=detalle_productos_mail
+                        )
+                        print("📦 Historial: Nuevo pedido guardado en la BD.")
+                    except Exception as e:
+                        print(f"⚠️ Error al guardar el pedido: {e}")
+
+                    # ---------------------------------------------------------
+                    # 📧 ENVÍO DE CORREOS
+                    # ---------------------------------------------------------
+                    try:
+                        asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
+                        mensaje_cliente = f"¡Hola! Muchas gracias por tu compra en Telas APP.\n\nTu pago por ${monto_total} ha sido procesado y aprobado con éxito mediante Mercado Pago.\n\nAquí tienes el detalle de las telas que reservaste:\n{detalle_productos_mail}\nNos pondremos en contacto contigo a la brevedad a este mismo correo o a tu número de contacto para coordinar los detalles del envío.\n\n¡Gracias por confiar en nosotros y a crear cosas hermosas!\nEl equipo de Telas APP."
+                        send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [email_cliente], fail_silently=False)
+
+                        asunto_dueno = f"🚀 ¡NUEVA VENTA! - ${monto_total} (Pago #{payment_id})"
+                        mensaje_dueno = f"¡Hola Nacho! Tienes una nueva venta aprobada en Telas APP. 🎉\n\n💰 Monto cobrado: ${monto_total}\n👤 Email del cliente: {email_cliente}\n🆔 ID de Operación MP: {payment_id}\n\n📦 Detalle del pedido (A preparar los cortes!):\n{detalle_productos_mail}\nRecuerda contactar al cliente para coordinar el método de entrega."
+                        send_mail(asunto_dueno, mensaje_dueno, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
+                    except Exception as e_mail:
+                        print(f"⚠️ Error al enviar correos: {e_mail}")
+
+        return Response({"status": "recibido"}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"error": "Fallo en webhook"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

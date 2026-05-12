@@ -33,8 +33,17 @@ SECRET_KEY = 'django-insecure-0td6kbnqn382d)tl9^4w9(vv2#%am+m(l_0vt&%*@35pj1=w#w
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+
+# CONFIGURACIÓN DE ENVÍO DE EMAILS (GMAIL)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nachozubri15@gmail.com' # Tu correo de Gmail
+EMAIL_HOST_PASSWORD = 'iwfkddsbrnccqycn'  # PEGA ACÁ TU CONTRASEÑA DE 16 CARACTERES
+DEFAULT_FROM_EMAIL = 'Telas APP <nachozubri15@gmail.com>'
 
 # Application definition
 

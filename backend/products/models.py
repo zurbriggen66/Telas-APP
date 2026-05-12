@@ -89,3 +89,28 @@ class ProductoImagen(models.Model):
 
     def __str__(self):
         return f"Imagen galería de {self.producto.nombre}"      
+    
+
+class PagoProcesado(models.Model):
+    pago_id = models.CharField(max_length=100, unique=True)
+    fecha_procesado = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.pago_id
+    
+class Pedido(models.Model):
+    ESTADOS = (
+        ('Aprobado', 'Aprobado'),
+        ('Pendiente', 'Pendiente'),
+        ('Cancelado', 'Cancelado'),
+    )
+    mp_id = models.CharField(max_length=100, null=True, blank=True)
+    email_cliente = models.EmailField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    metodo_pago = models.CharField(max_length=50, default='Mercado Pago')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='Aprobado')
+    detalle_items = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Pedido #{self.id} - {self.email_cliente}"

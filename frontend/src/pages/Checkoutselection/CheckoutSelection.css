@@ -151,3 +151,9 @@
 .btn-pay-now:hover {
     opacity: 0.9;
 }
+
+.checkout-form-section { background: white; padding: 25px; border-radius: 8px; border: 1px solid #F0F0F0; margin-bottom: 25px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.form-grid input { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; outline: none; }
+.form-grid input:focus { border-color: #1A1A1A; }
+.form-grid .full-width { grid-column: 1 / -1; }
