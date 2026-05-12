@@ -35,6 +35,7 @@ def optimize_store_banner_image(sender, instance, **kwargs):
 class StoreConfiguration(models.Model):
     title = models.CharField(max_length=100, default="Bienvenido a Telas-APP")
     main_image = models.ImageField(upload_to='banners/', verbose_name="Imagen Principal")
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

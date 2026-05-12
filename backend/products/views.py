@@ -2,6 +2,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 import mercadopago
+import requests
 from decimal import Decimal
 from rest_framework import status, viewsets
 from django.conf import settings
@@ -95,7 +96,9 @@ class MercadoPagoPreferenceView(APIView):
                     "email": payer_data.get('email', ''), 
                     "identification": {"type": "DNI", "number": str(payer_data.get('dni', ''))}
                 },
-                "metadata": {"email_contacto": payer_data.get('email', '')},
+                "metadata": {"email_contacto": payer_data.get('email', ''),
+                             "telefono_contacto": payer_data.get('telefono', ''),
+                            "nombre_contacto": f"{payer_data.get('nombre', '')} {payer_data.get('apellido', '')}"},
                 "back_urls": {
                     "success": f"{ngrok_url}/api/mercadopago/success/", 
                     "failure": "http://localhost:5173/checkout",
@@ -190,6 +193,72 @@ def webhook_mercadopago(request):
                     except Exception as e_mail:
                         print(f"⚠️ Error al enviar correos: {e_mail}")
 
+                    # ---------------------------------------------------------
+                    # 📱 ENVÍO DE WHATSAPP AL DUEÑO (NUEVO)
+                    # ---------------------------------------------------------
+                    try:
+                        # Rescatamos los datos nuevos de la metadata
+                        telefono_cliente = metadata.get("telefono_contacto", "No especificado")
+                        nombre_cliente = metadata.get("nombre_contacto", "Cliente")
+
+                        # Armamos el texto con formato para WhatsApp (negritas con *)
+                        mensaje_wpp = (
+                            f"🚨 ¡NUEVA VENTA APROBADA!\n\n"
+                            f"👤 Cliente: {nombre_cliente}\n"
+                            f"📞 Teléfono: {telefono_cliente}\n"
+                            f"✉️ Email: {email_cliente}\n\n"
+                            f"🛒 Detalle del pedido:\n{detalle_productos_mail}\n"
+                            f"💰 Total: ${monto_total}\n"
+                            f"🆔 ID MP: {payment_id}"
+                        )
+
+                        #Llamamos a la función:
+                        # Reemplaza con el número real de Nacho con código de país
+                        numero_nacho = "5493562517046" 
+                        enviar_mensaje_whatsapp(numero_nacho, mensaje_wpp)
+                        
+                        print("📲 Intento de envío de WhatsApp procesado.")
+                    except Exception as e_wpp:
+                        print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
+
         return Response({"status": "recibido"}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"error": "Fallo en webhook"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def enviar_mensaje_whatsapp(numero_destino, mensaje_texto):
+    # ⚠️ REEMPLAZA ESTAS DOS VARIABLES CON TUS DATOS DE META ⚠️
+    # Lo ideal es que luego las pases a tu archivo .env y uses settings.WHATSAPP_TOKEN
+    WHATSAPP_TOKEN = "EAAbwNepQP9IBRUzDCXBtf9szLnRwR4SQDOPmmQX6cRZBXioid8nYp8evzCYQt35EgmVWvXj3Mz6GSvZClab2maoBfoE0gGCZB2goxvf1672YDeYeWzuZBWLQOmfYfZBu6ZCjbBuB1vuBZBx2OzQnw02SMA6OtQD1KhgC3qQYGEepl2N6zM0PUruxtoQOu51GosjLqAq44AF5nZBIjkvHlyMZAlSqWXcL2J8mIJGR7aT3T6Vt2SHXahEtF2w2Y6p0Wy9c7u2RaLBXXcNucI2pGS1ARZAwZDZD"
+    TELEFONO_ID = "1101551966368735"
+    
+    # URL de la API de Graph de Meta (versión 18.0 o la que estés usando)
+    url = f"https://graph.facebook.com/v18.0/{TELEFONO_ID}/messages"
+    
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    
+    # Estructura obligatoria que pide Meta
+    data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": str(numero_destino), # Aseguramos que sea string
+        "type": "text",
+        "text": {
+            "preview_url": False,
+            "body": mensaje_texto
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        response.raise_for_status() # Lanza un error si el status code no es 200
+        print("✅ Mensaje de WhatsApp enviado correctamente a", numero_destino)
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Error crítico al enviar WhatsApp: {e}")
+        if response is not None:
+            print(f"Detalle de Meta: {response.text}")
+        return False

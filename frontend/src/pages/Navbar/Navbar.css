@@ -1,164 +1,369 @@
-/* Navbar.css */
+/* =========================================
+   NAVBAR — Paleta: verde / crema / mostaza
+   Verde:   #2a5c3f
+   Crema:   #f0ece0
+   Mostaza: #c9a227
+   Marrón:  #8b5e1a
+   Negro:   #111111
+========================================= */
+
+:root {
+    --nav-bg:         #2a5c3f;
+    --nav-bg-scroll:  #1e4530;
+    --nav-crema:      #f0ece0;
+    --nav-mostaza:    #c9a227;
+    --nav-marron:     #8b5e1a;
+    --nav-negro:      #111111;
+    --nav-text:       rgba(240, 236, 224, 0.9);
+    --nav-text-dim:   rgba(240, 236, 224, 0.45);
+    --nav-height:     70px;
+}
+
+/* ── BARRA PRINCIPAL ── */
 .navbar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%; 
-    height: 70px;
-    background-color: #ffffff;
+    top: 0; left: 0; right: 0;
+    height: var(--nav-height);
+    background-color: var(--nav-bg);
     display: flex;
     align-items: center;
     z-index: 9999;
-    border-bottom: 1px solid #e5e7eb;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    margin: 0 !important;
+    transition: background-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.navbar.scrolled {
+    background-color: var(--nav-bg-scroll);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Línea decorativa inferior en mostaza */
+.navbar::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        var(--nav-mostaza) 25%,
+        var(--nav-mostaza) 75%,
+        transparent
+    );
+    opacity: 0.4;
 }
 
 .navbar-container {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 2rem;
     box-sizing: border-box;
 }
 
-
-/* --- LOGO --- */
+/* ── LOGO ── */
 .navbar-logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 800;
-    font-size: 1.4rem;
-    color: #1f2937;
-    letter-spacing: -0.5px;
+    gap: 0.55rem;
     text-decoration: none;
+    color: var(--nav-crema);
 }
 
-.navbar-logo span span {
-    color: #2563eb; 
+.navbar-logo svg {
+    color: var(--nav-mostaza);
+    flex-shrink: 0;
 }
 
-/* --- LINKS ESCRITORIO --- */
+.logo-text {
+    font-family: var(--font-titulos, serif);
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--nav-crema);
+}
+
+.logo-text span {
+    color: var(--nav-mostaza);
+}
+
+/* ── LINKS DESKTOP ── */
 .navbar-links {
     display: flex;
-    gap: 2rem;
     align-items: center;
+    gap: 0.1rem;
 }
 
 .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 5px;
     text-decoration: none;
-    color: #4b5563;
-    font-weight: 600;
-    font-size: 1rem;
-    transition: color 0.3s ease;
+    color: var(--nav-text);
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 5px;
+    transition: color 0.2s, background 0.2s;
 }
 
 .nav-link:hover {
-    color: #2563eb;
+    color: var(--nav-crema);
+    background: rgba(240, 236, 224, 0.08);
 }
 
-/* --- ACCIONES E ICONOS --- */
+/* Botón A–Z con acento */
+.nav-link--az {
+    color: var(--nav-mostaza);
+    border: 1px solid rgba(201, 162, 39, 0.3);
+    padding: 6px 12px;
+}
+
+.nav-link--az:hover {
+    background: rgba(201, 162, 39, 0.12);
+    color: var(--nav-mostaza);
+    border-color: rgba(201, 162, 39, 0.5);
+}
+
+/* ── ACCIONES ── */
 .navbar-actions {
     display: flex;
-    gap: 0.8rem;
     align-items: center;
+    gap: 0.15rem;
 }
 
 .icon-btn {
     background: none;
     border: none;
-    color: #1f2937;
+    color: var(--nav-text);
     cursor: pointer;
     padding: 8px;
-    border-radius: 50%;
-    transition: background-color 0.3s ease;
-    position: relative;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
 }
 
 .icon-btn:hover {
-    background-color: #f3f4f6;
+    background: rgba(240, 236, 224, 0.1);
+    color: var(--nav-crema);
 }
 
 .cart-badge {
     position: absolute;
-    top: -2px;
-    right: -2px;
-    background: #ef4444;
-    color: white;
-    font-size: 11px;
-    font-weight: bold;
-    padding: 2px 6px;
-    border-radius: 50%;
-    border: 2px solid white;
+    top: 2px; right: 2px;
+    background: var(--nav-mostaza);
+    color: var(--nav-negro);
+    font-size: 9px;
+    font-weight: 800;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--nav-bg);
+    line-height: 1;
 }
 
-/* Botón hamburguesa oculto por defecto en PC */
+/* ── HAMBURGUESA ── */
 .mobile-menu-btn {
     display: none;
     background: none;
     border: none;
-    color: #1f2937;
     cursor: pointer;
-    padding: 4px;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.2s;
 }
 
+.mobile-menu-btn:hover {
+    background: rgba(240, 236, 224, 0.08);
+}
+
+.hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 22px;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 1.5px;
+    background: var(--nav-crema);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: left;
+}
+
+.hamburger-icon span:nth-child(2) { width: 70%; }
+
+.hamburger-icon.open span:nth-child(1) { transform: rotate(45deg) translateY(-1px); }
+.hamburger-icon.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-icon.open span:nth-child(3) { transform: rotate(-45deg) translateY(1px); }
+
 /* =========================================
-   RESPONSIVE (CELULARES Y TABLETS CHICAS)
+   OVERLAY + DRAWER
+========================================= */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 17, 17, 0.5);
+    z-index: 9997;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Drawer — usa la paleta crema/verde, sin logos extra */
+.mobile-drawer {
+    position: fixed;
+    top: 0; left: 0;
+    width: 260px;
+    height: 100dvh;
+    z-index: 9998;
+    transform: translateX(-100%);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+
+    /* Fondo: crema cálido */
+    background-color: var(--nav-crema);
+
+    /* Borde derecho sutil en verde */
+    border-right: 1px solid rgba(42, 92, 63, 0.15);
+}
+
+.mobile-drawer.active {
+    transform: translateX(0);
+}
+
+/* Botón cerrar — pequeño, arriba a la derecha */
+.drawer-close {
+    position: absolute;
+    top: 18px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--nav-bg);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    opacity: 0.6;
+    transition: opacity 0.2s, background 0.2s;
+}
+
+.drawer-close:hover {
+    opacity: 1;
+    background: rgba(42, 92, 63, 0.08);
+}
+
+/* Nav principal del drawer */
+.drawer-nav {
+    flex: 1;
+    padding: 4rem 1.4rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+}
+
+.drawer-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 0.7rem;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--nav-negro);
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background 0.18s;
+}
+
+.drawer-link:hover {
+    background: rgba(42, 92, 63, 0.07);
+}
+
+.drawer-link svg {
+    color: rgba(17, 17, 17, 0.3);
+    flex-shrink: 0;
+}
+
+/* Separador */
+.drawer-divider {
+    height: 1px;
+    background: rgba(42, 92, 63, 0.12);
+    margin: 0.6rem 0.5rem;
+}
+
+/* Link A–Z destacado con color mostaza */
+.drawer-link--az {
+    background: rgba(201, 162, 39, 0.08);
+    border: 1px solid rgba(201, 162, 39, 0.25);
+    color: var(--nav-marron);
+    margin-top: 2px;
+}
+
+.drawer-link--az:hover {
+    background: rgba(201, 162, 39, 0.14);
+}
+
+.az-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Footer drawer */
+.drawer-footer {
+    padding: 1.2rem 1.4rem;
+    border-top: 1px solid rgba(42, 92, 63, 0.1);
+}
+
+.drawer-account {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--nav-bg);
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.drawer-account:hover { opacity: 1; }
+
+/* =========================================
+   RESPONSIVE
 ========================================= */
 @media (max-width: 768px) {
-    .navbar-container {
-        padding: 0 1rem;
-    }
+    .mobile-menu-btn { display: flex; align-items: center; }
+    .mobile-overlay  { display: block; }
+    .navbar-links    { display: none; }
 
-    /* Mostramos el botón hamburguesa en la izquierda */
-    .mobile-menu-btn {
-        display: flex;
-        align-items: center;
-    }
-
-    /* Hacemos que los links sean un menú desplegable */
-    .navbar-links {
-        position: absolute;
-        top: 70px; /* Justo debajo de la navbar */
-        left: 0;
-        width: 100%;
-        background-color: #ffffff;
-        flex-direction: column;
-        align-items: center;
-        gap: 0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        
-        /* Animación para que baje suave */
-        clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
-        transition: clip-path 0.3s ease-in-out;
-    }
-
-    /* Clase que se activa con el useState en JSX */
-    .navbar-links.active {
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    }
-
-    .nav-link {
-        width: 100%;
-        text-align: center;
-        padding: 1.2rem;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .nav-link:last-child {
-        border-bottom: none;
-    }
-
-    /* Reducimos un poco el gap de los íconos de la derecha para que no apriete */
-    .navbar-actions {
-        gap: 0.2rem;
-    }
+    .navbar-container { padding: 0 1rem; }
 }
