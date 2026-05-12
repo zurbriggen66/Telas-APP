@@ -90,11 +90,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Telas-App',
+        'NAME': 'appecomercce',
         'USER': 'postgres',
-        'PASSWORD': 'Nacho2003',
+        'PASSWORD': 'Matias2003',
         'HOST': 'localhost',
         'PORT': '3000',
+        'OPTIONS': {
+            'client_encoding': 'UTF8',
+        }
     }
 }
  
