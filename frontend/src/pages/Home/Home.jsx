@@ -7,12 +7,10 @@ import { useNavigate } from 'react-router-dom';
 const Home = () => {
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
+    const [banner, setBanner] = useState(null); // Nuevo estado para el Banner
     const [loading, setLoading] = useState(true);
-    
-    // NUEVO ESTADO: Para que funcione la barra de categorías de arriba
     const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
 
-    /* LÓGICA DEL CARRITO: Lo mantenemos solo para leer la cantidad y pasarla al Navbar */
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
@@ -21,17 +19,18 @@ const Home = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Función para traer toda la info del backend
         const fetchData = async () => {
             try {
-                // Hacemos ambas peticiones al mismo tiempo
-                const [resProductos, resCategorias] = await Promise.all([
+                // Traemos Productos, Categorías y el Banner al mismo tiempo
+                const [resProductos, resCategorias, resBanner] = await Promise.all([
                     axios.get('http://127.0.0.1:8000/api/productos/'),
-                    axios.get('http://127.0.0.1:8000/api/categorias/')
+                    axios.get('http://127.0.0.1:8000/api/categorias/'),
+                    axios.get('http://127.0.0.1:8000/api/banner/')
                 ]);
 
                 setProductos(resProductos.data);
                 setCategorias(resCategorias.data);
+                setBanner(resBanner.data);
                 setLoading(false);
             } catch (error) {
                 console.error("Error cargando la web:", error);
@@ -42,7 +41,6 @@ const Home = () => {
         fetchData();
     }, []);
 
-    // Escuchamos los cambios en el LocalStorage por si agregan al carrito desde el detalle
     useEffect(() => {
         const handleStorageChange = () => {
             const savedCart = localStorage.getItem('cart');
@@ -52,9 +50,6 @@ const Home = () => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    if (loading) return <div className="loader" style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'sans-serif' }}>Cargando catálogo de telas...</div>;
-
-    // Lógica para filtrar los productos según el botón de categoría que toquen
     const productosFiltrados = categoriaFiltro === 'todas' 
         ? productos 
         : productos.filter(p => p.categoria === categoriaFiltro);
@@ -62,63 +57,88 @@ const Home = () => {
     return (
         <div className="home-page">
             <Navbar cartCount={cart.length} />
+            
+            {/* =========================================
+                BLOQUE 1: HERO BANNER
+            ========================================= */}
+            <div className="hero-banner" style={{ 
+                backgroundImage: `url(${banner?.main_image || 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=2070'})` 
+            }}>
+                <div className="hero-overlay">
+                    <h1 className="fuente-cursiva">{banner?.title || 'Boutique de Telas'}</h1>
+                    <p>Calidad premium en cada metro</p>
+                </div>
+            </div>
+
             <div className="home-container">
-                
-                <header className="home-header" style={{ marginTop: '80px' }}>
-                    <h1>Explora nuestra Colección</h1>
-                    <p>Calidad premium en cada metro de tela</p>
-                </header>
+                {/* =========================================
+                    BLOQUE 2: EXPLORADOR DE CATEGORÍAS
+                ========================================= */}
+                <section className="category-section">
+                    <h2 className="section-title">Nuestras Telas</h2>
+                    <div className="category-explorer">
+                        
+                        {/* Botón "Todas" */}
+                        <div className={`category-item ${categoriaFiltro === 'todas' ? 'active' : ''}`} onClick={() => setCategoriaFiltro('todas')}>
+                            <div className="category-circle todas-circle">
+                                <span>Todas</span>
+                            </div>
+                            <span className="category-name">Ver Catálogo</span>
+                        </div>
 
-                {/* BARRA DE CATEGORÍAS FUNCIONAL */}
-                <nav className="categories-bar">
-                    <button 
-                        className={`category-btn ${categoriaFiltro === 'todas' ? 'active' : ''}`}
-                        onClick={() => setCategoriaFiltro('todas')}
-                    >
-                        Todas
-                    </button>
-                    {categorias.map(cat => (
-                        <button 
-                            key={cat.id} 
-                            className={`category-btn ${categoriaFiltro === cat.id ? 'active' : ''}`}
-                            onClick={() => setCategoriaFiltro(cat.id)}
-                        >
-                            {cat.nombre}
-                        </button>
-                    ))}
-                </nav>
+                        {loading ? (
+                            /* SKELETONS PARA CATEGORÍAS */
+                            [1, 2, 3, 4].map(n => (
+                                <div key={n} className="category-item">
+                                    <div className="category-circle skeleton-circle"></div>
+                                    <div className="skeleton-text-small"></div>
+                                </div>
+                            ))
+                        ) : (
+                            /* CATEGORÍAS REALES */
+                            categorias.map(cat => (
+                                <div key={cat.id} className={`category-item ${categoriaFiltro === cat.id ? 'active' : ''}`} onClick={() => setCategoriaFiltro(cat.id)}>
+                                    <div className="category-circle" style={{ backgroundImage: `url(${cat.imagen || 'https://via.placeholder.com/150'})` }}></div>
+                                    <span className="category-name">{cat.nombre}</span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </section>
 
+                {/* =========================================
+                    BLOQUE 3: CATÁLOGO DE PRODUCTOS
+                ========================================= */}
                 <main className="products-grid">
-                    {productosFiltrados.length === 0 ? (
-                         <div style={{ textAlign: 'center', gridColumn: '1 / -1', padding: '3rem', color: '#6b7280' }}>
-                             No hay telas publicadas en esta categoría por el momento.
-                         </div>
+                    {loading ? (
+                        /* SKELETONS PARA PRODUCTOS */
+                        [1, 2, 3, 4, 5, 6].map(n => (
+                            <div key={n} className="product-card skeleton-card">
+                                <div className="skeleton-img"></div>
+                                <div className="skeleton-info">
+                                    <div className="skeleton-tag"></div>
+                                    <div className="skeleton-title"></div>
+                                    <div className="skeleton-price"></div>
+                                </div>
+                            </div>
+                        ))
+                    ) : productosFiltrados.length === 0 ? (
+                        <div className="empty-state">No hay telas publicadas en esta categoría.</div>
                     ) : (
+                        /* PRODUCTOS REALES */
                         productosFiltrados.map(prod => (
-                            // La tarjeta entera es clickeable y te lleva al detalle
-                            <div key={prod.id} className="product-card" onClick={() => navigate(`/producto/${prod.id}`)} style={{ cursor: 'pointer' }} >
+                            <div key={prod.id} className="product-card" onClick={() => navigate(`/producto/${prod.id}`)}>
                                 <div className="product-image-container">
-                                    <img 
-                                        src={prod.imagen || 'https://via.placeholder.com/300?text=Sin+Imagen'} 
-                                        alt={prod.nombre} 
-                                        className="product-image"
-                                    />
+                                    <img src={prod.imagen || 'https://via.placeholder.com/400'} alt={prod.nombre} className="product-image" />
                                 </div>
                                 <div className="product-info">
                                     <span className="product-tag">{prod.categoria_nombre || 'Nueva'}</span>
                                     <h3 className="product-title">{prod.nombre}</h3>
                                     
-                                    {/* Usamos un truco CSS inline para que la descripción no rompa el alto de la tarjeta si es muy larga */}
-                                    <p className="product-description" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                        {prod.descripcion}
-                                    </p>
-                                    
                                     <div className="product-footer">
-                                        {/* CORRECCIÓN: Usamos precio_por_metro y le agregamos el "/m" para más claridad visual */}
                                         <span className="product-price">
-                                            ${Number(prod.precio_por_metro).toLocaleString('es-AR')} <span style={{fontSize: '0.8rem', color: '#6b7280', fontWeight: 500}}>/m</span>
+                                            ${Number(prod.precio_por_metro).toLocaleString('es-AR')} <span>/m</span>
                                         </span>
-                                        {/* Eliminamos el div product-actions y el botón Comprar */}
                                     </div>
                                 </div>
                             </div>

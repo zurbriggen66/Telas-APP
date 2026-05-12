@@ -34,14 +34,14 @@ const Dashboard = () => {
 
   return (
     // CAMBIO CLAVE: Si es mobile, usamos flexDirection: 'column' para que el navbar quede arriba del todo
-    <div className="dashboard-root" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', minHeight: '100vh', background: '#f8fafc', position: 'relative', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="dashboard-root" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', width: '100vw', marginLeft: 'calc(-50vw + 50%)', margin: 0, padding: 0, top: 0, left: 0, background: '#f8fafc', position: 'relative', fontFamily: "'DM Sans', sans-serif" }}>
       
       {/* NUEVO HEADER MÓVIL: Profesional, oscuro, ocupa todo el ancho */}
       {isMobile && (
         <header style={{
           display: 'flex', alignItems: 'center', padding: '0 16px', height: '64px',
           background: '#0f172a', color: 'white', position: 'sticky', top: 0, zIndex: 30,
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)', flexShrink: 0
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)', flexShrink: 0, margin: 0
         }}>
           <button 
             onClick={() => setMenuAbierto(true)}
@@ -66,7 +66,7 @@ const Dashboard = () => {
       <aside style={{
         width: 260, background: '#0f172a', color: 'white', display: 'flex', flexDirection: 'column',
         position: isMobile ? 'fixed' : 'sticky',
-        top: 0, height: '100vh', zIndex: 50, transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        top: 0, left: 0, height: '100vh', zIndex: 50, margin: 0, padding: 0, transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isMobile && !menuAbierto ? 'translateX(-100%)' : 'translateX(0)',
       }}>
         {/* EN MOBILE OCULTAMOS ESTE TÍTULO PORQUE YA ESTÁ EN LA BARRA SUPERIOR */}
@@ -114,7 +114,7 @@ const Dashboard = () => {
       <main style={{
         // Ahora el padding es normal, el espacio se adapta solo.
         flex: 1, padding: isMobile ? '24px 16px' : '20px 40px',
-        maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden'
+        maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden', margin: 0
       }}>
         <Outlet /> 
       </main>

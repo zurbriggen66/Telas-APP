@@ -1,4 +1,36 @@
 from django.db import models
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+from .image_utils import optimize_image
+
+
+@receiver(pre_save, sender='products.Categoria')
+def optimize_categoria_image(sender, instance, **kwargs):
+    """Optimiza la imagen de categoría antes de guardar"""
+    if instance.imagen:
+        instance.imagen = optimize_image(instance.imagen, max_width=500, max_height=500, quality=85)
+
+
+@receiver(pre_save, sender='products.Producto')
+def optimize_producto_image(sender, instance, **kwargs):
+    """Optimiza la imagen principal del producto antes de guardar"""
+    if instance.imagen:
+        instance.imagen = optimize_image(instance.imagen, max_width=1000, max_height=1000, quality=85)
+
+
+@receiver(pre_save, sender='products.ProductoImagen')
+def optimize_producto_galeria_image(sender, instance, **kwargs):
+    """Optimiza las imágenes de galería antes de guardar"""
+    if instance.imagen:
+        instance.imagen = optimize_image(instance.imagen, max_width=800, max_height=800, quality=85)
+
+
+@receiver(pre_save, sender='products.StoreConfiguration')
+def optimize_store_banner_image(sender, instance, **kwargs):
+    """Optimiza la imagen principal de la tienda antes de guardar"""
+    if instance.main_image:
+        instance.main_image = optimize_image(instance.main_image, max_width=2000, max_height=1200, quality=85)
+
 
 class StoreConfiguration(models.Model):
     title = models.CharField(max_length=100, default="Bienvenido a Telas-APP")

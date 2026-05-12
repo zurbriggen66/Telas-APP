@@ -1,179 +1,305 @@
-:root {
-    --primary: #2563eb;
-    --text-main: #1f2937;
-    --text-muted: #6b7280;
-    --bg-light: #f9fafb;
-    --white: #ffffff;
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+/* Eliminamos el bloque :root para que la página herede la paleta 
+   y el color crema directamente del index.css global */
+
+.home-page {
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
-.home-container {
-    background-color: var(--bg-light);
-    min-height: 100vh;
-    padding: 2rem;
-    font-family: 'Inter', system-ui, sans-serif;
-}
-
-.home-header {
-    text-align: center;
-    margin-bottom: 3rem;
-}
-
-.home-header h1 {
-    font-size: 2.5rem;
-    color: var(--text-main);
-    margin-bottom: 0.5rem;
-}
-
-.home-header p {
-    color: var(--text-muted);
-}
-
-/* Categorías */
-.categories-bar {
+/* =========================================
+   BLOQUE 1: HERO BANNER
+========================================= */
+.hero-banner {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    margin-top: 70px;
+    height: 55vh;
+    min-height: 400px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
     display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 3rem;
 }
 
-.category-btn {
-    padding: 0.6rem 1.5rem;
-    border-radius: 50px;
-    border: 1px solid #e5e7eb;
-    background: var(--white);
-    color: var(--text-main);
-    cursor: pointer;
-    transition: all 0.3s ease;
+.hero-overlay {
+    background-color: rgba(17, 17, 17, 0.4); /* Filtro oscuro para leer bien las letras */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.hero-overlay h1 {
+    color: white;
+    font-size: 5.5rem; /* Letra cursiva gigante */
+    margin-bottom: 5px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+    line-height: 1;
+}
+
+.hero-overlay p {
+    color: var(--color-crema);
+    font-family: var(--font-cuerpo);
+    font-size: 1rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
     font-weight: 500;
 }
 
-.category-btn:hover, .category-btn.active {
-    background: var(--primary);
-    color: var(--white);
-    border-color: var(--primary);
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+.home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4rem 2rem;
 }
 
-/* Grilla de Productos */
+/* =========================================
+   BLOQUE 2: EXPLORADOR DE CATEGORÍAS
+========================================= */
+.category-section {
+    margin-bottom: 4rem;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.2rem;
+    color: var(--color-verde-bosque);
+    margin-bottom: 2.5rem;
+    letter-spacing: -1px;
+}
+
+.category-explorer {
+    display: flex;
+    gap: 2.5rem;
+    overflow-x: auto;
+    padding-bottom: 1.5rem;
+    justify-content: center;
+    scrollbar-width: none; /* Firefox */
+}
+
+.category-explorer::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+}
+
+.category-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    min-width: 100px;
+}
+
+.category-item:hover, .category-item.active {
+    transform: translateY(-5px);
+}
+
+.category-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--shadow-sm);
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    margin-bottom: 12px;
+}
+
+.category-item.active .category-circle {
+    border-color: var(--color-mostaza);
+    box-shadow: 0 8px 20px rgba(220, 179, 90, 0.3);
+}
+
+.todas-circle {
+    background-color: var(--color-verde-bosque);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: var(--font-titulos);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.category-name {
+    font-family: var(--font-cuerpo);
+    font-weight: 600;
+    color: var(--color-negro);
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+/* =========================================
+   BLOQUE 3: CATÁLOGO DE PRODUCTOS (TARJETAS)
+========================================= */
 .products-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
+    gap: 2.5rem;
 }
 
-/* Card de Producto */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: var(--color-gris-oscuro);
+    font-size: 1.1rem;
+}
+
 .product-card {
-    background: var(--white);
-    border-radius: 16px;
+    background: white;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: var(--shadow);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    cursor: pointer;
 }
 
 .product-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+    box-shadow: var(--shadow-md);
 }
 
 .product-image-container {
     width: 100%;
-    height: 250px;
+    height: 350px; /* Tarjeta más estilizada y alta */
     overflow: hidden;
-    background-color: #f3f4f6;
 }
 
 .product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s ease;
+    transition: transform 0.8s ease;
 }
 
 .product-card:hover .product-image {
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .product-info {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
+    padding: 1.8rem;
+    text-align: center;
 }
 
 .product-tag {
     font-size: 0.75rem;
     text-transform: uppercase;
-    color: var(--primary);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    color: var(--color-gris-oscuro);
+    letter-spacing: 1.5px;
+    margin-bottom: 0.8rem;
+    display: block;
 }
 
 .product-title {
-    font-size: 1.25rem;
-    color: var(--text-main);
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
-.product-description {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 1.5rem;
-    flex-grow: 1;
+    font-size: 1.3rem;
+    color: var(--color-negro);
+    margin-bottom: 1.2rem;
 }
 
 .product-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #f3f4f6;
-    padding-top: 1rem;
+    border-top: 1px solid var(--color-gris-claro);
+    padding-top: 1.2rem;
 }
 
 .product-price {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: var(--text-main);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--color-verde-bosque);
 }
 
-.btn-detail {
-    background: var(--text-main);
-    color: var(--white);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    border: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
+.product-price span {
+    font-size: 0.9rem;
+    color: var(--color-gris-oscuro);
+    font-weight: normal;
 }
 
-.btn-detail:hover {
-    background: var(--primary);
+/* =========================================
+   SKELETON LOADERS (ANIMACIÓN DE CARGA)
+========================================= */
+@keyframes pulse {
+    0% { background-color: var(--color-gris-claro); }
+    50% { background-color: #f5f5f5; }
+    100% { background-color: var(--color-gris-claro); }
 }
-.product-actions {
+
+.skeleton-circle {
+    animation: pulse 1.5s infinite ease-in-out;
+    border: none !important;
+}
+
+.skeleton-text-small {
+    width: 70px;
+    height: 14px;
+    background-color: var(--color-gris-claro);
+    border-radius: 6px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-card {
+    pointer-events: none;
+    box-shadow: none;
+    border: 1px solid var(--color-gris-claro);
+}
+
+.skeleton-img {
+    width: 100%;
+    height: 350px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-info {
+    padding: 1.8rem;
     display: flex;
-    gap: 0.5rem;
-}
-
-.btn-icon-only {
-    background: #f3f4f6;
-    border: none;
-    padding: 0.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
+    gap: 12px;
 }
 
-.btn-icon-only:hover {
-    background: #2563eb;
-    color: white;
+.skeleton-tag {
+    width: 30%;
+    height: 12px;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-title {
+    width: 80%;
+    height: 24px;
+    border-radius: 4px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.skeleton-price {
+    width: 40%;
+    height: 28px;
+    border-radius: 4px;
+    margin-top: 15px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* =========================================
+   RESPONSIVE (CELULARES)
+========================================= */
+@media (max-width: 768px) {
+    .category-explorer {
+        justify-content: flex-start;
+        padding: 0 1rem 1rem 1rem;
+    }
+    
+    .hero-overlay h1 {
+        font-size: 4rem; /* Cursiva un poco más chica en celulares */
+    }
+    
+    .home-container {
+        padding: 2rem 1.5rem;
+    }
 }

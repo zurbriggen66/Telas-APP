@@ -149,3 +149,43 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# ============================================================
+# CONFIGURACIÓN DE OPTIMIZACIÓN DE IMÁGENES CON PILLOW
+# ============================================================
+# Ubicación de archivos de media (donde Django guarda imágenes subidas)
+MEDIA_URL = '/media/'
+
+# Formatos de imagen permitidos
+ALLOWED_IMAGE_FORMATS = ['JPEG', 'JPG', 'PNG', 'GIF', 'WEBP']
+
+# Parámetros de optimización para diferentes tipos de imágenes
+IMAGE_OPTIMIZATION_SETTINGS = {
+    'THUMBNAILS': {
+        'max_width': 500,
+        'max_height': 500,
+        'quality': 85,
+    },
+    'PRODUCT_IMAGES': {
+        'max_width': 1000,
+        'max_height': 1000,
+        'quality': 85,
+    },
+    'GALLERY_IMAGES': {
+        'max_width': 800,
+        'max_height': 800,
+        'quality': 85,
+    },
+    'BANNERS': {
+        'max_width': 2000,
+        'max_height': 1200,
+        'quality': 85,
+    }
+}
+
+# Pillow - Optimización automática de imágenes
+PILLOW_SETTINGS = {
+    'JPEG_QUALITY': 85,
+    'PNG_COMPRESS_LEVEL': 9,
+    'WEBP_QUALITY': 85,
+}
