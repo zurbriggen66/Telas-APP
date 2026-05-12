@@ -8,9 +8,10 @@ router.register(r'productos', views.ProductoViewSet, basename='producto')
 
 urlpatterns = [
     path('api/banner/', views.get_main_banner, name='main-banner'),
-    
-    # NUEVA RUTA PARA MERCADO PAGO
     path('api/mercadopago/preference/', views.MercadoPagoPreferenceView.as_view(), name='mp-preference'),
+    
+    # NUEVA RUTA PARA DESCONTAR STOCK
+    path('api/pedidos/confirmar/', views.confirmar_pedido, name='confirmar-pedido'),
     
     path('api/', include(router.urls)),
 ]

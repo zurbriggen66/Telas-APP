@@ -5,14 +5,12 @@ import mercadopago
 from rest_framework import status, viewsets
 from django.conf import settings
 from rest_framework.views import APIView
-from .models import StoreConfiguration, Categoria, Producto, ProductoImagen
+from django.db import transaction # NUEVO IMPORT PARA SEGURIDAD DE STOCK
 
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen
 from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer
 
-# Ahora aceptamos GET (leer) y POST (guardar)
 @api_view(['GET', 'POST'])
-# Estos parsers son obligatorios para que Django entienda que viene un archivo, no solo texto
 @parser_classes([MultiPartParser, FormParser])
 def get_main_banner(request):
     config = StoreConfiguration.objects.filter(is_active=True).first()
@@ -24,120 +22,116 @@ def get_main_banner(request):
         return Response({"error": "No hay configuración activa"}, status=status.HTTP_404_NOT_FOUND)
         
     elif request.method == 'POST':
-        # Si ya existe una configuración, la actualizamos. Si no, creamos una nueva.
         if config:
             serializer = StoreConfigurationSerializer(config, data=request.data, partial=True, context={'request': request})
         else:
             serializer = StoreConfigurationSerializer(data=request.data, context={'request': request})
             
         if serializer.is_valid():
-            # Guardamos y aseguramos que quede como la configuración activa
             serializer.save(is_active=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
-        # Si el cliente mandó un archivo corrupto, le avisamos
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-# ... (tus imports y get_main_banner quedan exactamente igual) ...
 
 class CategoriaViewSet(viewsets.ModelViewSet):
-    """
-    Este ViewSet proporciona automáticamente las acciones:
-    `list`, `create`, `retrieve`, `update` (PATCH) y `destroy` (DELETE).
-    """
-    # OPTIMIZACIÓN: Usamos select_related para traer los datos del "padre" en la misma consulta a la DB
     queryset = Categoria.objects.select_related('categoria_padre').all()
     serializer_class = CategoriaSerializer
 
-
 class ProductoViewSet(viewsets.ModelViewSet):
-    # OPTIMIZACIÓN: Usamos select_related para traer los datos de la categoría en la misma consulta
     queryset = Producto.objects.select_related('categoria').all()
     serializer_class = ProductoSerializer
 
     def create(self, request, *args, **kwargs):
-        # 1. Creamos el producto base con los datos estándar
         response = super().create(request, *args, **kwargs)
         producto = Producto.objects.get(id=response.data['id'])
-        
-        # 2. Guardamos las imágenes extra de la galería
         self._guardar_imagenes_galeria(request, producto)
         return response
 
     def update(self, request, *args, **kwargs):
         producto_id = kwargs.get('pk')
-
-        # 1. Eliminar las imágenes que el usuario quitó en el frontend
         imagenes_a_eliminar = request.data.getlist('eliminar_imagenes')
         
         if imagenes_a_eliminar:
-            # Borramos las imágenes de la base de datos (esto también borra el archivo físico gracias al cascade)
             ProductoImagen.objects.filter(id__in=imagenes_a_eliminar, producto_id=producto_id).delete()
 
-        # 2. Actualizar el producto base (nombre, precio, etc.)
         response = super().update(request, *args, **kwargs)
         producto = self.get_object()
-
-        # 3. Guardar las NUEVAS imágenes extra que se hayan agregado
         self._guardar_imagenes_galeria(request, producto)
-        
         return response
 
     def _guardar_imagenes_galeria(self, request, producto):
-        """Función auxiliar para buscar y guardar archivos 'imagen_extra_X'"""
         for key, file in request.FILES.items():
             if key.startswith('imagen_extra_'):
                 ProductoImagen.objects.create(producto=producto, imagen=file)
-
-
-
 class MercadoPagoPreferenceView(APIView):
     def post(self, request):
         try:
-            # Verifica que el Token sea el correcto (Sugerencia: Usa TEST-)
-            sdk = mercadopago.SDK("APP_USR-6162698134775253-051118-002193f6db26c59485499973ba07b7d9-3395671684")
+            # ACÁ PUSIMOS TU ACCESS TOKEN DE PRUEBA
+            sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
 
             cart_items = request.data.get('items', [])
             items_for_mp = []
 
             for item in cart_items:
                 items_for_mp.append({
-                    "id": str(item.get('id')),
-                    "title": item.get('nombre'),
-                    "quantity": int(item.get('cantidad')),
-                    "unit_price": float(item.get('precio')),
+                    "id": str(item.get('id', '1')),
+                    "title": str(item.get('nombre', 'Corte de Tela')),
+                    "quantity": int(item.get('cantidad', 1)),
+                    "unit_price": float(item.get('precio_por_metro', 0)),
                     "currency_id": "ARS",
                 })
 
-            # Asegúrate de que preference_data sea EXACTAMENTE así
-            # Asegúrate de que preference_data sea EXACTAMENTE así
+            # Aseguramos el formato exacto que pide MP usando localhost
             preference_data = {
                 "items": items_for_mp,
                 "back_urls": {
-                    "success": "http://127.0.0.1:5173",  # Sin barra al final para probar
-                    "failure": "http://127.0.0.1:5173",
-                    "pending": "http://127.0.0.1:5173"
+                    "success": "http://localhost:5173/success",
+                    "failure": "http://localhost:5173/checkout",
+                    "pending": "http://localhost:5173/checkout"
                 },
-                #"auto_return": "approved",
-                "binary_mode": True,
+                #"auto_return": "approved",#
+                "binary_mode": True
             }
 
-            # CREACIÓN DE PREFERENCIA
             preference_response = sdk.preference().create(preference_data)
-            
-            # --- AQUÍ ESTÁ EL TRUCO PARA DEBUGEAR ---
             status_code = preference_response["status"]
             response_data = preference_response["response"]
 
             if status_code >= 400:
-                print("--- ERROR DE MERCADO PAGO ---")
-                print(f"Status: {status_code}")
-                print(f"Respuesta: {response_data}")
+                print("\n❌ --- ERROR DE MERCADO PAGO --- ❌")
+                print(response_data)
+                print("❌ ----------------------------- ❌\n")
                 return Response(response_data, status=status_code)
 
-            # Si llega acá, todo salió bien
             return Response({'id': response_data['id']}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            print(f"Excepción en el código: {str(e)}")
+            print(f"\n❌ ERROR DE PYTHON: {str(e)} ❌\n")
             return Response({"error": str(e)}, status=500)
+
+# NUEVA LÓGICA DE DESCUENTO DE STOCK
+@api_view(['POST'])
+def confirmar_pedido(request):
+    try:
+        # with transaction.atomic() asegura que si algo falla, no se guarda nada en la base de datos
+        with transaction.atomic():
+            cart_items = request.data.get('items', [])
+            
+            for item in cart_items:
+                producto = Producto.objects.select_for_update().get(id=item['id'])
+                metros_comprados = float(item['cantidad'])
+                
+                # Validamos que siga habiendo stock al momento de pagar
+                if producto.stock_metros >= metros_comprados:
+                    producto.stock_metros -= metros_comprados
+                    producto.save()
+                else:
+                    return Response(
+                        {"error": f"Oops, alguien compró {producto.nombre} antes que vos y nos quedamos sin stock suficiente."}, 
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                    
+            return Response({"mensaje": "Stock descontado con éxito"}, status=status.HTTP_200_OK)
+            
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -1,0 +1,153 @@
+.checkout-selection-page {
+    background-color: #FDFCFB;
+    min-height: 100vh;
+    padding-top: 100px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.checkout-selection-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.back-button-simple {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 30px;
+}
+
+.checkout-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.checkout-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.checkout-selection-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 40px;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.payment-card {
+    display: flex;
+    align-items: center;
+    padding: 25px;
+    background: white;
+    border: 1px solid #F0F0F0;
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.payment-card.active {
+    border-color: #1A1A1A;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.payment-card-icon {
+    margin-right: 20px;
+    color: #1A1A1A;
+}
+
+.payment-card-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+.payment-card-info p {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.selection-indicator {
+    position: absolute;
+    right: 25px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid #DDD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.payment-card.active .selection-indicator {
+    background: #1A1A1A;
+    border-color: #1A1A1A;
+}
+
+.disabled-option {
+    opacity: 0.7;
+}
+
+/* Resumen lateral */
+.checkout-summary {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    border: 1px solid #F0F0F0;
+    height: fit-content;
+}
+
+.summary-item-mini {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.summary-total-line {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #1A1A1A;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-amount {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.btn-pay-now {
+    width: 100%;
+    margin-top: 30px;
+    padding: 18px;
+    background: #1A1A1A;
+    color: white;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.btn-pay-now:hover {
+    opacity: 0.9;
+}
