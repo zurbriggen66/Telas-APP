@@ -24,21 +24,29 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
 # 4. Serializer para los Productos (Telas)
 class ProductoSerializer(serializers.ModelSerializer):
-    # Agregamos el nombre de la categoría para no mandar solo el ID
-    categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)
-    
-    # Anidamos las imágenes de la galería para que React las reciba de una vez
+    # Mantenemos las imágenes de la galería anidadas
     imagenes_galeria = ProductoImagenSerializer(many=True, read_only=True)
 
     class Meta:
         model = Producto
         fields = [
             'id', 'nombre', 'descripcion', 'precio_por_metro', 
-            'ancho_cm', 'stock_metros', 'categoria', 'categoria_nombre', 
+            'ancho_cm', 'stock_metros', 'categoria', 
             'imagen', 'imagenes_galeria'
         ]
 
-# Acordate de importar el Pedido arriba: from .models import ..., Pedido
+    def to_representation(self, instance):
+        """
+        Esta función transforma la salida de los datos. 
+        En la base de datos se guarda el ID, pero a React le llega el Nombre.
+        """
+        representation = super().to_representation(instance)
+        
+        # Reemplazamos el ID numérico por el nombre de la categoría (__str__)
+        if instance.categoria:
+            representation['categoria'] = str(instance.categoria)
+            
+        return representation
 
 class PedidoSerializer(serializers.ModelSerializer):
     class Meta:
