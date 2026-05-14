@@ -225,7 +225,7 @@ def webhook_mercadopago(request):
     except Exception as e:
         return Response({"error": "Fallo en webhook"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
+#vies#
 def enviar_mensaje_whatsapp(numero_destino, mensaje_texto):
     # ⚠️ REEMPLAZA ESTAS DOS VARIABLES CON TUS DATOS DE META ⚠️
     # Lo ideal es que luego las pases a tu archivo .env y uses settings.WHATSAPP_TOKEN
