@@ -12,17 +12,33 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
   const [precio, setPrecio] = useState(prod.precio_por_metro);
   const [stock, setStock] = useState(prod.stock_metros);
   const [guardando, setGuardando] = useState(false);
+  const [mensajeExito, setMensajeExito] = useState('');
 
   const tieneCambios = Number(precio) !== Number(prod.precio_por_metro) || Number(stock) !== Number(prod.stock_metros);
 
   const handleGuardarRapido = async () => {
+    // 1. Nos fijamos qué cambió ANTES de guardar para saber qué mensaje mostrar
+    let msg = 'Actualizado correctamente';
+    const cambioPrecio = Number(precio) !== Number(prod.precio_por_metro);
+    const cambioStock = Number(stock) !== Number(prod.stock_metros);
+
+    if (cambioPrecio && !cambioStock) msg = 'Precio actualizado correctamente';
+    if (cambioStock && !cambioPrecio) msg = 'Stock actualizado correctamente';
+
     setGuardando(true);
-    await onQuickSave(prod.id, { precio_por_metro: precio, stock_metros: stock });
+    // 2. Ejecutamos la función y esperamos a ver si fue exitoso
+    const exito = await onQuickSave(prod.id, { precio_por_metro: precio, stock_metros: stock });
     setGuardando(false);
+
+    // 3. Si todo salió bien, mostramos el mensaje por 3 segundos
+    if (exito) {
+      setMensajeExito(msg);
+      setTimeout(() => setMensajeExito(''), 3000);
+    }
   };
 
   const bgAlternado = index % 2 === 0 ? '#ffffff' : '#f8fafc';
-
+  
   return (
     <div style={{ 
       display: 'flex', flexDirection: isMobile ? 'column' : 'row', 
@@ -90,7 +106,17 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
           </div>
         </div>
 
-        {tieneCambios && (
+        {/* ACÁ ESTÁ LA CORRECCIÓN VISUAL DEL MENSAJE DE ÉXITO */}
+        {mensajeExito ? (
+          <div style={{
+            background: '#f0fdf4', color: '#15803d', padding: '10px 14px', borderRadius: '10px',
+            fontWeight: 700, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px',
+            border: '1px solid #bbf7d0', width: isMobile ? '100%' : 'auto', justifyContent: 'center',
+            whiteSpace: 'nowrap'
+          }}>
+            <Icon d={icons.check} size={14} color="#16a34a" /> {mensajeExito}
+          </div>
+        ) : tieneCambios && (
           <button 
             onClick={handleGuardarRapido} disabled={guardando}
             style={{ 
@@ -149,7 +175,6 @@ const VistaProductos = () => {
   const [imagenesOriginales, setImagenesOriginales] = useState([]); 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   
-  // NUEVO: Estado para controlar qué categoría estamos filtrando
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
 
   useEffect(() => {
@@ -178,10 +203,16 @@ const VistaProductos = () => {
 
   const handleQuickSave = async (id, data) => {
     try {
-      await axios.patch(`${API}/productos/${id}/`, data);
+      const formData = new FormData();
+      formData.append('precio_por_metro', data.precio_por_metro);
+      formData.append('stock_metros', data.stock_metros);
+
+      await axios.patch(`${API}/productos/${id}/`, formData);
       setProductos(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+      return true; // Le avisamos a la tarjeta que todo salió joya
     } catch {
       alert("Error al actualizar rápidamente. Por favor, intentá de nuevo.");
+      return false; // Le avisamos que hubo un error
     }
   };
 

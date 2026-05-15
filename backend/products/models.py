@@ -24,18 +24,38 @@ def optimize_producto_galeria_image(sender, instance, **kwargs):
     if instance.imagen:
         instance.imagen = optimize_image(instance.imagen, max_width=800, max_height=800, quality=85)
 
-
 @receiver(pre_save, sender='products.StoreConfiguration')
-def optimize_store_banner_image(sender, instance, **kwargs):
-    """Optimiza la imagen principal de la tienda antes de guardar"""
-    if instance.main_image:
-        instance.main_image = optimize_image(instance.main_image, max_width=2000, max_height=1200, quality=85)
-
+def optimize_store_images(sender, instance, **kwargs):
+    """Optimiza TODAS las imágenes de la tienda antes de guardar"""
+    # Banners
+    if instance.banner_1: instance.banner_1 = optimize_image(instance.banner_1, max_width=2000, max_height=1200, quality=85)
+    if instance.banner_2: instance.banner_2 = optimize_image(instance.banner_2, max_width=2000, max_height=1200, quality=85)
+    if instance.banner_3: instance.banner_3 = optimize_image(instance.banner_3, max_width=2000, max_height=1200, quality=85)
+    
+    # Secundarias
+    if instance.imagen_secundaria_1: instance.imagen_secundaria_1 = optimize_image(instance.imagen_secundaria_1, max_width=1200, max_height=1200, quality=85)
+    if instance.imagen_secundaria_2: instance.imagen_secundaria_2 = optimize_image(instance.imagen_secundaria_2, max_width=1200, max_height=1200, quality=85)
 
 class StoreConfiguration(models.Model):
     title = models.CharField(max_length=100, default="Bienvenido a Telas-APP")
-    main_image = models.ImageField(upload_to='banners/', verbose_name="Imagen Principal")
-    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
+    
+    # --- Banners Principales ---
+    banner_1 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 1", blank=True, null=True)
+    banner_2 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 2", blank=True, null=True)
+    banner_3 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 3", blank=True, null=True)
+    
+    # --- Imágenes Secundarias ---
+    imagen_secundaria_1 = models.ImageField(upload_to='banners/secundarias/', blank=True, null=True, verbose_name="Imagen Secundaria 1")
+    imagen_secundaria_2 = models.ImageField(upload_to='banners/secundarias/', blank=True, null=True, verbose_name="Imagen Secundaria 2")
+    
+    # --- Logos ---
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True, verbose_name="Logo Principal")
+    logo_desarrollador = models.ImageField(upload_to='logos/', blank=True, null=True, verbose_name="Logo Desarrollador")
+    
+    # --- Textos y Contacto ---
+    instagram = models.CharField(max_length=100, blank=True, null=True, verbose_name="Usuario de Instagram")
+    telefono = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono del Cliente")
+
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

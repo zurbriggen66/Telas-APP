@@ -35,6 +35,9 @@ const Home = () => {
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
     const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+    
+    // Nuevo estado para controlar el slide actual del carrusel
+    const [currentSlide, setCurrentSlide] = useState(0);
 
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
@@ -44,6 +47,7 @@ const Home = () => {
     const navigate = useNavigate();
     const revealRef = useScrollReveal();
 
+    // Fetch de datos
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -64,6 +68,7 @@ const Home = () => {
         fetchData();
     }, []);
 
+    // Sincronización del carrito
     useEffect(() => {
         const handleStorageChange = () => {
             const savedCart = localStorage.getItem('cart');
@@ -73,6 +78,23 @@ const Home = () => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
+    // Preparar las imágenes del carrusel (Asegúrate de que estos nombres coincidan con tu backend)
+    const heroImages = [
+        banner?.banner_1,
+        banner?.banner_2,
+        banner?.banner_3
+    ].filter(Boolean); // Filter elimina nulos o vacíos
+
+    // Efecto para rotar las imágenes del carrusel cada 5 segundos
+    useEffect(() => {
+        if (heroImages.length > 1) {
+            const interval = setInterval(() => {
+                setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [heroImages.length]);
+
     const productosFiltrados =
         categoriaFiltro === 'todas'
             ? productos
@@ -80,21 +102,33 @@ const Home = () => {
 
     return (
         <div className="home-page">
+            
+            {/* ── PANTALLA DE CARGA ESTILO LIBRA FEMME ── */}
+            {loading && (
+                <div className="fullscreen-loader">
+                    <div className="loader-content">
+                        <h1 className="loader-brand">LIBRA FEMME</h1>
+                        <div className="loader-line"></div>
+                    </div>
+                </div>
+            )}
+
             <Navbar cartCount={cart.length} />
 
             {/* ── HERO BANNER ── */}
-            <div
-                className="hero-banner"
-                style={{
-                    backgroundImage: `url(${
-                        banner?.main_image ||
-                        'https://images.unsplash.com/photo-1528360983277-13d401cdc186?q=80&w=2070'
-                    })`,
-                }}
-            >
+            <div className="hero-banner">
+                {/* Capas de imágenes del carrusel */}
+                {heroImages.map((imgUrl, index) => (
+                    <div
+                        key={index}
+                        className={`hero-slide ${index === currentSlide ? 'active' : ''}`}
+                        style={{ backgroundImage: `url(${imgUrl})` }}
+                    />
+                ))}
+
                 <div className="hero-overlay">
                     <p className="hero-eyebrow">Colección 2025</p>
-                    <h1 className="fuente-cursiva">{banner?.title || 'Boutique de Telas'}</h1>
+                    <h1 className="fuente-cursiva">{banner?.title || 'Mi Tienda Oficial'}</h1>
                     <p className="hero-sub">Calidad premium en cada metro</p>
                     <button className="hero-cta" onClick={() => document.querySelector('.category-section')?.scrollIntoView({ behavior: 'smooth' })}>
                         Ver catálogo
@@ -112,9 +146,6 @@ const Home = () => {
                     </div>
 
                     <div className="category-explorer">
-                        {/* Botón "Todas" */}
-                        
-
                         {loading
                             ? [1, 2, 3, 4].map((n) => (
                                   <div key={n} className="category-card-item">
@@ -144,8 +175,9 @@ const Home = () => {
                 <section className="promo-section reveal-section" ref={revealRef}>
                     <div className="promo-content">
                         <span className="promo-eyebrow">Destacado</span>
-                        <h2>{banner?.promo_title || 'Nuevos Arrivals de Temporada'}</h2>
-                        <p>{banner?.promo_text || 'Descubrí nuestra última selección de telas importadas. Lino, seda, algodón pima y más — todo con la calidad que nos distingue.'}</p>
+                        {/* Usamos el título del backend si quieres, o uno fijo */}
+                        <h2>Nuevos Arrivals de Temporada</h2>
+                        <p>Descubrí nuestra última selección de telas importadas. Lino, seda, algodón pima y más — todo con la calidad que nos distingue.</p>
                         <button className="promo-btn" onClick={() => setCategoriaFiltro('todas')}>
                             Explorar ahora
                         </button>
@@ -154,7 +186,7 @@ const Home = () => {
                         className="promo-image"
                         style={{
                             backgroundImage: `url(${
-                                banner?.promo_image ||
+                                banner?.imagen_secundaria_1 ||
                                 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?q=80&w=1974'
                             })`,
                         }}
