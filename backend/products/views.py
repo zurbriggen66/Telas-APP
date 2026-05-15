@@ -86,7 +86,7 @@ class MercadoPagoPreferenceView(APIView):
                 })
 
             # TU URL DE NGROK AQUÍ
-            ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
+            ngrok_url = "https://elvia-uncited-humbly.ngrok-free.dev"
 
             preference_data = {
                 "items": items_for_mp,
@@ -229,7 +229,7 @@ def webhook_mercadopago(request):
 def enviar_mensaje_whatsapp(numero_destino, mensaje_texto):
     # ⚠️ REEMPLAZA ESTAS DOS VARIABLES CON TUS DATOS DE META ⚠️
     # Lo ideal es que luego las pases a tu archivo .env y uses settings.WHATSAPP_TOKEN
-    WHATSAPP_TOKEN = "EAAbwNepQP9IBRUzDCXBtf9szLnRwR4SQDOPmmQX6cRZBXioid8nYp8evzCYQt35EgmVWvXj3Mz6GSvZClab2maoBfoE0gGCZB2goxvf1672YDeYeWzuZBWLQOmfYfZBu6ZCjbBuB1vuBZBx2OzQnw02SMA6OtQD1KhgC3qQYGEepl2N6zM0PUruxtoQOu51GosjLqAq44AF5nZBIjkvHlyMZAlSqWXcL2J8mIJGR7aT3T6Vt2SHXahEtF2w2Y6p0Wy9c7u2RaLBXXcNucI2pGS1ARZAwZDZD"
+    WHATSAPP_TOKEN = "EAAbwNepQP9IBRUJ9g5JZAJCPUzoQD8aVH5mS2OfXLyINo1ZCmrv0HhYbc4z401xUEmG2fvN7eRczIJAwMjuXF2UJ1tZABjEH7kLWRvb4LIycrlUtbwZBNZAdUopvjNrPWhcykvVBtzaBmUKxpQZC89Vl3608Vn4YGY61KLpSU47BPML61ibPoZAA7COYtl6cScliaz2FP9IX3lu0aggumWnCtgJCyT46KNL7hULxhZAVkqE6f1BZCVdluP9ZBXvG1nZBKjWsUYZBNTcHs5PJAaDwENm8"
     TELEFONO_ID = "1101551966368735"
     
     # URL de la API de Graph de Meta (versión 18.0 o la que estés usando)

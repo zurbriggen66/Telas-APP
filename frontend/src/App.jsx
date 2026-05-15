@@ -17,6 +17,7 @@ import Carrito from './pages/Carrito/Carrito.jsx';
 import DetalleProducto from './pages/Detalle producto/Detalle_producto.jsx';
 import CheckoutSelection from './pages/Checkoutselection/CheckoutSelection.jsx';
 import Success from './pages/Success/Success.jsx'; // <-- IMPORTAMOS LA NUEVA PÁGINA
+import Productos from './pages/Products/Products.jsx';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/producto/:id" element={<DetalleProducto />} />
+        <Route path="/productos" element={<Productos />} />
         
         {/* RUTAS DE PAGO */}
         <Route path="/checkout" element={<CheckoutSelection />} />

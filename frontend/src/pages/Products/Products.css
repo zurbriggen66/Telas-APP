@@ -1,0 +1,389 @@
+/* =========================================
+   VARIABLES DE ESTILO - PALETA ATELIER
+========================================= */
+:root {
+    --verde-atelier: #1a3626;
+    --crema-fondo: #fbf9f4;
+    --dorado-acento: #cf9f40;
+    --blanco: #ffffff;
+    --texto-oscuro: #2c2c2c;
+    --gris-suave: #8a8a8a;
+    --gris-claro: #f5f5f5;
+    --transicion-suave: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* =========================================
+   CONTENEDOR PRINCIPAL
+========================================= */
+.catalogo-page {
+    background-color: var(--crema-fondo);
+    min-height: 100vh;
+    padding: 8rem 5% 5rem; /* Usamos % para que respire bien en pantallas gigantes */
+    max-width: 1600px;
+    margin: 0 auto;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* =========================================
+   HEADER DEL CATÁLOGO
+========================================= */
+.catalogo-header {
+    text-align: center;
+    margin-bottom: 5rem;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.catalogo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    color: var(--verde-atelier);
+    margin-bottom: 1rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.catalogo-subtitle {
+    color: var(--gris-suave);
+    font-size: 1.1rem;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+}
+
+.catalogo-divider {
+    width: 80px;
+    height: 2px;
+    background-color: var(--dorado-acento);
+    margin: 1.5rem auto 0;
+}
+
+/* =========================================
+   GRILLA RESPONSIVE DE PRODUCTOS
+========================================= */
+.catalogo-grid {
+    display: grid;
+    /* Automágicamente se adapta al ancho. Mínimo 280px por tarjeta */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 4rem 2.5rem;
+}
+
+/* =========================================
+   TARJETA DE PRODUCTO (ESTILO HIGH-END)
+========================================= */
+.producto-card {
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    group: hover; /* Para animar elementos internos al pasar el mouse por la tarjeta */
+    animation: fadeIn 1s ease-out forwards;
+}
+
+/* Contenedor de la foto con proporción perfecta */
+.producto-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4; /* Proporción ideal para moda/textiles */
+    overflow: hidden;
+    background-color: var(--gris-claro);
+    margin-bottom: 1.5rem;
+}
+
+.producto-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Llena el espacio sin deformar la foto */
+    transition: transform var(--transicion-suave);
+}
+
+/* El zoom elegante al pasar el mouse */
+.producto-card:hover .producto-image {
+    transform: scale(1.05); 
+}
+
+/* Etiqueta de "Últimos metros" */
+.producto-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: var(--dorado-acento);
+    color: var(--blanco);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    z-index: 2;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   INFORMACIÓN DEL PRODUCTO
+========================================= */
+.producto-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    text-align: center; /* Centrado da un toque más boutique */
+}
+
+.producto-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--verde-atelier);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.producto-precio {
+    font-size: 1.1rem;
+    color: var(--texto-oscuro);
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.producto-precio span {
+    font-size: 0.85rem;
+    color: var(--gris-suave);
+    font-weight: 400;
+}
+
+/* =========================================
+   BOTÓN "AGREGAR A LA BOLSA"
+========================================= */
+.btn-add-cart {
+    margin-top: auto;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background-color: transparent;
+    color: var(--verde-atelier);
+    border: 1px solid var(--verde-atelier);
+    padding: 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-add-cart:hover:not(:disabled) {
+    background-color: var(--verde-atelier);
+    color: var(--blanco);
+}
+
+.btn-add-cart:disabled {
+    border-color: #ddd;
+    color: #aaa;
+    cursor: not-allowed;
+    background-color: #fafafa;
+}
+
+/* =========================================
+   ESTADOS DE CARGA (LOADING)
+========================================= */
+.productos-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    color: var(--verde-atelier);
+}
+
+.spinner {
+    animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    margin-bottom: 1rem;
+    color: var(--dorado-acento);
+}
+
+/* =========================================
+   ANIMACIONES
+========================================= */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MEDIA QUERIES (RESPONSIVE MÓVIL)
+========================================= */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+    .catalogo-grid {
+        gap: 3rem 1.5rem;
+    }
+}
+
+/* Celulares grandes */
+@media (max-width: 768px) {
+    .catalogo-page {
+        padding: 6rem 1rem 3rem; /* Menos margen en celular */
+    }
+
+    .catalogo-title {
+        font-size: 2.5rem;
+    }
+
+    .catalogo-grid {
+        /* En celular forzamos 2 columnas para que parezca Instagram/Tienda */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem 1rem;
+    }
+
+    .producto-nombre {
+        font-size: 1.1rem;
+    }
+
+    .producto-precio {
+        font-size: 1rem;
+    }
+
+    .btn-add-cart {
+        padding: 0.7rem;
+        font-size: 0.75rem; /* Achicamos texto del botón */
+        gap: 5px;
+    }
+}
+
+/* Celulares chicos */
+@media (max-width: 480px) {
+    .catalogo-grid {
+        /* Si la pantalla es muy muy chica, pasamos a 1 columna */
+        grid-template-columns: 1fr;
+    }
+    
+    .producto-image-container {
+        aspect-ratio: 4 / 5; /* Un poco menos alta en pantallas chicas */
+    }
+}
+/* =========================================
+   BARRA DE FILTROS
+========================================= */
+.filtros-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--blanco);
+    padding: 1.5rem 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid var(--borde-suave);
+    gap: 1.5rem;
+}
+
+.filtros-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--verde-atelier);
+    font-weight: 600;
+}
+
+.filtros-icon {
+    color: var(--dorado-acento);
+}
+
+.filtros-controles {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.filtro-grupo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.filtro-grupo label {
+    font-size: 0.85rem;
+    color: var(--gris-suave);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.filtro-select {
+    padding: 0.6rem 2.5rem 0.6rem 1rem;
+    border: 1px solid var(--borde-suave);
+    background-color: transparent;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    color: var(--texto-oscuro);
+    cursor: pointer;
+    appearance: none; /* Quita la flecha por defecto fea del navegador */
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a3626%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem top 50%;
+    background-size: 0.65rem auto;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.filtro-select:focus,
+.filtro-select:hover {
+    border-color: var(--verde-atelier);
+}
+
+/* Estado Vacío (Sin resultados) */
+.sin-resultados {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--blanco);
+    border: 1px dashed var(--borde-suave);
+    color: var(--gris-suave);
+    font-family: 'Montserrat', sans-serif;
+}
+
+.btn-limpiar {
+    margin-top: 1.5rem;
+    background-color: var(--verde-atelier);
+    color: var(--blanco);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+    text-transform: uppercase;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-limpiar:hover {
+    background-color: var(--dorado-acento);
+}
+
+/* Media Query para la barra de filtros en celulares */
+@media (max-width: 768px) {
+    .filtros-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 1.5rem 1rem;
+    }
+    
+    .filtros-controles {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .filtro-grupo {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+}
