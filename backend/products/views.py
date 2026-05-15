@@ -57,18 +57,28 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         producto_id = kwargs.get('pk')
-        imagenes_a_eliminar = request.data.getlist('eliminar_imagenes')
         
+        # --- CORRECCIÓN: Adaptamos para que acepte tanto FormData como JSON puro ---
+        if hasattr(request.data, 'getlist'):
+            # Si viene desde el formulario con imágenes (FormData)
+            imagenes_a_eliminar = request.data.getlist('eliminar_imagenes')
+        else:
+            # Si viene desde un clic rápido como el de Favoritos (JSON)
+            imagenes_a_eliminar = request.data.get('eliminar_imagenes', [])
+            
         if imagenes_a_eliminar:
             ProductoImagen.objects.filter(id__in=imagenes_a_eliminar, producto_id=producto_id).delete()
             
         response = super().update(request, *args, **kwargs)
         producto = self.get_object()
         
-        # --- NUEVO: Failsafe para actualizar categorías desde FormData ---
+        # --- CORRECCIÓN: Lo mismo para las categorías ---
         if 'categorias' in request.data:
-            categorias_ids = request.data.getlist('categorias')
-            producto.categorias.set(categorias_ids) # Esto actualiza la tabla intermedia automáticamente
+            if hasattr(request.data, 'getlist'):
+                categorias_ids = request.data.getlist('categorias')
+            else:
+                categorias_ids = request.data.get('categorias', [])
+            producto.categorias.set(categorias_ids) 
             
         self._guardar_imagenes_galeria(request, producto)
         return response

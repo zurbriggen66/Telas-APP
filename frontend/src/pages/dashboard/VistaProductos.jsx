@@ -4,11 +4,12 @@ import Header from '../../components/Header';
 import Card from '../../components/Card';
 import ImageUploader from '../../components/ImageUploader';
 import { Icon, icons } from '../../components/Icons';
+import { Star } from 'lucide-react'; // NUEVO: Importamos la estrella
 
 const API = 'http://127.0.0.1:8000/api';
 
 // --- COMPONENTE: TARJETA DE EDICIÓN RÁPIDA ---
-const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, onQuickSave }) => {
+const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, onQuickSave, onToggleFavorito }) => {
   const [precio, setPrecio] = useState(prod.precio_por_metro);
   const [stock, setStock] = useState(prod.stock_metros);
   const [guardando, setGuardando] = useState(false);
@@ -59,7 +60,6 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {/* CORRECCIÓN: Leemos el array "categorias_nombres" y los separamos por coma */}
             {prod.categorias_nombres && prod.categorias_nombres.length > 0 ? prod.categorias_nombres.join(' • ') : 'Sin categoría'} • {prod.ancho_cm}cm ancho
           </div>
         </div>
@@ -142,11 +142,20 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         </span>
 
         <div style={{ display: 'flex', gap: '8px' }}>
+          {/* BOTÓN ESTRELLA (FAVORITOS) */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); onToggleFavorito(prod); }} 
+            title={prod.es_favorito ? "Quitar de favoritas" : "Marcar como favorita"} 
+            style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Star size={16} fill={prod.es_favorito ? "#eab308" : "transparent"} color={prod.es_favorito ? "#eab308" : "#94a3b8"} />
+          </button>
+          
           <button 
             onClick={(e) => { e.stopPropagation(); onEditarCompleto(prod); }} 
             title="Editar completo" style={{ padding: '8px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <Icon d={icons.edit} size={16} color="#6366f1" />
           </button>
+          
           <button 
             onClick={(e) => { e.stopPropagation(); onEliminar(prod.id); }} 
             title="Eliminar" style={{ padding: '8px', borderRadius: '8px', border: '1px solid #fee2e2', background: '#fff5f5', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -161,8 +170,7 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
 // --- VISTA PRINCIPAL ---
 const VistaProductos = () => {
   const [showForm, setShowForm] = useState(false);
-  // CORRECCIÓN: "categoria" ahora es "categorias" y es un array vacío por defecto
-  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [] });
+  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], es_favorito: false });
   const [images, setImages] = useState([]);
   const [statusMsg, setStatusMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -214,6 +222,18 @@ const VistaProductos = () => {
     }
   };
 
+  // NUEVA FUNCIÓN: Alternar estado de Favorito
+  const handleToggleFavorito = async (prod) => {
+    try {
+      const nuevoEstado = !prod.es_favorito;
+      await axios.patch(`${API}/productos/${prod.id}/`, { es_favorito: nuevoEstado });
+      setProductos(prev => prev.map(p => p.id === prod.id ? { ...p, es_favorito: nuevoEstado } : p));
+    } catch (error) {
+      console.error(error);
+      alert('Error al actualizar favorita.');
+    }
+  };
+
   const abrirEditar = (prod) => {
     setEditando(prod.id);
     setForm({
@@ -222,8 +242,8 @@ const VistaProductos = () => {
       descripcion: prod.descripcion || '',
       ancho_cm: prod.ancho_cm, 
       stock_metros: prod.stock_metros, 
-      // CORRECCIÓN: cargamos el array de categorías del producto
-      categorias: prod.categorias || []
+      categorias: prod.categorias || [],
+      es_favorito: prod.es_favorito || false
     });
 
     const imagenesCargadas = [];
@@ -241,7 +261,7 @@ const VistaProductos = () => {
 
   const resetForm = () => {
     setShowForm(false);
-    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [] });
+    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], es_favorito: false });
     setImages([]); setImagenesOriginales([]); setEditando(null); setStatusMsg('');
   };
 
@@ -257,8 +277,8 @@ const VistaProductos = () => {
       formData.append('ancho_cm', form.ancho_cm);
       formData.append('stock_metros', form.stock_metros);
       formData.append('descripcion', form.descripcion);
+      formData.append('es_favorito', form.es_favorito ? 'True' : 'False');
       
-      // CORRECCIÓN: Agregamos cada categoría al formData (ManyToMany lo requiere así)
       if (form.categorias && form.categorias.length > 0) {
         form.categorias.forEach(catId => {
           formData.append('categorias', catId);
@@ -293,7 +313,6 @@ const VistaProductos = () => {
     }
   };
 
-  // CORRECCIÓN: Lógica de Filtrado (ahora verifica si el ID del filtro está INCLUIDO en el array de categorías del producto)
   const productosFiltrados = categoriaFiltro === 'todas' 
     ? productos 
     : productos.filter(p => p.categorias && p.categorias.includes(categoriaFiltro));
@@ -346,7 +365,6 @@ const VistaProductos = () => {
               <input style={inputStyle} type="number" min="0" step="0.1" placeholder="Ej: 8.5" value={form.stock_metros} onChange={e => setForm({ ...form, stock_metros: e.target.value })} />
             </div>
 
-            {/* NUEVO: Selector de categorías con botones interactivos (píldoras) */}
             <div style={{ gridColumn: '1/-1' }}>
               <label style={labelStyle}>Categorías (Hacé clic para activar o desactivar)</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
@@ -366,18 +384,12 @@ const VistaProductos = () => {
                         }));
                       }}
                       style={{
-                        padding: '6px 14px',
-                        borderRadius: '20px',
+                        padding: '6px 14px', borderRadius: '20px',
                         border: isSelected ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0',
                         background: isSelected ? '#e0e7ff' : '#f8fafc',
                         color: isSelected ? '#4338ca' : '#64748b',
-                        fontWeight: 600,
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
+                        fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                        transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '6px'
                       }}
                     >
                       {isSelected && <Icon d={icons.check} size={14} color="#4338ca" />}
@@ -386,6 +398,20 @@ const VistaProductos = () => {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Checkbox alternativo para Favorito desde el formulario */}
+            <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
+                <input 
+                    type="checkbox" 
+                    id="es_favorito" 
+                    checked={form.es_favorito} 
+                    onChange={e => setForm({...form, es_favorito: e.target.checked})} 
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <label htmlFor="es_favorito" style={{fontSize: 14, fontWeight: 600, color: '#475569', cursor: 'pointer'}}>
+                    🌟 Marcar como Tela Favorita / Destacada
+                </label>
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
@@ -491,6 +517,7 @@ const VistaProductos = () => {
                    onEditarCompleto={abrirEditar} 
                    onEliminar={handleEliminar}
                    onQuickSave={handleQuickSave}
+                   onToggleFavorito={handleToggleFavorito} // NUEVO: Pasamos la función
                  />
                ))
             )}

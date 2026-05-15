@@ -17,7 +17,7 @@
     background-color: #FFFFFF;
     border-radius: 4px;
     padding: 3rem 4rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04); /* Sombra más amplia y suave */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04); 
 }
 
 /* ===== BOTÓN VOLVER ===== */
@@ -46,7 +46,7 @@
 /* ===== GRID LAYOUT ===== */
 .detalle-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr; /* Le damos un poco más de espacio a la foto */
+    grid-template-columns: 1.2fr 1fr; 
     gap: 4rem;
     align-items: start;
 }
@@ -57,7 +57,7 @@
     flex-direction: column;
     gap: 1.5rem;
     position: sticky;
-    top: 100px; /* Mantiene el efecto sticky en PC */
+    top: 100px; 
 }
 
 .detalle-imagen-container {
@@ -67,15 +67,15 @@
     background-color: #F8F8F8;
     border-radius: 4px;
     overflow: hidden;
-    height: 600px; /* Altura fija para PC */
+    height: 600px; 
     width: 100%;
 }
 
 .detalle-imagen {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Evita que la foto se estire, recorta los bordes si es necesario */
-    object-position: center top; /* Centra la foto hacia arriba (ideal para ropa) */
+    object-fit: cover; 
+    object-position: center top; 
     transition: transform 0.6s ease;
 }
 
@@ -120,7 +120,7 @@
 .miniatura-img.activa {
     opacity: 1;
     border: 1px solid #1A1A1A;
-    padding: 2px; /* Efecto marco de foto elegante */
+    padding: 2px; 
 }
 
 /* ===== INFORMACIÓN DEL PRODUCTO ===== */
@@ -212,7 +212,7 @@
     background-color: #1A1A1A;
     color: #FFFFFF;
     border: 1px solid #1A1A1A;
-    border-radius: 0px; /* Bordes rectos para diseño editorial/boutique */
+    border-radius: 0px; 
     font-size: 0.85rem;
     font-weight: 500;
     font-family: 'Montserrat', sans-serif;
@@ -236,66 +236,92 @@
     min-height: 80vh;
     background-color: #FDFCFB;
 }
-
-/* ===== RESPONSIVE DESIGN ===== */
-@media (max-width: 992px) {
-    .detalle-container {
-        padding: 2rem;
-    }
-    .detalle-grid {
-        gap: 2.5rem;
-    }
-    .detalle-titulo {
-        font-size: 2.2rem;
-    }
-}
-
+/* ===== RESPONSIVE DESIGN CELULARES (ESTILO LIBRAFEMME) ===== */
 @media (max-width: 768px) {
     .detalle-page {
-        padding: 1rem;
+        /* 1. Le devolvemos el margen blanco a los costados para que respire */
+        padding: 1.5rem; 
         margin-top: 60px;
+        background-color: #FFFFFF;
     }
     
     .detalle-container {
-        padding: 1.5rem 1rem;
-        box-shadow: none; /* Quitamos sombra en celular para que parezca app nativa */
+        padding: 0;
+        box-shadow: none; 
+    }
+
+    .back-button {
+        margin: 0 0 1.5rem 0; 
     }
 
     .detalle-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 2rem; /* Espacio entre las fotos y el título */
     }
 
-    /* SOLUCIÓN AL PROBLEMA DE SUPERPOSICIÓN EN CELULARES */
+    /* 2. Centramos todo el bloque de imágenes */
     .detalle-galeria-wrapper {
-        position: relative; /* Quitamos el sticky para que no rompa el diseño */
+        position: relative; 
         top: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Esto centra la foto y las miniaturas */
+        gap: 1rem;
+        width: 100%;
     }
 
+    /* 3. Imagen vertical, sin tocar los bordes */
     .detalle-imagen-container {
-        height: 500px; /* Límite de altura en celular para que no ocupe toda la pantalla */
+        width: 100%; 
+        max-width: 400px; /* Evita que sea inmensa en celulares muy anchos */
+        height: auto;
+        aspect-ratio: 3 / 4; /* Bien vertical, como Librafemme */
+        border-radius: 4px; /* Un borde súper sutil */
+        background-color: #F8F8F8;
+        margin: 0 auto;
     }
 
+    /* 4. Miniaturas centradas justo debajo */
+    .detalle-miniaturas {
+        display: flex;
+        justify-content: center; /* Las agrupa en el centro */
+        padding: 0; 
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .miniatura-img {
+        width: 65px;
+        height: 85px;
+        border-radius: 4px;
+    }
+
+    /* Textos y botones */
     .detalle-info {
-        padding-top: 0;
-        gap: 1.2rem;
+        padding: 0;
+        gap: 0.8rem; 
+    }
+
+    .detalle-categoria {
+        margin-bottom: 0; 
     }
 
     .detalle-titulo {
-        font-size: 1.8rem;
+        font-size: 1.8rem; 
     }
 
     .detalle-precio {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .detalle-talle {
+        padding: 1rem 0; 
     }
 
     .btn-agregar-carrito {
         padding: 1rem;
         margin-top: 0.5rem;
-    }
-    
-    .miniatura-img {
-        width: 60px;
-        height: 80px;
+        border-radius: 8px; 
     }
 }

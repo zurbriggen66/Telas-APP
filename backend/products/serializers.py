@@ -30,7 +30,7 @@ class ProductoSerializer(serializers.ModelSerializer):
         model = Producto
         fields = [
             'id', 'nombre', 'descripcion', 'precio_por_metro', 
-            'ancho_cm', 'stock_metros', 
+            'ancho_cm', 'stock_metros', 'es_favorito',
             'categorias', # Recibe/envía un array de IDs (ej: [11, 15])
             'categorias_nombres', # Envía a React un array de nombres (ej: ["Gamuza", "Algodón"])
             'imagen', 'imagenes_galeria'

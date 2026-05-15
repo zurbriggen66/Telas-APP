@@ -86,6 +86,7 @@ class Producto(models.Model):
     )
     nombre = models.CharField(max_length=200, verbose_name="Nombre de la Tela")
     descripcion = models.TextField(verbose_name="Descripción")
+    es_favorito = models.BooleanField(default=False, verbose_name="Tela Favorita/Destacada")
     
     precio_por_metro = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio por Metro")
     ancho_cm = models.PositiveIntegerField(verbose_name="Ancho (cm)", help_text="Ejemplo: 150, 180, 300")

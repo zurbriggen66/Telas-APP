@@ -34,8 +34,7 @@ const Home = () => {
     const [categorias, setCategorias] = useState([]);
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [fadeLoader, setFadeLoader] = useState(false); // Nuevo estado para transición suave
-    const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
+    const [fadeLoader, setFadeLoader] = useState(false);
     
     const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -47,7 +46,7 @@ const Home = () => {
     const navigate = useNavigate();
     const revealRef = useScrollReveal();
 
-    // Fetch de datos con temporizador
+    // Fetch de datos
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -67,9 +66,9 @@ const Home = () => {
         const minimumDelay = new Promise(resolve => setTimeout(resolve, 2000));
 
         Promise.all([fetchData(), minimumDelay]).finally(() => {
-            setFadeLoader(true); // Inicia la animación de desvanecimiento
+            setFadeLoader(true); 
             setTimeout(() => {
-                setLoading(false); // Quita el loader del DOM después de 800ms
+                setLoading(false); 
             }, 800); 
         });
     }, []);
@@ -99,15 +98,40 @@ const Home = () => {
         }
     }, [heroImages.length]);
 
-    const productosFiltrados =
-        categoriaFiltro === 'todas'
-            ? productos
-            : productos.filter((p) => p.categoria === categoriaFiltro);
+    // --- LÓGICA DEL CARRUSEL AUTOMÁTICO DE FAVORITAS ---
+    const productosFavoritos = productos.filter(p => p.es_favorito);
+    const sliderFavoritasRef = useRef(null);
+
+    useEffect(() => {
+        const slider = sliderFavoritasRef.current;
+        let animationId;
+        
+        // Solo animamos si hay favoritas marcadas
+        if (slider && productosFavoritos.length > 0) {
+            const scroll = () => {
+                if (slider) {
+                    slider.scrollLeft += 1; // Velocidad del deslizamiento
+                    // Bucle infinito: si llega al final, vuelve al inicio sutilmente
+                    if (slider.scrollLeft >= (slider.scrollWidth - slider.clientWidth)) {
+                        slider.scrollLeft = 0; 
+                    }
+                }
+                animationId = requestAnimationFrame(scroll);
+            };
+            
+            animationId = requestAnimationFrame(scroll);
+            
+            // Pausar al poner el mouse encima para poder hacer clic cómodamente
+            slider.addEventListener('mouseenter', () => cancelAnimationFrame(animationId));
+            slider.addEventListener('mouseleave', () => animationId = requestAnimationFrame(scroll));
+        }
+        return () => cancelAnimationFrame(animationId);
+    }, [productosFavoritos.length]);
 
     return (
         <div className="home-page">
             
-            {/* ── PANTALLA DE CARGA ELEGANTE CON TRANSICIÓN ── */}
+            {/* ── PANTALLA DE CARGA ── */}
             {loading && (
                 <div className={`fullscreen-loader ${fadeLoader ? 'fade-out' : ''}`}>
                     <div className="loader-content">
@@ -132,14 +156,13 @@ const Home = () => {
                 ))}
 
                 <div className="hero-overlay">
-                    {/* Renderiza el logo si existe, si no un texto por defecto */}
                     {banner?.logo ? (
                         <img src={banner.logo} alt="Logo de la tienda" className="hero-logo" />
                     ) : (
                         <h1 className="fuente-cursiva">{banner?.title || 'Mi Tienda Oficial'}</h1>
                     )}
                     
-                    <button className="hero-cta" onClick={() => document.querySelector('.category-section')?.scrollIntoView({ behavior: 'smooth' })}>
+                    <button className="hero-cta" onClick={() => navigate('/productos')}>
                         Ver catálogo
                     </button>
                 </div>
@@ -165,8 +188,8 @@ const Home = () => {
                             : categorias.map((cat) => (
                                   <div
                                       key={cat.id}
-                                      className={`category-card-item ${categoriaFiltro === cat.id ? 'active' : ''}`}
-                                      onClick={() => setCategoriaFiltro(cat.id)}
+                                      className="category-card-item"
+                                      onClick={() => navigate('/productos')} // Redirige al catálogo completo
                                   >
                                       <div
                                           className="category-rect"
@@ -186,7 +209,7 @@ const Home = () => {
                         <span className="promo-eyebrow">Destacado</span>
                         <h2>Nuevos Arrivals de Temporada</h2>
                         <p>Descubrí nuestra última selección de telas importadas. Lino, seda, algodón pima y más — todo con la calidad que nos distingue.</p>
-                        <button className="promo-btn" onClick={() => setCategoriaFiltro('todas')}>
+                        <button className="promo-btn" onClick={() => navigate('/productos')}>
                             Explorar ahora
                         </button>
                     </div>
@@ -201,71 +224,74 @@ const Home = () => {
                     />
                 </section>
 
-                {/* ── GRILLA DE PRODUCTOS ── */}
-                <section className="products-section reveal-section" ref={revealRef}>
+                {/* ── SECCIÓN FAVORITAS ── */}
+                <section className="favoritas-section reveal-section" ref={revealRef}>
                     <div className="section-header">
-                        <h2 className="section-title">
-                            {categoriaFiltro === 'todas'
-                                ? 'Catálogo Completo'
-                                : categorias.find((c) => c.id === categoriaFiltro)?.nombre || 'Productos'}
-                        </h2>
+                        <h2 className="section-title">FAVORITAS</h2>
                         <div className="section-line" />
                     </div>
 
-                    <main className="products-grid">
-                        {loading ? (
-                            [1, 2, 3, 4, 5, 6].map((n) => (
-                                <div key={n} className="product-card skeleton-card">
-                                    <div className="skeleton-img" />
-                                    <div className="skeleton-info">
-                                        <div className="skeleton-tag" />
-                                        <div className="skeleton-title" />
-                                        <div className="skeleton-price" />
-                                    </div>
-                                </div>
-                            ))
-                        ) : productosFiltrados.length === 0 ? (
-                            <div className="empty-state">
-                                <span className="empty-icon">🧵</span>
-                                <p>No hay telas publicadas en esta categoría.</p>
-                            </div>
-                        ) : (
-                            productosFiltrados.map((prod, i) => (
-                                <div
-                                    key={prod.id}
-                                    className="product-card reveal-card"
-                                    ref={revealRef}
-                                    style={{ '--delay': `${(i % 3) * 0.1}s` }}
+                    {productosFavoritos.length === 0 ? (
+                        <div className="empty-state">
+                            <span className="empty-icon">⭐</span>
+                            <p>Aún no hay telas destacadas. Se mostrarán aquí cuando las marques como favoritas.</p>
+                        </div>
+                    ) : (
+                        <div className="favoritas-slider" ref={sliderFavoritasRef}>
+                            {[...productosFavoritos, ...productosFavoritos, ...productosFavoritos, ...productosFavoritos].map((prod, index) => (
+                                <div 
+                                    key={`${prod.id}-${index}`} 
+                                    className="favorita-card"
                                     onClick={() => navigate(`/producto/${prod.id}`)}
                                 >
-                                    <div className="product-image-container">
-                                        <img
-                                            src={prod.imagen || 'https://via.placeholder.com/400'}
-                                            alt={prod.nombre}
-                                            className="product-image"
-                                            loading="lazy"
-                                        />
-                                        <div className="product-badge">Ver detalle</div>
-                                    </div>
-                                    <div className="product-info">
-                                        <span className="product-tag">
-    {prod.categorias_nombres && prod.categorias_nombres.length > 0 
-        ? prod.categorias_nombres.join(' • ') 
-        : 'Nueva'}
-</span>
-                                        <h3 className="product-title">{prod.nombre}</h3>
-                                        <div className="product-footer">
-                                            <span className="product-price">
-                                                ${Number(prod.precio_por_metro).toLocaleString('es-AR')}
-                                                <span> /m</span>
-                                            </span>
-                                        </div>
+                                    <img 
+                                        src={prod.imagen || 'https://via.placeholder.com/200'} 
+                                        alt={prod.nombre} 
+                                        loading="lazy" 
+                                    />
+                                    <div className="favorita-info">
+                                        <h4>{prod.nombre}</h4>
+                                        <p>${Number(prod.precio_por_metro).toLocaleString('es-AR')}</p>
                                     </div>
                                 </div>
-                            ))
-                        )}
-                    </main>
+                            ))}
+                        </div>
+                    )}
                 </section>
+
+                {/* ── SECCIÓN REDES SOCIALES (ESTILO LIBRAFEMME) ── */}
+                {banner?.instagram && (() => {
+                    let instaHandle = banner.instagram.trim().replace(/\/$/, '');
+                    if (instaHandle.includes('instagram.com/')) {
+                        instaHandle = instaHandle.split('instagram.com/')[1];
+                    }
+                    const displayHandle = instaHandle.startsWith('@') ? instaHandle : `@${instaHandle}`;
+                    
+                    const instaLink = banner.instagram.startsWith('http') 
+                        ? banner.instagram 
+                        : `https://instagram.com/${instaHandle.replace('@', '')}`;
+
+                    return (
+                        <section className="redes-section reveal-section" ref={revealRef}>
+                            <h3 className="redes-title">SEGUINOS EN REDES SOCIALES</h3>
+                            <a 
+                                href={instaLink}
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="btn-instagram"
+                            >
+                                {/* USAMOS EL SVG NATIVO DE INSTAGRAM PARA EVITAR ERRORES DE VITE */}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                                </svg>
+                                <span>{displayHandle.toUpperCase()}</span>
+                            </a>
+                        </section>
+                    );
+                })()}
+
             </div>
         </div>
     );
