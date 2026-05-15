@@ -34,9 +34,9 @@ const Home = () => {
     const [categorias, setCategorias] = useState([]);
     const [banner, setBanner] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [fadeLoader, setFadeLoader] = useState(false); // Nuevo estado para transición suave
     const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
     
-    // Nuevo estado para controlar el slide actual del carrusel
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const [cart, setCart] = useState(() => {
@@ -47,7 +47,7 @@ const Home = () => {
     const navigate = useNavigate();
     const revealRef = useScrollReveal();
 
-    // Fetch de datos
+    // Fetch de datos con temporizador
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -61,11 +61,17 @@ const Home = () => {
                 setBanner(resBanner.data);
             } catch (error) {
                 console.error('Error cargando la web:', error);
-            } finally {
-                setLoading(false);
             }
         };
-        fetchData();
+
+        const minimumDelay = new Promise(resolve => setTimeout(resolve, 2000));
+
+        Promise.all([fetchData(), minimumDelay]).finally(() => {
+            setFadeLoader(true); // Inicia la animación de desvanecimiento
+            setTimeout(() => {
+                setLoading(false); // Quita el loader del DOM después de 800ms
+            }, 800); 
+        });
     }, []);
 
     // Sincronización del carrito
@@ -78,14 +84,12 @@ const Home = () => {
         return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
-    // Preparar las imágenes del carrusel (Asegúrate de que estos nombres coincidan con tu backend)
     const heroImages = [
         banner?.banner_1,
         banner?.banner_2,
         banner?.banner_3
-    ].filter(Boolean); // Filter elimina nulos o vacíos
+    ].filter(Boolean);
 
-    // Efecto para rotar las imágenes del carrusel cada 5 segundos
     useEffect(() => {
         if (heroImages.length > 1) {
             const interval = setInterval(() => {
@@ -103,12 +107,14 @@ const Home = () => {
     return (
         <div className="home-page">
             
-            {/* ── PANTALLA DE CARGA ESTILO LIBRA FEMME ── */}
+            {/* ── PANTALLA DE CARGA ELEGANTE CON TRANSICIÓN ── */}
             {loading && (
-                <div className="fullscreen-loader">
+                <div className={`fullscreen-loader ${fadeLoader ? 'fade-out' : ''}`}>
                     <div className="loader-content">
-                        <h1 className="loader-brand">LIBRA FEMME</h1>
-                        <div className="loader-line"></div>
+                        <h1 className="loader-brand">Moda & Telas</h1>
+                        <div className="loader-bar-container">
+                            <div className="loader-bar-fill"></div>
+                        </div>
                     </div>
                 </div>
             )}
@@ -117,7 +123,6 @@ const Home = () => {
 
             {/* ── HERO BANNER ── */}
             <div className="hero-banner">
-                {/* Capas de imágenes del carrusel */}
                 {heroImages.map((imgUrl, index) => (
                     <div
                         key={index}
@@ -127,9 +132,13 @@ const Home = () => {
                 ))}
 
                 <div className="hero-overlay">
-                    <p className="hero-eyebrow">Colección 2025</p>
-                    <h1 className="fuente-cursiva">{banner?.title || 'Mi Tienda Oficial'}</h1>
-                    <p className="hero-sub">Calidad premium en cada metro</p>
+                    {/* Renderiza el logo si existe, si no un texto por defecto */}
+                    {banner?.logo ? (
+                        <img src={banner.logo} alt="Logo de la tienda" className="hero-logo" />
+                    ) : (
+                        <h1 className="fuente-cursiva">{banner?.title || 'Mi Tienda Oficial'}</h1>
+                    )}
+                    
                     <button className="hero-cta" onClick={() => document.querySelector('.category-section')?.scrollIntoView({ behavior: 'smooth' })}>
                         Ver catálogo
                     </button>
@@ -175,7 +184,6 @@ const Home = () => {
                 <section className="promo-section reveal-section" ref={revealRef}>
                     <div className="promo-content">
                         <span className="promo-eyebrow">Destacado</span>
-                        {/* Usamos el título del backend si quieres, o uno fijo */}
                         <h2>Nuevos Arrivals de Temporada</h2>
                         <p>Descubrí nuestra última selección de telas importadas. Lino, seda, algodón pima y más — todo con la calidad que nos distingue.</p>
                         <button className="promo-btn" onClick={() => setCategoriaFiltro('todas')}>
