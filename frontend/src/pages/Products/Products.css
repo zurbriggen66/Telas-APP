@@ -269,121 +269,273 @@
         aspect-ratio: 4 / 5; /* Un poco menos alta en pantallas chicas */
     }
 }
+
 /* =========================================
-   BARRA DE FILTROS
+   HEADER DEL CATÁLOGO
+========================================= */
+.catalogo-header {
+    text-align: center;
+    margin-bottom: 2rem; /* Menos margen porque ahora vienen las píldoras */
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.catalogo-breadcrumb {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--gris-suave);
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+}
+
+.catalogo-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.2rem;
+    color: var(--verde-atelier);
+    margin-bottom: 0;
+    font-weight: 500;
+    letter-spacing: 1px;
+}
+
+/* =========================================
+   NUEVO: SLIDER DE CATEGORÍAS (TIPO PÍLDORAS)
+========================================= */
+.categorias-slider-container {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding: 1rem 0 2rem 0;
+    margin-bottom: 1rem;
+    scrollbar-width: none; /* Oculta scrollbar en Firefox */
+    -ms-overflow-style: none; /* Oculta scrollbar en IE/Edge */
+    justify-content: flex-start;
+}
+
+/* Oculta scrollbar en Chrome/Safari/Webkit */
+.categorias-slider-container::-webkit-scrollbar {
+    display: none; 
+}
+
+/* Centramos el slider en pantallas grandes */
+@media (min-width: 1024px) {
+    .categorias-slider-container {
+        justify-content: center;
+    }
+}
+
+.categoria-pill {
+    background-color: var(--blanco);
+    border: 1px solid var(--borde-suave);
+    color: var(--gris-suave);
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.categoria-pill:hover {
+    border-color: var(--texto-oscuro);
+    color: var(--texto-oscuro);
+}
+
+.categoria-pill.active {
+    background-color: var(--verde-atelier);
+    color: var(--blanco);
+    border-color: var(--verde-atelier);
+    box-shadow: 0 4px 15px rgba(26, 54, 38, 0.15);
+}
+
+/* =========================================
+   BARRA DE ORDENAMIENTO (ESTÉTICA DELICADA)
 ========================================= */
 .filtros-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: flex-end; 
     align-items: center;
-    background-color: var(--blanco);
-    padding: 1.5rem 2rem;
+    padding: 0 0 2rem 0;
+    border-bottom: 1px solid var(--borde-suave);
     margin-bottom: 3rem;
-    border: 1px solid var(--borde-suave);
-    gap: 1.5rem;
 }
 
-.filtros-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
-    color: var(--verde-atelier);
-    font-weight: 600;
-}
-
-.filtros-icon {
-    color: var(--dorado-acento);
-}
-
-.filtros-controles {
-    display: flex;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
-
-.filtro-grupo {
+.filtro-grupo.right-align {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.filtro-grupo label {
-    font-size: 0.85rem;
-    color: var(--gris-suave);
+.ordenar-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--texto-oscuro);
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-.filtro-select {
-    padding: 0.6rem 2.5rem 0.6rem 1rem;
-    border: 1px solid var(--borde-suave);
-    background-color: transparent;
+/* --- ESTILOS DEL NUEVO DROPDOWN PERSONALIZADO --- */
+.custom-dropdown {
+    position: relative;
+    min-width: 220px;
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.95rem;
+    z-index: 100; /* Asegura que la lista quede por encima de las fotos */
+}
+
+.custom-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1.5px solid var(--texto-oscuro);
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--texto-oscuro);
+    transition: all 0.3s ease;
+}
+
+.custom-dropdown-header:hover {
+    border-bottom-color: var(--dorado-acento);
+    color: var(--dorado-acento);
+}
+
+.dropdown-icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--gris-suave);
+}
+
+.dropdown-icon.open {
+    transform: rotate(180deg);
+    color: var(--dorado-acento);
+}
+
+.custom-dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--blanco);
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-top: 8px;
+    animation: fadeInDropdown 0.2s ease-out forwards;
+}
+
+.custom-dropdown-item {
+    padding: 14px 16px;
+    font-size: 0.8rem;
     color: var(--texto-oscuro);
     cursor: pointer;
-    appearance: none; /* Quita la flecha por defecto fea del navegador */
-    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231a3626%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem top 50%;
-    background-size: 0.65rem auto;
-    outline: none;
-    transition: border-color 0.3s ease;
+    transition: all 0.2s ease;
+    border-left: 2px solid transparent; /* Efecto sutil al hover */
 }
 
-.filtro-select:focus,
-.filtro-select:hover {
-    border-color: var(--verde-atelier);
+.custom-dropdown-item:hover {
+    background-color: var(--crema-fondo);
+    color: var(--dorado-acento);
+    border-left-color: var(--dorado-acento);
 }
 
-/* Estado Vacío (Sin resultados) */
+.custom-dropdown-item.selected {
+    font-weight: 600;
+    background-color: rgba(207, 159, 64, 0.08);
+    color: var(--verde-atelier);
+    border-left-color: var(--verde-atelier);
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   MEDIA QUERIES PARA MÓVIL
+========================================= */
+@media (max-width: 768px) {
+    /* (Mantenemos los ajustes que ya tenías para el título y el slider) */
+    .catalogo-title {
+        font-size: 2.2rem;
+    }
+    
+    .categorias-slider-container {
+        padding: 0.5rem 0 1.5rem 0;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .filtros-container {
+        justify-content: flex-start;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Ajuste para que en celular el dropdown no se vea tan ancho si no hace falta */
+    .custom-dropdown {
+        min-width: 180px;
+    }
+}
+
+/* =========================================
+   ESTADO VACÍO Y BOTÓN LIMPIAR
+========================================= */
 .sin-resultados {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 4rem 2rem;
-    background-color: var(--blanco);
-    border: 1px dashed var(--borde-suave);
+    padding: 6rem 2rem;
+    background-color: transparent;
     color: var(--gris-suave);
     font-family: 'Montserrat', sans-serif;
 }
 
 .btn-limpiar {
     margin-top: 1.5rem;
-    background-color: var(--verde-atelier);
-    color: var(--blanco);
-    border: none;
-    padding: 0.8rem 1.5rem;
+    background-color: transparent;
+    color: var(--texto-oscuro);
+    border: 1px solid var(--texto-oscuro);
+    padding: 0.8rem 2rem;
     font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    font-weight: 600;
+    letter-spacing: 2px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .btn-limpiar:hover {
-    background-color: var(--dorado-acento);
+    background-color: var(--texto-oscuro);
+    color: var(--blanco);
 }
 
-/* Media Query para la barra de filtros en celulares */
+/* =========================================
+   MEDIA QUERIES PARA LOS NUEVOS FILTROS
+========================================= */
 @media (max-width: 768px) {
+    .catalogo-title {
+        font-size: 2.2rem;
+    }
+    
+    .categorias-slider-container {
+        padding: 0.5rem 0 1.5rem 0;
+        /* Un pequeño truco para que las píldoras no se corten contra el borde de la pantalla */
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
     .filtros-container {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 1.5rem 1rem;
-    }
-    
-    .filtros-controles {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .filtro-grupo {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
+        justify-content: flex-start;
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
     }
 }

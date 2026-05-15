@@ -135,7 +135,11 @@ const DetalleProducto = () => {
                         </div>
 
                         <div className="detalle-info">
-                            <span className="detalle-categoria">{producto.categoria_nombre || 'Sin categoría'}</span>
+                            <span className="detalle-categoria">
+    {producto.categorias_nombres && producto.categorias_nombres.length > 0 
+        ? producto.categorias_nombres.join(' • ') 
+        : 'Sin categoría'}
+</span>
                             <h1 className="detalle-titulo">{producto.nombre}</h1>
                             
                             <p className="detalle-precio">${parseFloat(producto.precio_por_metro).toLocaleString('es-AR')} <span style={{fontSize: '1rem', color: '#666'}}>/ Metro</span></p>

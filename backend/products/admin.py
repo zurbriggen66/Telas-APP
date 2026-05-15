@@ -1,29 +1,29 @@
 from django.contrib import admin
 from .models import StoreConfiguration, Categoria, Producto, ProductoImagen
 
-# Esto permite cargar imágenes adicionales directamente desde la pantalla de creación del producto
 class ProductoImagenInline(admin.TabularInline):
     model = ProductoImagen
     extra = 1
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
-    # Mostramos si tiene categoría padre en la lista
-    list_display = ('nombre', 'categoria_padre')
-    list_filter = ('categoria_padre',)
-    search_fields = ('nombre', 'descripcion')
+    list_display = ['id', 'nombre'] # Correcto, ya no existe categoria_padre
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    # ¡Acá estaba el error! Reemplazamos 'precio' y 'talle' por los nuevos campos
-    list_display = ('nombre', 'categoria', 'precio_por_metro', 'ancho_cm', 'stock_metros')
+    # 1. EN LIST_DISPLAY: Usamos 'mostrar_categorias' (la función de abajo) en lugar de 'categoria'
+    list_display = ('nombre', 'mostrar_categorias', 'precio_por_metro', 'ancho_cm', 'stock_metros')
     
-    # Agregamos filtros laterales útiles para buscar telas
-    list_filter = ('categoria', 'ancho_cm')
+    # 2. EN LIST_FILTER: Cambiamos 'categoria' por 'categorias' (el nuevo nombre del campo)
+    list_filter = ('categorias', 'ancho_cm')
     search_fields = ('nombre', 'descripcion')
-    
-    # Agregamos el inline para subir varias imágenes a la vez
     inlines = [ProductoImagenInline]
+
+    # Esta función es la que permite ver las categorías en la lista
+    def mostrar_categorias(self, obj):
+        return ", ".join([cat.nombre for cat in obj.categorias.all()])
+    
+    mostrar_categorias.short_description = 'Categorías' # Título de la columna
 
 @admin.register(StoreConfiguration)
 class StoreConfigurationAdmin(admin.ModelAdmin):

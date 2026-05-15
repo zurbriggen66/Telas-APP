@@ -17,7 +17,6 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
   const tieneCambios = Number(precio) !== Number(prod.precio_por_metro) || Number(stock) !== Number(prod.stock_metros);
 
   const handleGuardarRapido = async () => {
-    // 1. Nos fijamos qué cambió ANTES de guardar para saber qué mensaje mostrar
     let msg = 'Actualizado correctamente';
     const cambioPrecio = Number(precio) !== Number(prod.precio_por_metro);
     const cambioStock = Number(stock) !== Number(prod.stock_metros);
@@ -26,11 +25,9 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
     if (cambioStock && !cambioPrecio) msg = 'Stock actualizado correctamente';
 
     setGuardando(true);
-    // 2. Ejecutamos la función y esperamos a ver si fue exitoso
     const exito = await onQuickSave(prod.id, { precio_por_metro: precio, stock_metros: stock });
     setGuardando(false);
 
-    // 3. Si todo salió bien, mostramos el mensaje por 3 segundos
     if (exito) {
       setMensajeExito(msg);
       setTimeout(() => setMensajeExito(''), 3000);
@@ -62,12 +59,13 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {prod.categoria_nombre || 'Sin categoría'} • {prod.ancho_cm}cm ancho
+            {/* CORRECCIÓN: Leemos el array "categorias_nombres" y los separamos por coma */}
+            {prod.categorias_nombres && prod.categorias_nombres.length > 0 ? prod.categorias_nombres.join(' • ') : 'Sin categoría'} • {prod.ancho_cm}cm ancho
           </div>
         </div>
       </div>
 
-      {/* SECCIÓN 2: Inputs Rápidos adaptables al 100% */}
+      {/* SECCIÓN 2: Inputs Rápidos */}
       <div 
         style={{ 
           display: 'flex', flexDirection: isMobile && tieneCambios ? 'column' : 'row', 
@@ -106,7 +104,6 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
           </div>
         </div>
 
-        {/* ACÁ ESTÁ LA CORRECCIÓN VISUAL DEL MENSAJE DE ÉXITO */}
         {mensajeExito ? (
           <div style={{
             background: '#f0fdf4', color: '#15803d', padding: '10px 14px', borderRadius: '10px',
@@ -164,7 +161,8 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
 // --- VISTA PRINCIPAL ---
 const VistaProductos = () => {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categoria: '' });
+  // CORRECCIÓN: "categoria" ahora es "categorias" y es un array vacío por defecto
+  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [] });
   const [images, setImages] = useState([]);
   const [statusMsg, setStatusMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -209,18 +207,23 @@ const VistaProductos = () => {
 
       await axios.patch(`${API}/productos/${id}/`, formData);
       setProductos(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
-      return true; // Le avisamos a la tarjeta que todo salió joya
+      return true; 
     } catch {
       alert("Error al actualizar rápidamente. Por favor, intentá de nuevo.");
-      return false; // Le avisamos que hubo un error
+      return false; 
     }
   };
 
   const abrirEditar = (prod) => {
     setEditando(prod.id);
     setForm({
-      nombre: prod.nombre, precio_por_metro: prod.precio_por_metro, descripcion: prod.descripcion || '',
-      ancho_cm: prod.ancho_cm, stock_metros: prod.stock_metros, categoria: prod.categoria || ''
+      nombre: prod.nombre, 
+      precio_por_metro: prod.precio_por_metro, 
+      descripcion: prod.descripcion || '',
+      ancho_cm: prod.ancho_cm, 
+      stock_metros: prod.stock_metros, 
+      // CORRECCIÓN: cargamos el array de categorías del producto
+      categorias: prod.categorias || []
     });
 
     const imagenesCargadas = [];
@@ -238,7 +241,7 @@ const VistaProductos = () => {
 
   const resetForm = () => {
     setShowForm(false);
-    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categoria: '' });
+    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [] });
     setImages([]); setImagenesOriginales([]); setEditando(null); setStatusMsg('');
   };
 
@@ -254,7 +257,13 @@ const VistaProductos = () => {
       formData.append('ancho_cm', form.ancho_cm);
       formData.append('stock_metros', form.stock_metros);
       formData.append('descripcion', form.descripcion);
-      if (form.categoria) formData.append('categoria', form.categoria);
+      
+      // CORRECCIÓN: Agregamos cada categoría al formData (ManyToMany lo requiere así)
+      if (form.categorias && form.categorias.length > 0) {
+        form.categorias.forEach(catId => {
+          formData.append('categorias', catId);
+        });
+      }
       
       images.forEach((img, i) => { if (img.file) formData.append(i === 0 ? 'imagen' : `imagen_extra_${i}`, img.file); });
 
@@ -284,10 +293,10 @@ const VistaProductos = () => {
     }
   };
 
-  // Lógica de Filtrado
+  // CORRECCIÓN: Lógica de Filtrado (ahora verifica si el ID del filtro está INCLUIDO en el array de categorías del producto)
   const productosFiltrados = categoriaFiltro === 'todas' 
     ? productos 
-    : productos.filter(p => p.categoria === categoriaFiltro);
+    : productos.filter(p => p.categorias && p.categorias.includes(categoriaFiltro));
 
   const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: 'none', color: '#1e293b', background: 'white', boxSizing: 'border-box' };
   const labelStyle = { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'block' };
@@ -337,12 +346,46 @@ const VistaProductos = () => {
               <input style={inputStyle} type="number" min="0" step="0.1" placeholder="Ej: 8.5" value={form.stock_metros} onChange={e => setForm({ ...form, stock_metros: e.target.value })} />
             </div>
 
-            <div>
-              <label style={labelStyle}>Categoría</label>
-              <select style={inputStyle} value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })}>
-                <option value="">Sin categoría</option>
-                {categorias.map(cat => <option key={cat.id} value={cat.id}>{cat.nombre_padre ? `${cat.nombre_padre} > ${cat.nombre}` : cat.nombre}</option>)}
-              </select>
+            {/* NUEVO: Selector de categorías con botones interactivos (píldoras) */}
+            <div style={{ gridColumn: '1/-1' }}>
+              <label style={labelStyle}>Categorías (Hacé clic para activar o desactivar)</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                {categorias.map(cat => {
+                  const isSelected = form.categorias && form.categorias.includes(cat.id);
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setForm(prev => ({
+                          ...prev,
+                          categorias: isSelected 
+                            ? prev.categorias.filter(id => id !== cat.id) 
+                            : [...(prev.categorias || []), cat.id] 
+                        }));
+                      }}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '20px',
+                        border: isSelected ? '1.5px solid #6366f1' : '1.5px solid #e2e8f0',
+                        background: isSelected ? '#e0e7ff' : '#f8fafc',
+                        color: isSelected ? '#4338ca' : '#64748b',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      {isSelected && <Icon d={icons.check} size={14} color="#4338ca" />}
+                      {cat.nombre}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div style={{ gridColumn: '1/-1' }}>
@@ -387,7 +430,6 @@ const VistaProductos = () => {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             
-            {/* NUEVA BARRA DE FILTROS SUPERIOR */}
             <div style={{ 
               display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', 
               borderBottom: '1px solid #e2e8f0', overflowX: 'auto',
@@ -435,7 +477,6 @@ const VistaProductos = () => {
               })}
             </div>
 
-            {/* LISTA DE PRODUCTOS FILTRADOS */}
             {productosFiltrados.length === 0 ? (
                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
                  <p style={{ fontWeight: 600 }}>No hay telas en esta categoría.</p>

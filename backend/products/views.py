@@ -35,26 +35,41 @@ def get_main_banner(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoriaViewSet(viewsets.ModelViewSet):
-    queryset = Categoria.objects.select_related('categoria_padre').all()
+    # ⚠️ Quitamos el select_related('categoria_padre')
+    queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
 
 class ProductoViewSet(viewsets.ModelViewSet):
-    queryset = Producto.objects.select_related('categoria').all()
+    queryset = Producto.objects.prefetch_related('categorias').all()
     serializer_class = ProductoSerializer
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         producto = Producto.objects.get(id=response.data['id'])
+        
+        # --- NUEVO: Failsafe para guardar categorías desde FormData ---
+        categorias_ids = request.data.getlist('categorias')
+        if categorias_ids:
+            producto.categorias.set(categorias_ids)
+            
         self._guardar_imagenes_galeria(request, producto)
         return response
 
     def update(self, request, *args, **kwargs):
         producto_id = kwargs.get('pk')
         imagenes_a_eliminar = request.data.getlist('eliminar_imagenes')
+        
         if imagenes_a_eliminar:
             ProductoImagen.objects.filter(id__in=imagenes_a_eliminar, producto_id=producto_id).delete()
+            
         response = super().update(request, *args, **kwargs)
         producto = self.get_object()
+        
+        # --- NUEVO: Failsafe para actualizar categorías desde FormData ---
+        if 'categorias' in request.data:
+            categorias_ids = request.data.getlist('categorias')
+            producto.categorias.set(categorias_ids) # Esto actualiza la tabla intermedia automáticamente
+            
         self._guardar_imagenes_galeria(request, producto)
         return response
 

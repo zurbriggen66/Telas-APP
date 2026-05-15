@@ -249,8 +249,10 @@ const Home = () => {
                                     </div>
                                     <div className="product-info">
                                         <span className="product-tag">
-                                            {prod.categoria_nombre || 'Nueva'}
-                                        </span>
+    {prod.categorias_nombres && prod.categorias_nombres.length > 0 
+        ? prod.categorias_nombres.join(' • ') 
+        : 'Nueva'}
+</span>
                                         <h3 className="product-title">{prod.nombre}</h3>
                                         <div className="product-footer">
                                             <span className="product-price">

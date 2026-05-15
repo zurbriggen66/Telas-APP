@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Eye, Loader2, SlidersHorizontal } from 'lucide-react'; 
+import { Eye, Loader2, SlidersHorizontal, ChevronDown } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom'; 
 import Navbar from '../Navbar/Navbar';
 import './Products.css';
@@ -16,11 +16,24 @@ const Productos = () => {
     const [categorias, setCategorias] = useState([]);
     const [filtroCategoria, setFiltroCategoria] = useState('Todas');
     const [ordenPrecio, setOrdenPrecio] = useState('defecto');
+    
+    // NUEVO: Estado para el menú desplegable personalizado
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
 
     const [cart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
+
+    // Opciones del menú desplegable
+    const opcionesOrden = [
+        { id: 'defecto', label: 'Relevancia' },
+        { id: 'menor', label: 'Menor a Mayor precio' },
+        { id: 'mayor', label: 'Mayor a Menor precio' }
+    ];
+    
+    const ordenSeleccionado = opcionesOrden.find(opt => opt.id === ordenPrecio)?.label || 'Relevancia';
 
     // 1. Traer los productos
     useEffect(() => {
@@ -31,18 +44,14 @@ const Productos = () => {
                 setProductos(data);
                 setProductosFiltrados(data);
                 
-                // --- EXTRACCIÓN DINÁMICA DE CATEGORÍAS ---
-                const catsExtraidas = data.map(item => {
-                    // Si Django te manda un objeto: { id: 1, nombre: "Sedas" }
-                    if (typeof item.categoria === 'object' && item.categoria !== null) {
-                        return item.categoria.nombre; // Cambiá '.nombre' si tu modelo usa otro campo (ej: '.name')
+                const catsExtraidas = [];
+                data.forEach(item => {
+                    if (item.categorias_nombres && Array.isArray(item.categorias_nombres)) {
+                        catsExtraidas.push(...item.categorias_nombres);
                     }
-                    // Si Django te manda directamente el texto o el ID: "Sedas" o 1
-                    return item.categoria; 
                 });
 
-                // Limpiamos duplicados y valores nulos/vacíos usando un Set
-                const catsUnicas = [...new Set(catsExtraidas)].filter(Boolean);
+                const catsUnicas = [...new Set(catsExtraidas)].filter(Boolean).sort();
                 
                 setCategorias(catsUnicas);
                 setLoading(false);
@@ -55,27 +64,33 @@ const Productos = () => {
         fetchProductos();
     }, []);
 
-    // 2. Aplicar Filtros y Ordenamiento dinámicamente
-    // Aplicar Filtros y Ordenamiento dinámicamente
-    // Aplicar Filtros y Ordenamiento dinámicamente
+    // Cerrar el dropdown al hacer clic afuera
     useEffect(() => {
-        // Hacemos una copia de los productos originales para no modificarlos
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [dropdownRef]);
+
+    // 2. Aplicar Filtros y Ordenamiento
+    useEffect(() => {
         let resultado = [...productos];
 
-        // 1. Filtro por Categoría
         if (filtroCategoria !== 'Todas') {
-            // Le agregamos String() a los dos para que "6" sea igual a "6"
-            resultado = resultado.filter(p => String(p.categoria) === String(filtroCategoria));
+            resultado = resultado.filter(p => 
+                p.categorias_nombres && p.categorias_nombres.includes(filtroCategoria)
+            );
         }
 
-        // 2. Ordenamiento por Precio
         if (ordenPrecio === 'menor') {
             resultado.sort((a, b) => parseFloat(a.precio_por_metro) - parseFloat(b.precio_por_metro));
         } else if (ordenPrecio === 'mayor') {
             resultado.sort((a, b) => parseFloat(b.precio_por_metro) - parseFloat(a.precio_por_metro));
         }
 
-        // Actualizamos el estado que dibuja las tarjetas en pantalla
         setProductosFiltrados(resultado);
         
     }, [filtroCategoria, ordenPrecio, productos]);
@@ -111,44 +126,62 @@ const Productos = () => {
 
             <div className="catalogo-page">
                 <header className="catalogo-header">
-                    <h1 className="catalogo-title">Catálogo Completo</h1>
-                    <p className="catalogo-subtitle">Explorá nuestra selección de telas de primera calidad.</p>
-                    <div className="catalogo-divider"></div>
+                    <span className="catalogo-breadcrumb">INICIO / CATÁLOGO</span>
+                    <h1 className="catalogo-title">
+                        {filtroCategoria === 'Todas' ? 'Catálogo Completo' : filtroCategoria.toUpperCase()}
+                    </h1>
                 </header>
 
-                {/* BARRA DE FILTROS */}
-                <section className="filtros-container">
-                    <div className="filtros-header">
-                        <SlidersHorizontal size={20} className="filtros-icon" />
-                        <span>Filtrar y Ordenar</span>
-                    </div>
-                    
-                    <div className="filtros-controles">
-                        <div className="filtro-grupo">
-                            <label>Categoría</label>
-                            <select 
-                                value={filtroCategoria} 
-                                onChange={(e) => setFiltroCategoria(e.target.value)}
-                                className="filtro-select"
-                            >
-                                <option value="Todas">Todas las telas</option>
-                                {categorias.map((cat, index) => (
-                                    <option key={index} value={cat}>{cat}</option>
-                                ))}
-                            </select>
-                        </div>
+                <div className="categorias-slider-container">
+                    <button 
+                        className={`categoria-pill ${filtroCategoria === 'Todas' ? 'active' : ''}`}
+                        onClick={() => setFiltroCategoria('Todas')}
+                    >
+                        Todas
+                    </button>
+                    {categorias.map((cat, index) => (
+                        <button 
+                            key={index} 
+                            className={`categoria-pill ${filtroCategoria === cat ? 'active' : ''}`}
+                            onClick={() => setFiltroCategoria(cat)}
+                        >
+                            {cat}
+                        </button>
+                    ))}
+                </div>
 
-                        <div className="filtro-grupo">
-                            <label>Precio</label>
-                            <select 
-                                value={ordenPrecio} 
-                                onChange={(e) => setOrdenPrecio(e.target.value)}
-                                className="filtro-select"
+                <section className="filtros-container">
+                    <div className="filtro-grupo right-align">
+                        <label className="ordenar-label">
+                            <SlidersHorizontal size={16} /> Ordenar por:
+                        </label>
+                        
+                        {/* NUEVO: Dropdown personalizado y elegante */}
+                        <div className="custom-dropdown" ref={dropdownRef}>
+                            <div 
+                                className="custom-dropdown-header" 
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             >
-                                <option value="defecto">Relevancia</option>
-                                <option value="menor">Menor a Mayor precio</option>
-                                <option value="mayor">Mayor a Menor precio</option>
-                            </select>
+                                <span>{ordenSeleccionado}</span>
+                                <ChevronDown size={16} className={`dropdown-icon ${isDropdownOpen ? 'open' : ''}`} />
+                            </div>
+                            
+                            {isDropdownOpen && (
+                                <div className="custom-dropdown-list">
+                                    {opcionesOrden.map((opt) => (
+                                        <div 
+                                            key={opt.id}
+                                            className={`custom-dropdown-item ${ordenPrecio === opt.id ? 'selected' : ''}`}
+                                            onClick={() => {
+                                                setOrdenPrecio(opt.id);
+                                                setIsDropdownOpen(false); // Cierra al seleccionar
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -157,9 +190,9 @@ const Productos = () => {
                 <main className="catalogo-grid">
                     {productosFiltrados.length === 0 ? (
                         <div className="sin-resultados">
-                            <p>No encontramos telas con estos filtros.</p>
+                            <p>No encontramos telas en esta categoría.</p>
                             <button onClick={() => { setFiltroCategoria('Todas'); setOrdenPrecio('defecto'); }} className="btn-limpiar">
-                                Limpiar filtros
+                                Ver todas las telas
                             </button>
                         </div>
                     ) : (
@@ -171,7 +204,7 @@ const Productos = () => {
                             >
                                 <div className="producto-image-container">
                                     <img 
-                                        src={producto.imagen || '/placeholder-tela.jpg'} 
+                                        src={producto.imagen || 'https://via.placeholder.com/600'} 
                                         alt={producto.nombre} 
                                         className="producto-image" 
                                     />
@@ -181,6 +214,9 @@ const Productos = () => {
                                 </div>
                                 
                                 <div className="producto-info">
+                                    <span className="producto-tag-lista">
+                                        {producto.categorias_nombres?.join(' • ') || 'Nueva'}
+                                    </span>
                                     <h2 className="producto-nombre">{producto.nombre}</h2>
                                     <p className="producto-precio">
                                         ${parseFloat(producto.precio_por_metro).toLocaleString('es-AR')} <span>/ metro</span>

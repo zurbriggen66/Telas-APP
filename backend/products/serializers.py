@@ -13,40 +13,28 @@ class ProductoImagenSerializer(serializers.ModelSerializer):
         model = ProductoImagen
         fields = ['id', 'imagen', 'producto']
 
-# 3. Serializer para las Categorías (con jerarquía)
+# 3. Serializer para las Categorías (simplificado)
 class CategoriaSerializer(serializers.ModelSerializer):
-    # Exponemos el nombre del padre para que el frontend lo muestre fácil
-    nombre_padre = serializers.CharField(source='categoria_padre.nombre', read_only=True)
-
     class Meta:
         model = Categoria
-        fields = ['id', 'nombre', 'descripcion', 'imagen', 'categoria_padre', 'nombre_padre']
+        fields = ['id', 'nombre', 'descripcion', 'imagen']
 
 # 4. Serializer para los Productos (Telas)
 class ProductoSerializer(serializers.ModelSerializer):
-    # Mantenemos las imágenes de la galería anidadas
     imagenes_galeria = ProductoImagenSerializer(many=True, read_only=True)
+    
+    # ⚠️ NUEVO: Enviaremos a React un array con los nombres de las categorías para que sea fácil mostrarlas
+    categorias_nombres = serializers.StringRelatedField(many=True, source='categorias', read_only=True)
 
     class Meta:
         model = Producto
         fields = [
             'id', 'nombre', 'descripcion', 'precio_por_metro', 
-            'ancho_cm', 'stock_metros', 'categoria', 
+            'ancho_cm', 'stock_metros', 
+            'categorias', # Recibe/envía un array de IDs (ej: [11, 15])
+            'categorias_nombres', # Envía a React un array de nombres (ej: ["Gamuza", "Algodón"])
             'imagen', 'imagenes_galeria'
         ]
-
-    def to_representation(self, instance):
-        """
-        Esta función transforma la salida de los datos. 
-        En la base de datos se guarda el ID, pero a React le llega el Nombre.
-        """
-        representation = super().to_representation(instance)
-        
-        # Reemplazamos el ID numérico por el nombre de la categoría (__str__)
-        if instance.categoria:
-            representation['categoria'] = str(instance.categoria)
-            
-        return representation
 
 class PedidoSerializer(serializers.ModelSerializer):
     class Meta:
