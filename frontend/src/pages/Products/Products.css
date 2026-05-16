@@ -259,14 +259,50 @@
 }
 
 /* Celulares chicos */
+/* =========================================
+   CELULARES CHICOS (Modificado para 2 columnas)
+========================================= */
 @media (max-width: 480px) {
     .catalogo-grid {
-        /* Si la pantalla es muy muy chica, pasamos a 1 columna */
-        grid-template-columns: 1fr;
+        /* ¡ACÁ ESTÁ LA MAGIA! Forzamos 2 columnas siempre */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem 0.8rem; /* Reducimos el hueco entre tarjetas para que no queden apretadas */
     }
     
     .producto-image-container {
-        aspect-ratio: 4 / 5; /* Un poco menos alta en pantallas chicas */
+        /* Lo hacemos cuadrado (1/1) para que se vea igual que en tu foto de la laptop */
+        aspect-ratio: 1 / 1; 
+        margin-bottom: 0.8rem;
+    }
+
+    /* Achicamos las letras para que queden elegantes y no se corten en 2 columnas */
+    .producto-nombre {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .producto-precio {
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .producto-precio span {
+        font-size: 0.7rem;
+    }
+
+    /* Hacemos el botón más compacto */
+    .btn-add-cart {
+        padding: 0.6rem;
+        font-size: 0.65rem;
+        gap: 5px;
+    }
+
+    /* Achicamos la etiqueta de "Últimos metros" */
+    .producto-badge {
+        font-size: 0.55rem;
+        padding: 4px 8px;
+        top: 8px;
+        left: 8px;
     }
 }
 
