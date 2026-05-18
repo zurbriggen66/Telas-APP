@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowLeft, Ruler, Layers } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Ruler, Layers, AlertTriangle,  CheckCircle } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import './Detalle_producto.css';
 
@@ -19,6 +19,18 @@ const DetalleProducto = () => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
+
+    // NUEVO ESTADO: Notificación delicada
+    const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+
+    // FUNCIÓN PARA MOSTRAR Y OCULTAR AUTOMÁTICAMENTE
+    const showDelicateNotification = (message, type = 'error') => {
+        if (window.notifTimeout) clearTimeout(window.notifTimeout);
+        setNotification({ show: true, message, type });
+        window.notifTimeout = setTimeout(() => {
+            setNotification({ show: false, message: '', type: '' });
+        }, 4000);
+    };
 
     // Cargar los datos del producto
     useEffect(() => {
@@ -52,15 +64,37 @@ const DetalleProducto = () => {
         
         // Validación 1: Debe ser un número válido mayor a 0
         if (isNaN(metrosEnteros) || metrosEnteros <= 0) {
-            alert("Por favor, ingresá una cantidad válida de metros.");
+            showDelicateNotification("Por favor, ingresá una cantidad válida de metros.", "error");
             return;
         }
 
-        // Validación 2: No superar el stock disponible
-        if (metrosEnteros > Number(producto.stock_metros)) {
-            alert(`Lo sentimos, solo nos quedan ${producto.stock_metros} metros en stock de esta tela.`);
+        // 👇 NUEVA LÓGICA DE STOCK 👇
+        // 1. Nos fijamos si esta tela ya está en el carrito y cuántos metros tiene
+        const itemEnCarrito = cart.find(item => item.id === producto.id);
+        const cantidadYaEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
+        
+        // 2. Sumamos lo que quiere agregar AHORA + lo que YA TIENE guardado
+        const cantidadTotalDeseada = metrosEnteros + cantidadYaEnCarrito;
+
+        // Validación 2: No superar el stock disponible (contando la bolsa)
+        if (cantidadTotalDeseada > Number(producto.stock_metros)) {
+            if (cantidadYaEnCarrito > 0) {
+                const metrosRestantes = Number(producto.stock_metros) - cantidadYaEnCarrito;
+                
+                // 👇 Atajamos el caso de que ya tenga todo el stock en la bolsa 👇
+                if (metrosRestantes === 0) {
+                    showDelicateNotification(`Ya agregaste todo nuestro stock disponible (${cantidadYaEnCarrito}m) a tu bolsa.`, "error");
+                } else {
+                    // Si todavía le queda un poquito por agregar:
+                    showDelicateNotification(`Ya tenés ${cantidadYaEnCarrito}m en tu bolsa. Solo podés sumar ${metrosRestantes}m más.`, "error");
+                }
+            } else {
+                // Si no tenía nada en el carrito, el mensaje normal
+                showDelicateNotification(`Lo sentimos, solo nos quedan ${producto.stock_metros} metros en stock de esta tela.`, "error");
+            }
             return;
         }
+        // 👆 FIN DE NUEVA LÓGICA 👆
 
         setCart(prev => {
             const existe = prev.find(item => item.id === producto.id);
@@ -72,8 +106,12 @@ const DetalleProducto = () => {
             return [...prev, {...producto, cantidad: metrosEnteros}];
         });
         
-        alert(`¡Listo! Se agregaron ${metrosEnteros} metro(s) de ${producto.nombre} a tu carrito.`);
+        showDelicateNotification(`¡Listo! Se agregaron ${metrosEnteros} metro(s) de ${producto.nombre} a tu carrito.`, "success");
     };
+
+    // Calculamos si ya tiene esta tela en el carrito para mostrar el aviso
+    const itemEnCarrito = cart.find(item => item.id === producto?.id);
+    const cantidadYaEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
 
     if (loading) {
         return (
@@ -161,6 +199,13 @@ const DetalleProducto = () => {
                             </div>
 
                             <div style={{ marginTop: '10px', padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                                {/* NOTIFICACIÓN DELICADA */}
+                            {notification.show && (
+                                <div className={`pd-notification-subtle ${notification.type}`}>
+                                    {notification.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle size={18} />}
+                                    <span>{notification.message}</span>
+                                </div>
+                            )}
                                 <label style={{ display: 'block', marginBottom: '12px', fontWeight: '700', fontSize: '0.85rem', color: '#475569', letterSpacing: '0.5px' }}>
                                     ¿CUÁNTOS METROS NECESITÁS? (ENTEROS)
                                 </label>

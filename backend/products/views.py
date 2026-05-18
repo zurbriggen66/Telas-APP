@@ -1,4 +1,4 @@
-from rest_framework.decorators import api_view, parser_classes
+from rest_framework.decorators import api_view, parser_classes, action
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 import mercadopago
@@ -11,8 +11,9 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.core.mail import send_mail
 
+
 # ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
-from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido
+from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
 from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
 
 @api_view(['GET', 'POST'])
@@ -93,6 +94,53 @@ class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all().order_by('-fecha_creacion')
     serializer_class = PedidoSerializer
 
+    # 👇 NUEVA ACCIÓN PARA APROBAR TRANSFERENCIAS MANUALMENTE 👇
+    @action(detail=True, methods=['post'])
+    def aprobar_transferencia(self, request, pk=None):
+        pedido = self.get_object()
+        
+        if pedido.estado == 'Esperando_Transferencia':
+            pedido.estado = 'Aprobado'
+            pedido.save()
+            
+            # 📧 Disparamos el correo de confirmación al cliente
+            try:
+                asunto_cliente = "¡Tu transferencia fue recibida! Pedido Aprobado 🧵✨"
+                mensaje_cliente = (
+                    f"¡Hola {pedido.nombre_cliente}!\n\n"
+                    f"Hemos confirmado la recepción de tu transferencia por ${pedido.total}.\n"
+                    f"Tu pedido #{pedido.id} ya está aprobado y comenzaremos a prepararlo.\n\n"
+                    f"Detalle de las telas:\n{pedido.detalle_items}\n"
+                    f"Pronto nos comunicaremos para coordinar el envío.\n\n"
+                    f"¡Gracias por elegir Telas APP!"
+                )
+                send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
+            except Exception as e:
+                print(f"⚠️ Error al enviar correo de aprobación: {e}")
+
+            return Response({"mensaje": "Pedido aprobado correctamente"}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "El pedido no está esperando transferencia"}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def cancelar_transferencia(self, request, pk=None):
+        pedido = self.get_object()
+        
+        if pedido.estado == 'Esperando_Transferencia':
+            pedido.estado = 'Cancelado'
+            pedido.save()
+            
+            # ♻️ Devolvemos el stock de las telas reservadas
+            for item in pedido.items.all():
+                producto = item.producto
+                if producto:
+                    producto.stock_metros += item.cantidad_metros
+                    producto.save()
+
+            return Response({"mensaje": "Pedido cancelado y stock devuelto exitosamente"}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "El pedido no está esperando transferencia"}, status=status.HTTP_400_BAD_REQUEST)
+
 class MercadoPagoPreferenceView(APIView):
     def post(self, request):
         try:
@@ -165,86 +213,49 @@ def webhook_mercadopago(request):
                 payment = payment_info["response"]
                 if payment["status"] == "approved":
                     PagoProcesado.objects.create(pago_id=payment_id)
-                    items_comprados = payment.get("additional_info", {}).get("items", [])
-                    payer_info = payment.get("payer", {})
+                    
                     metadata = payment.get("metadata", {})
-                    
-                    email_cliente = metadata.get("email_contacto")
-                    if not email_cliente:
-                        email_cliente = payer_info.get("email", "No especificado")
-                        
-                    monto_total = payment.get("transaction_amount", 0)
-                    detalle_productos_mail = ""
-                    
-                    with transaction.atomic():
-                        for item in items_comprados:
-                            try:
-                                producto = Producto.objects.select_for_update().get(id=item.get("id"))
-                                metros = Decimal(str(item.get("quantity", 0)))
-                                if producto.stock_metros >= metros:
-                                    producto.stock_metros -= metros
-                                    producto.save()
-                                    detalle_productos_mail += f"• {item.get('title')}: {metros} metros\n"
-                            except Producto.DoesNotExist:
-                                continue
+                    pedido_id = metadata.get("pedido_id") # Extraemos el ID que vinculamos en la preferencia
 
-                    # ---------------------------------------------------------
-                    # 📝 GUARDAR EL PEDIDO EN LA BASE DE DATOS
-                    # ---------------------------------------------------------
-                    try:
-                        Pedido.objects.create(
-                            mp_id=payment_id,
-                            email_cliente=email_cliente,
-                            total=monto_total,
-                            metodo_pago="Mercado Pago",
-                            estado="Aprobado",
-                            detalle_items=detalle_productos_mail
-                        )
-                        print("📦 Historial: Nuevo pedido guardado en la BD.")
-                    except Exception as e:
-                        print(f"⚠️ Error al guardar el pedido: {e}")
+                    if pedido_id:
+                        try:
+                            # Buscamos el pedido existente creado en el paso anterior
+                            pedido = Pedido.objects.get(id=pedido_id)
+                            
+                            if pedido.estado != 'Aprobado':
+                                pedido.estado = 'Aprobado'
+                                pedido.mp_id = payment_id
+                                pedido.save()
 
-                    # ---------------------------------------------------------
-                    # 📧 ENVÍO DE CORREOS
-                    # ---------------------------------------------------------
-                    try:
-                        asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
-                        mensaje_cliente = f"¡Hola! Muchas gracias por tu compra en Telas APP.\n\nTu pago por ${monto_total} ha sido procesado y aprobado con éxito mediante Mercado Pago.\n\nAquí tienes el detalle de las telas que reservaste:\n{detalle_productos_mail}\nNos pondremos en contacto contigo a la brevedad a este mismo correo o a tu número de contacto para coordinar los detalles del envío.\n\n¡Gracias por confiar en nosotros y a crear cosas hermosas!\nEl equipo de Telas APP."
-                        send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [email_cliente], fail_silently=False)
+                                # 📧 ENVÍO DE CORREOS AUTOMÁTICOS
+                                try:
+                                    asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
+                                    mensaje_cliente = f"¡Hola! Muchas gracias por tu compra.\n\nTu pago por ${pedido.total} ha sido procesado con éxito mediante Mercado Pago.\n\nDetalle de las telas:\n{pedido.detalle_items}\nNos comunicaremos pronto para coordinar el envío."
+                                    send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
 
-                        asunto_dueno = f"🚀 ¡NUEVA VENTA! - ${monto_total} (Pago #{payment_id})"
-                        mensaje_dueno = f"¡Hola Nacho! Tienes una nueva venta aprobada en Telas APP. 🎉\n\n💰 Monto cobrado: ${monto_total}\n👤 Email del cliente: {email_cliente}\n🆔 ID de Operación MP: {payment_id}\n\n📦 Detalle del pedido (A preparar los cortes!):\n{detalle_productos_mail}\nRecuerda contactar al cliente para coordinar el método de entrega."
-                        send_mail(asunto_dueno, mensaje_dueno, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
-                    except Exception as e_mail:
-                        print(f"⚠️ Error al enviar correos: {e_mail}")
+                                    asunto_dueno = f"🚀 ¡NUEVA VENTA MP! - ${pedido.total} (Pedido #{pedido.id})"
+                                    mensaje_dueno = f"¡Hola! Tienes una nueva venta aprobada vía Mercado Pago.\n\n💰 Monto: ${pedido.total}\n👤 Cliente: {pedido.nombre_cliente}\n📦 Detalle:\n{pedido.detalle_items}"
+                                    send_mail(asunto_dueno, mensaje_dueno, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
+                                except Exception as e_mail:
+                                    print(f"⚠️ Error al enviar correos: {e_mail}")
 
-                    # ---------------------------------------------------------
-                    # 📱 ENVÍO DE WHATSAPP AL DUEÑO (NUEVO)
-                    # ---------------------------------------------------------
-                    try:
-                        # Rescatamos los datos nuevos de la metadata
-                        telefono_cliente = metadata.get("telefono_contacto", "No especificado")
-                        nombre_cliente = metadata.get("nombre_contacto", "Cliente")
+                                # 📱 ENVÍO DE WHATSAPP AL DUEÑO
+                                try:
+                                    mensaje_wpp = (
+                                        f"🚨 ¡NUEVA VENTA APROBADA (MP)!\n\n"
+                                        f"👤 Cliente: {pedido.nombre_cliente}\n"
+                                        f"📞 Teléfono: {pedido.telefono_cliente or 'No especificado'}\n"
+                                        f"✉️ Email: {pedido.email_cliente}\n\n"
+                                        f"🛒 Detalle del pedido:\n{pedido.detalle_items}\n"
+                                        f"💰 Total: ${pedido.total}\n"
+                                        f"🆔 ID Pedido: #{pedido.id}"
+                                    )
+                                    enviar_mensaje_whatsapp("5493562517046", mensaje_wpp)
+                                except Exception as e_wpp:
+                                    print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
 
-                        # Armamos el texto con formato para WhatsApp (negritas con *)
-                        mensaje_wpp = (
-                            f"🚨 ¡NUEVA VENTA APROBADA!\n\n"
-                            f"👤 Cliente: {nombre_cliente}\n"
-                            f"📞 Teléfono: {telefono_cliente}\n"
-                            f"✉️ Email: {email_cliente}\n\n"
-                            f"🛒 Detalle del pedido:\n{detalle_productos_mail}\n"
-                            f"💰 Total: ${monto_total}\n"
-                            f"🆔 ID MP: {payment_id}"
-                        )
-
-                        #Llamamos a la función:
-                        # Reemplaza con el número real de Nacho con código de país
-                        numero_nacho = "5493562517046" 
-                        enviar_mensaje_whatsapp(numero_nacho, mensaje_wpp)
-                        
-                        print("📲 Intento de envío de WhatsApp procesado.")
-                    except Exception as e_wpp:
-                        print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
+                        except Pedido.DoesNotExist:
+                            print(f"⚠️ Alerta: Se recibió pago de MP para el Pedido #{pedido_id} pero no existe en la BD.")
 
         return Response({"status": "recibido"}, status=status.HTTP_200_OK)
     except Exception as e:
@@ -287,3 +298,154 @@ def enviar_mensaje_whatsapp(numero_destino, mensaje_texto):
         if response is not None:
             print(f"Detalle de Meta: {response.text}")
         return False
+    
+
+class CrearPedidoView(APIView):
+    def post(self, request):
+        try:
+            cart_items = request.data.get('items', [])
+            payer_data = request.data.get('payer', {}) 
+            metodo_pago = request.data.get('metodo_pago', 'Mercado Pago') # 'Mercado Pago' o 'Transferencia'
+
+            if not cart_items:
+                return Response({"error": "El carrito está vacío"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # 1. Calcular el total del pedido
+            total = Decimal('0.00')
+            for item in cart_items:
+                total += Decimal(str(item.get('precio_por_metro', 0))) * Decimal(str(item.get('cantidad', 1)))
+
+            # Determinar estado inicial según el método de pago
+            estado_inicial = 'Esperando_Transferencia' if metodo_pago == 'Transferencia' else 'Pendiente'
+
+            # 2. Bloque atómico para guardar el pedido y descontar stock de forma segura
+            with transaction.atomic():
+                pedido = Pedido.objects.create(
+                    nombre_cliente=f"{payer_data.get('nombre', '')} {payer_data.get('apellido', '')}".strip() or "Cliente",
+                    email_cliente=payer_data.get('email', ''),
+                    telefono_cliente=payer_data.get('telefono', ''),
+                    total=total,
+                    metodo_pago=metodo_pago,
+                    estado=estado_inicial
+                )
+
+                detalle_productos_mail = ""
+
+                for item in cart_items:
+                    producto_id = item.get('id')
+                    cantidad_solicitada = Decimal(str(item.get('cantidad', 0)))
+                    precio_unitario = Decimal(str(item.get('precio_por_metro', 0)))
+
+                    # select_for_update bloquea la fila en Postgres para evitar condiciones de carrera
+                    producto = Producto.objects.select_for_update().get(id=producto_id)
+
+                    if producto.stock_metros < cantidad_solicitada:
+                        raise ValueError(f"Stock insuficiente para la tela: {producto.nombre}. Disponible: {producto.stock_metros}m")
+
+                    # Descontar el stock (Se reserva la tela)
+                    producto.stock_metros -= cantidad_solicitada
+                    producto.save()
+
+                    # Guardar el ítem relacional
+                    PedidoItem.objects.create(
+                        pedido=pedido,
+                        producto=producto,
+                        nombre_producto=producto.nombre,
+                        cantidad_metros=cantidad_solicitada,
+                        precio_unitario=precio_unitario
+                    )
+
+                    detalle_productos_mail += f"• {producto.nombre}: {cantidad_solicitada} metros\n"
+
+                # Guardamos el detalle en texto plano para los flujos de mensajería existentes
+                pedido.detalle_items = detalle_productos_mail
+                pedido.save()
+
+            # --- BIFURCACIÓN DE LÓGICA DE PAGO ---
+            
+            if metodo_pago == 'Transferencia':
+                # Enviar correo informativo con datos de transferencia al cliente
+                try:
+                    asunto_cliente = "Tu pedido está reservado 🧵✨ - Detalles de Transferencia"
+                    mensaje_cliente = (
+                        f"¡Hola {pedido.nombre_cliente}!\n\nHemos registrado tu pedido #{pedido.id} correctamente.\n"
+                        f"Hemos reservado tus telas por un plazo de 24 horas. Para completar la compra, realiza la transferencia:\n\n"
+                        f"💰 Total a transferir: ${pedido.total}\n"
+                        f"🏦 CBU: O123456789012345678901 (Reemplazar por el tuyo)\n"
+                        f"📌 Alias: TELAS.APP.CBA\n"
+                        f"👤 Titular: Ignacio Zurbriggen\n\n"
+                        f"Detalle de tu reserva:\n{pedido.detalle_items}\n"
+                        f"Una vez realizada la transferencia, envíanos el comprobante respondiendo a este mail o por WhatsApp.\n\n"
+                        f"¡Muchas gracias!"
+                    )
+                    send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
+                    
+                    # Notificar al dueño por WhatsApp que hay una transferencia pendiente
+                    mensaje_wpp_dueno = f"🏪 Pedido #{pedido.id} en espera de transferencia bancaria.\n👤 Cliente: {pedido.nombre_cliente}\n💰 Monto: ${pedido.total}"
+                    enviar_mensaje_whatsapp("5493562517046", mensaje_wpp_dueno)
+                except Exception as e_notif:
+                    print(f"⚠️ Error en notificaciones de transferencia: {e_notif}")
+
+                return Response({
+                    "status": "awaiting_transfer",
+                    "pedido_id": pedido.id,
+                    "total": float(pedido.total),
+                    "mensaje": "Pedido reservado con éxito. Esperando transferencia."
+                }, status=status.HTTP_201_CREATED)
+
+            elif metodo_pago == 'Mercado Pago':
+                # Reutilizamos tu integración con el SDK de Mercado Pago
+                sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
+                items_for_mp = []
+
+                for item in cart_items:
+                    items_for_mp.append({
+                        "id": str(item.get('id', '1')),
+                        "title": str(item.get('nombre', 'Corte de Tela')),
+                        "quantity": int(item.get('cantidad', 1)),
+                        "unit_price": float(item.get('precio_por_metro', 0)),
+                        "currency_id": "ARS",
+                    })
+
+                ngrok_url = "https://elvia-uncited-humbly.ngrok-free.dev"
+
+                preference_data = {
+                    "items": items_for_mp,
+                    "payer": {
+                        "name": payer_data.get('nombre', ''),
+                        "surname": payer_data.get('apellido', ''),
+                        "email": payer_data.get('email', ''), 
+                        "identification": {"type": "DNI", "number": str(payer_data.get('dni', ''))}
+                    },
+                    # 💡 METADATA CLAVE: Guardamos el ID del pedido que acabamos de crear en nuestra base de datos
+                    "metadata": {
+                        "pedido_id": pedido.id,
+                        "email_contacto": pedido.email_cliente,
+                        "telefono_contacto": pedido.telefono_cliente,
+                        "nombre_contacto": pedido.nombre_cliente
+                    },
+                    "back_urls": {
+                        "success": f"{ngrok_url}/api/mercadopago/success/", 
+                        "failure": "http://localhost:5173/checkout",
+                        "pending": "http://localhost:5173/checkout"
+                    },
+                    "auto_return": "approved",
+                    "binary_mode": True,
+                    "notification_url": f"{ngrok_url}/api/mercadopago/webhook/"
+                }
+
+                preference_response = sdk.preference().create(preference_data)
+                
+                if preference_response["status"] >= 400:
+                    return Response(preference_response["response"], status=status.HTTP_400_BAD_REQUEST)
+                
+                return Response({
+                    "status": "redirect_mp",
+                    "pedido_id": pedido.id,
+                    "preference_id": preference_response["response"]['id']
+                }, status=status.HTTP_201_CREATED)
+
+        except ValueError as ve:
+            return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": f"Error interno del servidor: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

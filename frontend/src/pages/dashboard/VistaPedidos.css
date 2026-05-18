@@ -45,7 +45,7 @@
     padding: 16px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #64748b;
+    color: #2f2e29;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border-bottom: 1px solid #e2e8f0;
@@ -106,7 +106,7 @@
 .badge-estado.cancelado { background-color: #fee2e2; color: #991b1b; }
 
 .badge-metodo.mercado-pago { background-color: #e0f2fe; color: #0369a1; }
-.badge-metodo.transferencia { background-color: #f1f5f9; color: #475569; }
+.badge-metodo.transferencia { background-color: #e0e7ff; color: #4338ca; }
 
 /* =======================================================
    ⚡ MAGIA RESPONSIVE: VISTA PARA CELULARES PÚLIDA
@@ -148,7 +148,7 @@
     .pedidos-table td::before {
         content: attr(data-label);
         font-weight: 500; /* Suavizamos la negrita para que el dato sea el protagonista */
-        color: #94a3b8; /* Gris más claro y sutil */
+        color: #101c0e; /* Gris más claro y sutil */
         font-size: 0.75rem;
         letter-spacing: 0.5px;
         text-transform: uppercase;

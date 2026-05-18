@@ -325,3 +325,28 @@
         border-radius: 8px; 
     }
 }
+
+
+/* ===== ETIQUETA INFORMATIVA DE CARRITO ===== */
+.pd-cart-info-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f0f9ff; /* Fondo celeste/azul muy suave */
+    color: #0369a1; /* Texto azul profundo y elegante */
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    border-left: 3px solid #7dd3fc; /* Borde lateral para darle jerarquía */
+    font-family: 'Montserrat', sans-serif;
+}
+
+.pd-cart-info-badge svg {
+    flex-shrink: 0; /* Evita que el ícono se aplaste en celulares */
+    color: #0284c7;
+}
+
+.pd-cart-info-badge strong {
+    font-weight: 700;
+}

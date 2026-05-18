@@ -72,12 +72,19 @@ const VistaPedidos = () => {
                                             {pedido.email_cliente}
                                         </td>
                                         <td data-label="TELA A CORTAR" className="detalle-cell">
-                                            <div className="detalle-items-wrapper">
-                                                {pedido.detalle_items.split('\n').map((line, index) => (
-                                                    line ? <div key={index} className="detalle-linea">{line}</div> : null
-                                                ))}
-                                            </div>
-                                        </td>
+    <div className="detalle-items-wrapper">
+        {/* Reemplazá la validación de tu línea 75 por esta: */}
+{(pedido.detalle_items || "").split('\n').map((line, index) => (
+    line ? <div key={index} className="detalle-linea">{line}</div> : null
+))}
+{/* Si no hay detalle, mostramos este texto especial */}
+{!pedido.detalle_items && (
+    <div style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.85rem' }}>
+        Sin detalle guardado
+    </div>
+)}
+    </div>
+</td>
                                         <td data-label="MÉTODO DE PAGO">
                                             <span className={`badge-metodo ${pedido.metodo_pago.toLowerCase().replace(' ', '-')}`}>
                                                 {pedido.metodo_pago}

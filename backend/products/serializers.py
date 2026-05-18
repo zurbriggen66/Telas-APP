@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration
+from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem
 
 # 1. Serializer para la configuración (Banner)
 class StoreConfigurationSerializer(serializers.ModelSerializer):
@@ -36,7 +36,17 @@ class ProductoSerializer(serializers.ModelSerializer):
             'imagen', 'imagenes_galeria'
         ]
 
+class PedidoItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PedidoItem
+        fields = ['id', 'producto', 'nombre_producto', 'cantidad_metros', 'precio_unitario']
+
 class PedidoSerializer(serializers.ModelSerializer):
+    items = PedidoItemSerializer(many=True, read_only=True)
+
     class Meta:
         model = Pedido
-        fields = '__all__'
+        fields = [
+            'id', 'mp_id', 'nombre_cliente', 'email_cliente', 'telefono_cliente',
+            'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion'
+        ]

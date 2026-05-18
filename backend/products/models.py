@@ -130,19 +130,46 @@ class PagoProcesado(models.Model):
     def __str__(self):
         return self.pago_id
     
+# models.py (Actualizaciones sugeridas)
+
 class Pedido(models.Model):
     ESTADOS = (
-        ('Aprobado', 'Aprobado'),
-        ('Pendiente', 'Pendiente'),
-        ('Cancelado', 'Cancelado'),
+        ('Pendiente', 'Pendiente de Pago (MP)'),
+        ('Esperando_Transferencia', 'Esperando Transferencia'),
+        ('Aprobado', 'Pago Aprobado'),
+        ('Cancelado', 'Cancelado / Expirado'),
+        ('Despachado', 'Pedido Despachado'),
     )
-    mp_id = models.CharField(max_length=100, null=True, blank=True)
+    
+    # Identificadores
+    mp_id = models.CharField(max_length=100, null=True, blank=True, verbose_name="ID MercadoPago")
+    
+    # Datos del cliente (Agregamos nombre y teléfono que ya extraías en tu webhook)
+    nombre_cliente = models.CharField(max_length=100, default="Cliente")
     email_cliente = models.EmailField()
+    telefono_cliente = models.CharField(max_length=20, null=True, blank=True)
+    
+    # Datos del pago
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    metodo_pago = models.CharField(max_length=50, default='Mercado Pago')
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='Aprobado')
-    detalle_items = models.TextField()
+    metodo_pago = models.CharField(max_length=50, default='Mercado Pago') # 'Mercado Pago' o 'Transferencia'
+    estado = models.CharField(max_length=30, choices=ESTADOS, default='Pendiente')
+    detalle_items = models.TextField(blank=True, null=True)
+    # Comprobante opcional para que el cliente lo suba después (opcional pero muy útil)
+    comprobante_transferencia = models.ImageField(upload_to='comprobantes/', null=True, blank=True)
+    
     fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True) # Útil para saber cuándo lo aprobaste
 
     def __str__(self):
-        return f"Pedido #{self.id} - {self.email_cliente}"
+        return f"Pedido #{self.id} - {self.email_cliente} ({self.estado})"
+
+# ⚠️ NUEVO MODELO CRÍTICO: Para poder manejar el stock dinámicamente
+class PedidoItem(models.Model):
+    pedido = models.ForeignKey(Pedido, related_name='items', on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True) # SET_NULL por si borras la tela en un futuro
+    nombre_producto = models.CharField(max_length=200) # Guardamos el nombre histórico
+    cantidad_metros = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.cantidad_metros}m de {self.nombre_producto} (Pedido #{self.pedido.id})"

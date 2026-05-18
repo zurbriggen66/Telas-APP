@@ -10,13 +10,15 @@ import VistaCategorias from './pages/dashboard/VistaCategorias';
 import VistaDiseno from './pages/dashboard/VistaDiseno';
 import VistaStats from './pages/dashboard/VistaStats';
 import VistaPedidos from './pages/dashboard/VistaPedidos';
+import VistaTransferencias from './pages/dashboard/VistaTransferencias';
 
 // Importamos las páginas públicas
 import Home from './pages/Home/Home.jsx';
 import Carrito from './pages/Carrito/Carrito.jsx';
 import DetalleProducto from './pages/Detalle producto/Detalle_producto.jsx';
 import CheckoutSelection from './pages/Checkoutselection/CheckoutSelection.jsx';
-import Success from './pages/Success/Success.jsx'; // <-- IMPORTAMOS LA NUEVA PÁGINA
+import Success from './pages/Success/Success.jsx'; 
+import TransferenciaSuccess from './pages/TransferenciaSuccess'; // <-- IMPORTACIÓN ACÁ ESTÁ PERFECTA
 import Productos from './pages/Products/Products.jsx';
 
 function App() {
@@ -32,6 +34,9 @@ function App() {
         {/* RUTAS DE PAGO */}
         <Route path="/checkout" element={<CheckoutSelection />} />
         <Route path="/success" element={<Success />} /> 
+        
+        {/* 👇 ACÁ VA LA RUTA NUEVA 👇 */}
+        <Route path="/transferencia-success" element={<TransferenciaSuccess />} />
 
         {/* === RUTA PADRE: DASHBOARD === */}
         <Route path="/dashboard" element={<Dashboard />}>
@@ -42,6 +47,8 @@ function App() {
           <Route path="diseno" element={<VistaDiseno />} />
           <Route path="estadisticas" element={<VistaStats />} />
           <Route path="pedidos" element={<VistaPedidos />} />
+          <Route path="transferencias" element={<VistaTransferencias />} />
+          {/* Ya la sacamos de acá */}
         </Route>
       </Routes>
     </BrowserRouter>

@@ -1,0 +1,248 @@
+.vista-transferencias-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+}
+
+.loading-state, .transferencias-empty {
+    padding: 80px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.empty-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.empty-subtitle {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* === GRID RESPONSIVE === */
+.grid-transferencias {
+    display: grid;
+    /* En pantallas grandes: tarjetas de al menos 350px. En móviles: 100% */
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .grid-transferencias {
+        grid-template-columns: 1fr; /* 1 sola columna en móviles */
+    }
+}
+
+/* === TARJETAS === */
+.transferencia-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.transferencia-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.transferencia-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 16px;
+}
+
+.badge-transferencia {
+    display: inline-block;
+    background-color: #fef08a;
+    color: #854d0e;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pedido-titulo {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.monto-destacado {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #10b981;
+}
+
+.transferencia-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.info-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.info-valor {
+    font-size: 0.95rem;
+    color: #334155;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.detalle-telas-box {
+    margin-top: 8px;
+    padding: 12px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.telas-lista {
+    margin-top: 6px;
+}
+
+.tela-line {
+    color: #475569;
+    font-size: 0.9rem;
+    padding: 4px 0;
+    border-bottom: 1px dashed #cbd5e1;
+}
+.tela-line:last-child {
+    border-bottom: none;
+}
+
+/* === BOTONES === */
+.transferencia-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 16px;
+}
+
+.btn-accion {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.btn-aprobar {
+    background-color: #10b981;
+    color: white;
+}
+.btn-aprobar:hover { background-color: #059669; }
+
+.btn-rechazar {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+.btn-rechazar:hover { background-color: #fca5a5; color: #b91c1c; }
+
+/* === MODAL CUSTOM === */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal-content h2 {
+    margin: 0 0 12px 0;
+    color: #0f172a;
+    font-size: 1.4rem;
+}
+
+.modal-content p {
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-modal-cerrar {
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-modal-cerrar:hover { background-color: #f1f5f9; }
+
+.btn-modal-confirmar {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+}
+.btn-modal-confirmar.aprobar { background-color: #10b981; }
+.btn-modal-confirmar.aprobar:hover { background-color: #059669; }
+.btn-modal-confirmar.rechazar { background-color: #ef4444; }
+.btn-modal-confirmar.rechazar:hover { background-color: #dc2626; }
+
+.btn-modal-confirmar:disabled, .btn-modal-cerrar:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

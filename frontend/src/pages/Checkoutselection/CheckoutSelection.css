@@ -40,18 +40,79 @@
     display: grid;
     grid-template-columns: 1fr 350px;
     gap: 40px;
+    align-items: flex-start;
 }
 
+.checkout-form-section { 
+    background: white; 
+    padding: 30px; 
+    border-radius: 8px; 
+    border: 1px solid #F0F0F0; 
+    margin-bottom: 25px; 
+}
+
+.section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: #1A1A1A;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; 
+}
+
+.form-grid input { 
+    padding: 14px; 
+    border: 1px solid #ddd; 
+    border-radius: 6px; 
+    font-family: 'Montserrat', sans-serif; 
+    font-size: 0.95rem; 
+    outline: none; 
+    transition: border-color 0.2s;
+}
+
+.form-grid input:focus { 
+    border-color: #1A1A1A; 
+}
+
+.form-grid .full-width { 
+    grid-column: 1 / -1; 
+}
+
+/* === MENSAJE DE ERROR SUTIL === */
+.error-message-subtle {
+    margin-top: 20px;
+    padding: 12px 16px;
+    background-color: #fff1f2;
+    border-left: 4px solid #f43f5e;
+    color: #be123c;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* === MÉTODOS DE PAGO === */
 .payment-options {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
 .payment-card {
     display: flex;
     align-items: center;
-    padding: 25px;
+    padding: 20px 25px;
     background: white;
     border: 1px solid #F0F0F0;
     border-radius: 8px;
@@ -62,7 +123,7 @@
 
 .payment-card.active {
     border-color: #1A1A1A;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.04);
 }
 
 .payment-card-icon {
@@ -72,7 +133,7 @@
 
 .payment-card-info h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin-bottom: 5px;
 }
 
@@ -84,8 +145,8 @@
 .selection-indicator {
     position: absolute;
     right: 25px;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: 1px solid #DDD;
     display: flex;
@@ -98,62 +159,131 @@
     border-color: #1A1A1A;
 }
 
-.disabled-option {
-    opacity: 0.7;
-}
-
-/* Resumen lateral */
+/* === RESUMEN LATERAL === */
 .checkout-summary {
     background: white;
     padding: 30px;
     border-radius: 8px;
     border: 1px solid #F0F0F0;
-    height: fit-content;
+    position: sticky;
+    top: 100px;
+}
+
+/* Le damos elegancia y respiro al título */
+.checkout-summary h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: #1A1A1A;
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #F0F0F0;
+    text-align: center;
+}
+
+.summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Separa los renglones de las telas */
 }
 
 .summary-item-mini {
     display: flex;
     justify-content: space-between;
-    font-size: 0.85rem;
-    margin-bottom: 10px;
-    color: #666;
+    font-size: 0.95rem;
+    color: #555;
+    padding: 8px 0;
 }
 
 .summary-total-line {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px solid #1A1A1A;
+    border-top: 2px dashed #E5E5E5;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .total-amount {
-    font-size: 1.4rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1A1A1A;
 }
 
 .btn-pay-now {
     width: 100%;
-    margin-top: 30px;
-    padding: 18px;
+    margin-top: 25px;
+    padding: 16px;
     background: #1A1A1A;
     color: white;
     border: none;
+    border-radius: 6px;
     font-family: 'Montserrat', sans-serif;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 500;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: opacity 0.3s;
+    transition: background-color 0.3s;
 }
 
 .btn-pay-now:hover {
-    opacity: 0.9;
+    background: #333;
 }
 
-.checkout-form-section { background: white; padding: 25px; border-radius: 8px; border: 1px solid #F0F0F0; margin-bottom: 25px; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.form-grid input { padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Montserrat', sans-serif; font-size: 0.9rem; outline: none; }
-.form-grid input:focus { border-color: #1A1A1A; }
-.form-grid .full-width { grid-column: 1 / -1; }
+.btn-pay-now:disabled {
+    background: #CCC;
+    cursor: not-allowed;
+}
+
+
+/* =======================================================
+   ⚡ MAGIA RESPONSIVE PARA MÓVILES
+   ======================================================= */
+@media screen and (max-width: 900px) {
+    /* Rompemos el layout de dos columnas para que sea una sola vertical */
+    .checkout-selection-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .checkout-summary {
+        position: static; /* Quitamos el sticky en móvil */
+        margin-top: 20px; /* Un poco de espacio respecto al formulario de arriba */
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .checkout-selection-page {
+        padding-top: 80px;
+    }
+
+    .checkout-header h1 {
+        font-size: 2rem;
+    }
+
+    /* En celulares chicos, las cajas de input van al 100% del ancho */
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Reseteamos el span del input full-width ya que ahora todos lo son */
+    .form-grid .full-width {
+        grid-column: auto;
+    }
+
+    .checkout-form-section {
+        padding: 20px;
+    }
+    
+    .payment-card {
+        padding: 15px;
+    }
+    
+    .payment-card-icon {
+        margin-right: 15px;
+    }
+    
+    .selection-indicator {
+        right: 15px;
+    }
+}
