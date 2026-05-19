@@ -330,3 +330,94 @@
         padding: 1rem;
     }
 }
+
+/* =========================================
+   DESPLEGABLE A-Z (DESKTOP)
+========================================= */
+.nav-dropdown-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 10px 0; /* Área de hover más grande para evitar que se cierre sin querer */
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    background-color: var(--crema-fondo);
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    max-height: 400px; /* Si hay muchas telas, hacemos que scrollee */
+    overflow-y: auto;
+    z-index: 1010;
+    border-top: 2px solid var(--dorado-acento);
+}
+
+/* Custom Scrollbar para el dropdown */
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+.dropdown-menu::-webkit-scrollbar-track {
+    background: var(--crema-fondo);
+}
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: var(--dorado-acento);
+    border-radius: 3px;
+}
+
+.dropdown-item {
+    color: var(--texto-oscuro);
+    padding: 0.8rem 1.5rem;
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid rgba(234, 221, 196, 0.3); /* var(--borde-suave) con opacidad */
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(207, 159, 64, 0.1);
+    color: var(--verde-atelier);
+    padding-left: 1.8rem; /* Pequeño efecto de desplazamiento al hacer hover */
+}
+
+/* =========================================
+   DESPLEGABLE A-Z (MÓVIL / DRAWER)
+========================================= */
+.mobile-dropdown-list {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    background-color: rgba(234, 221, 196, 0.2); /* Fondo apenas más oscuro */
+}
+
+.mobile-dropdown-list.open {
+    max-height: 500px; /* Altura suficiente para que expanda, se ajusta si tenés muchas */
+    overflow-y: auto;
+}
+
+.mobile-dropdown-item {
+    display: block;
+    padding: 0.8rem 1.5rem 0.8rem 2.5rem; /* Más padding a la izquierda para identar */
+    color: var(--texto-oscuro);
+    text-decoration: none;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(234, 221, 196, 0.4);
+}
+
+.mobile-dropdown-item:hover {
+    color: var(--verde-atelier);
+    background-color: rgba(207, 159, 64, 0.1);
+}

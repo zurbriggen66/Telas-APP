@@ -1,21 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = ({ cartCount = 0 }) => {
+    // 1. ESTADOS
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [logoUrl, setLogoUrl] = useState(null);
+    
+    // ESTADOS PARA DESPLEGABLE A-Z
+    const [telasAZ, setTelasAZ] = useState([]);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileAzOpen, setIsMobileAzOpen] = useState(false);
 
+    // 2. FUNCIONES
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const closeMenu = () => setIsMenuOpen(false);
+    
+    const closeMenu = () => {
+        setIsMenuOpen(false);
+        setIsMobileAzOpen(false); // Cierra también el acordeón al cerrar el menú
+    };
 
+    // 3. EFECTOS (Llamadas a la API y eventos)
     useEffect(() => {
+        // Cargar el Logo del banner
         axios.get('http://127.0.0.1:8000/api/banner/')
             .then(res => { if (res.data?.logo) setLogoUrl(res.data.logo); })
             .catch(() => {});
+
+        // Cargar las telas para el menú A-Z
+        axios.get('http://127.0.0.1:8000/api/productos-az/')
+            .then(res => setTelasAZ(res.data))
+            .catch(err => console.error("Error cargando telas A-Z", err));
     }, []);
 
     useEffect(() => {
@@ -59,9 +77,37 @@ const Navbar = ({ cartCount = 0 }) => {
                     <div className="navbar-links">
                         <Link to="/" className="nav-link">Inicio</Link>
                         <Link to="/productos" className="nav-link">Productos</Link>
-                        <Link to="/buscar-az" className="nav-link nav-link--az">
-                            <ArrowUpDown size={14} strokeWidth={1.5} /> A–Z
-                        </Link>
+                        
+                        {/* MODIFICACIÓN 1: DESPLEGABLE DESKTOP */}
+                        <div 
+                            className="nav-dropdown-container"
+                            onMouseEnter={() => setIsDropdownOpen(true)}
+                            onMouseLeave={() => setIsDropdownOpen(false)}
+                        >
+                            <span className="nav-link nav-link--az" style={{ cursor: 'pointer' }}>
+                                <ArrowUpDown size={14} strokeWidth={1.5} /> A–Z
+                            </span>
+                            
+                            {isDropdownOpen && (
+                                <div className="dropdown-menu">
+                                    {telasAZ.length > 0 ? (
+                                        telasAZ.map(tela => (
+                                            <Link 
+                                                key={tela.id} 
+                                                to={`/producto/${tela.id}`} 
+                                                className="dropdown-item"
+                                                onClick={() => setIsDropdownOpen(false)}
+                                            >
+                                                {tela.nombre}
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <span className="dropdown-item">Cargando...</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        
                     </div>
 
                     {/* ACCIONES (USUARIO Y CARRITO) */}
@@ -103,12 +149,37 @@ const Navbar = ({ cartCount = 0 }) => {
 
                     <div className="drawer-divider" />
 
-                    <Link to="/buscar-az" className="drawer-link drawer-link--az" onClick={closeMenu}>
-                        <span className="az-inner">
-                            <ArrowUpDown size={18} strokeWidth={1.5} /> Ordenar A–Z
-                        </span>
-                        <ChevronRight size={18} strokeWidth={1.5} />
-                    </Link>
+                    {/* MODIFICACIÓN 2: ACORDEÓN MÓVIL */}
+                    <div className="drawer-accordion">
+                        <button 
+                            className="drawer-link drawer-link--az w-100" 
+                            onClick={() => setIsMobileAzOpen(!isMobileAzOpen)}
+                            style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+                        >
+                            <span className="az-inner">
+                                <ArrowUpDown size={18} strokeWidth={1.5} /> Ordenar A–Z
+                            </span>
+                            <ChevronDown 
+                                size={18} 
+                                strokeWidth={1.5} 
+                                style={{ transform: isMobileAzOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }} 
+                            />
+                        </button>
+                        
+                        <div className={`mobile-dropdown-list ${isMobileAzOpen ? 'open' : ''}`}>
+                            {telasAZ.map(tela => (
+                                <Link 
+                                    key={tela.id} 
+                                    to={`/producto/${tela.id}`} 
+                                    className="mobile-dropdown-item" 
+                                    onClick={closeMenu}
+                                >
+                                    {tela.nombre}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                 </nav>
 
                 <div className="drawer-footer">

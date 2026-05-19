@@ -3,8 +3,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 import mercadopago
 import requests
+from .serializers import ProductoDesplegableSerializer
 from decimal import Decimal
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, generics
 from django.conf import settings
 from rest_framework.views import APIView
 from django.db import transaction
@@ -14,7 +15,7 @@ from django.core.mail import send_mail
 
 # ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
-from .serializers import CategoriaSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
+from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
 
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser, FormParser])
@@ -494,3 +495,9 @@ class MercadoPagoPreferenceView(APIView):
             
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+# FILTRO PARA DESPLEGAR PRODUCTOS EN ORDEN ALFABÉTICO (POR EJEMPLO, EN UN SELECT DE REACT)
+class ProductoAZList(generics.ListAPIView):
+    # Traemos todos los productos ordenados de la A a la Z
+    queryset = Producto.objects.all().order_by('nombre')
+    serializer_class = ProductoDesplegableSerializer

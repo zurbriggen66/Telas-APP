@@ -13,7 +13,7 @@ urlpatterns = [
     
     # NUEVA RUTA PARA DESCONTAR STOCK Y CREAR PEDIDOS (Transferencia o MP)
     path('api/pedidos/crear/', views.CrearPedidoView.as_view(), name='crear_pedido'),
-    
+    path('api/productos-az/', views.ProductoAZList.as_view(), name='productos-az'),
     path('api/mercadopago/webhook/', views.webhook_mercadopago, name='mp-webhook'),
     path('api/mercadopago/success/', views.success_redirect, name='mp-success'),
 

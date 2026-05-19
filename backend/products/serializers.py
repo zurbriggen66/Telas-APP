@@ -50,3 +50,9 @@ class PedidoSerializer(serializers.ModelSerializer):
             'id', 'mp_id', 'nombre_cliente', 'email_cliente', 'telefono_cliente',
             'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion'
         ]
+
+class ProductoDesplegableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Producto
+        # Solo necesitamos el ID para la URL y el nombre para mostrar
+        fields = ['id', 'nombre']
