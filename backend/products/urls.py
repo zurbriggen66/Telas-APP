@@ -9,7 +9,7 @@ router.register(r'pedidos', views.PedidoViewSet)
 
 urlpatterns = [
     path('api/banner/', views.get_main_banner, name='main-banner'),
-    path('api/mercadopago/preference/', views.MercadoPagoPreferenceView.as_view(), name='mp-preference'),
+    #path('api/mercadopago/preference/', views.MercadoPagoPreferenceView.as_view(), name='mp-preference'),
     
     # NUEVA RUTA PARA DESCONTAR STOCK Y CREAR PEDIDOS (Transferencia o MP)
     path('api/pedidos/crear/', views.CrearPedidoView.as_view(), name='crear_pedido'),

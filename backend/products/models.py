@@ -148,6 +148,9 @@ class Pedido(models.Model):
     nombre_cliente = models.CharField(max_length=100, default="Cliente")
     email_cliente = models.EmailField()
     telefono_cliente = models.CharField(max_length=20, null=True, blank=True)
+
+    # 👇 NUEVO CAMPO: Guardará la dirección o si retira en el local
+    direccion_envio = models.CharField(max_length=255, null=True, blank=True, verbose_name="Método/Dirección de Envío")
     
     # Datos del pago
     total = models.DecimalField(max_digits=10, decimal_places=2)

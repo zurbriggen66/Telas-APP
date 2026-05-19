@@ -8,9 +8,11 @@ const CheckoutSelection = () => {
     const navigate = useNavigate();
     const [metodo, setMetodo] = useState('mercadopago');
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState(''); // Estado para el mensaje de error sutil
+    const [errorMsg, setErrorMsg] = useState('');
 
-    // 1. Ampliamos el estado con los nuevos campos de dirección
+    // --- NUEVO ESTADO: Controla si es envío o retiro ---
+    const [metodoEntrega, setMetodoEntrega] = useState('envio'); 
+
     const [comprador, setComprador] = useState({
         nombre: '',
         apellido: '',
@@ -29,25 +31,24 @@ const CheckoutSelection = () => {
 
     const total = cart.reduce((acc, item) => acc + (Number(item.precio_por_metro) * item.cantidad), 0);
 
-    // 2. Nueva validación exigiendo todos los campos
+    // --- VALIDACIÓN ACTUALIZADA ---
+    // Si elige "retiro", no obligamos a llenar calle, número ni código postal
     const formValido = 
         comprador.nombre && comprador.apellido && comprador.email && 
-        comprador.dni && comprador.telefono && comprador.calle && 
-        comprador.numero && comprador.codigoPostal;
+        comprador.dni && comprador.telefono && 
+        (metodoEntrega === 'retiro' || (comprador.calle && comprador.numero && comprador.codigoPostal));
 
     const handleInputChange = (e) => {
         setComprador({
             ...comprador,
             [e.target.name]: e.target.value
         });
-        // Si el usuario empieza a escribir de nuevo, limpiamos el error
         if (errorMsg) setErrorMsg('');
     };
 
     const handleProcesarPago = async () => {
-        // 3. Validación delicada en vez del window.alert
         if (!formValido) {
-            setErrorMsg("Faltan completar algunos datos. Revisá el formulario para poder preparar tu envío.");
+            setErrorMsg("Faltan completar algunos datos. Revisá el formulario para poder preparar tu pedido.");
             return;
         }
 
@@ -55,12 +56,24 @@ const CheckoutSelection = () => {
         try {
             const metodoPagoBackend = metodo === 'mercadopago' ? 'Mercado Pago' : 'Transferencia';
 
+            // --- LÓGICA DE DIRECCIÓN PARA WHATSAPP Y DJANGO ---
+            // Armamos un texto limpio dependiendo de qué eligió el cliente
+            const direccionFinal = metodoEntrega === 'retiro' 
+                ? "🏪 Retira en el local" 
+                : `${comprador.calle} ${comprador.numero}, CP: ${comprador.codigoPostal}`;
+
+            // Se lo inyectamos al objeto comprador antes de mandarlo al backend
+            const compradorConEnvio = {
+                ...comprador,
+                direccion_envio: direccionFinal
+            };
+
             const response = await fetch('http://localhost:8000/api/pedidos/crear/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     items: cart, 
-                    payer: comprador,
+                    payer: compradorConEnvio, // Mandamos el objeto con la dirección final armada
                     metodo_pago: metodoPagoBackend
                 }),
             });
@@ -123,19 +136,51 @@ const CheckoutSelection = () => {
                                 <input type="tel" name="telefono" placeholder="Celular" value={comprador.telefono} onChange={handleInputChange} required />
                             </div>
 
-                            {/* BLOQUE DIRECCIÓN DE ENVÍO */}
+                            {/* NUEVO BLOQUE: SELECCIÓN DE MÉTODO DE ENTREGA */}
                             <h3 className="section-title" style={{ marginTop: '35px' }}>
-                                <MapPin size={20} /> Datos de Envío
+                                <MapPin size={20} /> Método de Entrega
                             </h3>
-                            <div className="form-grid">
-                                <input type="text" name="calle" placeholder="Calle / Barrio" value={comprador.calle} onChange={handleInputChange} className="full-width" required />
-                                <input type="text" name="numero" placeholder="Número / Piso / Depto" value={comprador.numero} onChange={handleInputChange} required />
-                                <input type="text" name="codigoPostal" placeholder="Código Postal" value={comprador.codigoPostal} onChange={handleInputChange} required />
+                            
+                            <div className="opciones-entrega" style={{ display: 'flex', gap: '25px', marginBottom: '20px', fontFamily: "'Montserrat', sans-serif", fontSize: '0.95rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="radio" 
+                                        value="envio" 
+                                        name="entrega"
+                                        checked={metodoEntrega === 'envio'} 
+                                        onChange={(e) => setMetodoEntrega(e.target.value)} 
+                                        style={{ accentColor: 'var(--verde-atelier)' }} // Usa el verde de tu paleta si lo tenés definido
+                                    />
+                                    🚚 Envío a domicilio
+                                </label>
+
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                    <input 
+                                        type="radio" 
+                                        value="retiro" 
+                                        name="entrega"
+                                        checked={metodoEntrega === 'retiro'} 
+                                        onChange={(e) => setMetodoEntrega(e.target.value)} 
+                                        style={{ accentColor: 'var(--verde-atelier)' }}
+                                    />
+                                    🏪 Retira en el local
+                                </label>
                             </div>
+
+                            {/* BLOQUE DIRECCIÓN DE ENVÍO (RENDERIZADO CONDICIONAL) */}
+                            {metodoEntrega === 'envio' && (
+                                <div className="datos-envio-container" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+                                    <div className="form-grid">
+                                        <input type="text" name="calle" placeholder="Calle / Barrio" value={comprador.calle} onChange={handleInputChange} className="full-width" required />
+                                        <input type="text" name="numero" placeholder="Número / Piso / Depto" value={comprador.numero} onChange={handleInputChange} required />
+                                        <input type="text" name="codigoPostal" placeholder="Código Postal" value={comprador.codigoPostal} onChange={handleInputChange} required />
+                                    </div>
+                                </div>
+                            )}
 
                             {/* MENSAJE DE ERROR SUTIL */}
                             {errorMsg && (
-                                <div className="error-message-subtle">
+                                <div className="error-message-subtle" style={{ marginTop: '20px', color: '#d9534f', fontSize: '0.9rem', backgroundColor: '#fdf2f2', padding: '10px', borderRadius: '4px' }}>
                                     {errorMsg}
                                 </div>
                             )}
@@ -176,7 +221,6 @@ const CheckoutSelection = () => {
                             <span>Total a pagar</span>
                             <span className="total-amount">${total.toLocaleString('es-AR')}</span>
                         </div>
-                        {/* El botón siempre está clickeable, pero si faltan datos muestra el error arriba */}
                         <button className="btn-pay-now" onClick={handleProcesarPago} disabled={loading}>
                             {loading ? "Procesando..." : "Confirmar y Pagar"}
                         </button>
