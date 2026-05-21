@@ -8,21 +8,53 @@ const VistaPedidos = () => {
     const [pedidos, setPedidos] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchPedidos = async () => {
-            try {
-                const response = await fetch('http://localhost:8000/api/pedidos/');
-                const data = await response.json();
-                setPedidos(data);
-            } catch (error) {
-                console.error("Error al cargar los pedidos:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchPedidos = async () => {
+        try {
+            const response = await fetch('http://localhost:8000/api/pedidos/');
+            const data = await response.json();
+            setPedidos(data);
+        } catch (error) {
+            console.error("Error al cargar los pedidos:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchPedidos();
     }, []);
+
+    // --- NUEVA FUNCIÓN: Generar Etiqueta ---
+    const handleGenerarEtiqueta = async (pedidoId) => {
+        try {
+            // Nota: Si tenés un sistema de login para el admin, descomentá estas líneas para enviar el token:
+             const token = localStorage.getItem('access_token');
+            
+            const response = await fetch(`http://localhost:8000/api/pedidos/${pedidoId}/generar-etiqueta/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${token}` 
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('¡Etiqueta generada con éxito!');
+                // Abrimos el PDF en una pestaña nueva
+                window.open(data.label_url, '_blank');
+                // Recargamos la lista para que el estado pase a "Enviado" visualmente
+                fetchPedidos();
+            } else {
+                alert(`Error: ${data.error || 'No se pudo generar'}`);
+                console.error(data.detalle);
+            }
+        } catch (error) {
+            console.error('Error al generar la etiqueta:', error);
+            alert('Error de conexión al intentar generar la etiqueta.');
+        }
+    };
 
     if (loading) {
         return (
@@ -55,6 +87,8 @@ const VistaPedidos = () => {
                                     <th>Método</th>
                                     <th>Total</th>
                                     <th>Estado</th>
+                                    {/* NUEVA COLUMNA */}
+                                    <th>Acciones</th> 
                                 </tr>
                             </thead>
                             <tbody>
@@ -72,19 +106,17 @@ const VistaPedidos = () => {
                                             {pedido.email_cliente}
                                         </td>
                                         <td data-label="TELA A CORTAR" className="detalle-cell">
-    <div className="detalle-items-wrapper">
-        {/* Reemplazá la validación de tu línea 75 por esta: */}
-{(pedido.detalle_items || "").split('\n').map((line, index) => (
-    line ? <div key={index} className="detalle-linea">{line}</div> : null
-))}
-{/* Si no hay detalle, mostramos este texto especial */}
-{!pedido.detalle_items && (
-    <div style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.85rem' }}>
-        Sin detalle guardado
-    </div>
-)}
-    </div>
-</td>
+                                            <div className="detalle-items-wrapper">
+                                                {(pedido.detalle_items || "").split('\n').map((line, index) => (
+                                                    line ? <div key={index} className="detalle-linea">{line}</div> : null
+                                                ))}
+                                                {!pedido.detalle_items && (
+                                                    <div style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.85rem' }}>
+                                                        Sin detalle guardado
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td data-label="MÉTODO DE PAGO">
                                             <span className={`badge-metodo ${pedido.metodo_pago.toLowerCase().replace(' ', '-')}`}>
                                                 {pedido.metodo_pago}
@@ -97,6 +129,35 @@ const VistaPedidos = () => {
                                             <span className={`badge-estado ${pedido.estado.toLowerCase()}`}>
                                                 {pedido.estado}
                                             </span>
+                                        </td>
+                                        
+                                        {/* NUEVA CELDA DE ACCIONES */}
+                                        <td data-label="ACCIONES">
+                                            {/* Solo mostramos el botón si está Aprobado y eligió un correo */}
+                                            {pedido.estado === 'Aprobado' && pedido.envia_carrier && (
+                                                <button 
+                                                    onClick={() => handleGenerarEtiqueta(pedido.id)}
+                                                    style={{
+                                                        backgroundColor: '#1A1A1A', color: 'white', padding: '8px 12px', 
+                                                        borderRadius: '4px', border: 'none', cursor: 'pointer', 
+                                                        fontSize: '0.8rem', whiteSpace: 'nowrap', width: '100%'
+                                                    }}
+                                                >
+                                                    📦 Generar Etiqueta
+                                                </button>
+                                            )}
+
+                                            {/* Opcional: Feedback si ya se despachó o si es retiro local */}
+                                            {pedido.estado === 'Enviado' && (
+                                                <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 500 }}>
+                                                    ✓ Etiqueta lista
+                                                </span>
+                                            )}
+                                            {(!pedido.envia_carrier && pedido.estado === 'Aprobado') && (
+                                                <span style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                                                    Retiro Local
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

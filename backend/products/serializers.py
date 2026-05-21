@@ -5,7 +5,7 @@ from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfigurat
 class StoreConfigurationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StoreConfiguration
-        fields = '__all__'
+        exclude = ['api_key_envia']  # No enviamos el token de Envia.com al frontend por seguridad
 
 # 2. Serializer para las imágenes de la galería
 class ProductoImagenSerializer(serializers.ModelSerializer):
@@ -48,7 +48,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         model = Pedido
         fields = [
             'id', 'mp_id', 'nombre_cliente', 'email_cliente', 'telefono_cliente',
-            'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion'
+            'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion','direccion_envio', 'costo_envio', 'tipo_envio', 'envia_carrier', 'envia_service'
         ]
 
 class ProductoDesplegableSerializer(serializers.ModelSerializer):

@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from .image_utils import optimize_image
 
 
+
 @receiver(pre_save, sender='products.Categoria')
 def optimize_categoria_image(sender, instance, **kwargs):
     """Optimiza la imagen de categoría antes de guardar"""
@@ -43,6 +44,20 @@ class StoreConfiguration(models.Model):
     banner_1 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 1", blank=True, null=True)
     banner_2 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 2", blank=True, null=True)
     banner_3 = models.ImageField(upload_to='banners/', verbose_name="Banner Principal 3", blank=True, null=True)
+
+
+    # --- Configuración Logística (Envia.com) ---
+    api_key_envia = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name="Token API Envia.com",
+        help_text="Pega aquí el Token generado en el panel de Envia.com"
+    )
+    peso_estandar = models.DecimalField(max_digits=5, decimal_places=2, default=1.50, verbose_name="Peso Estándar (kg)")
+    largo_estandar = models.PositiveIntegerField(default=30, verbose_name="Largo Estándar (cm)")
+    ancho_estandar = models.PositiveIntegerField(default=20, verbose_name="Ancho Estándar (cm)")
+    alto_estandar = models.PositiveIntegerField(default=10, verbose_name="Alto Estándar (cm)")
     
     # --- Imágenes Secundarias ---
     imagen_secundaria_1 = models.ImageField(upload_to='banners/secundarias/', blank=True, null=True, verbose_name="Imagen Secundaria 1")
@@ -61,6 +76,19 @@ class StoreConfiguration(models.Model):
     def __str__(self):
         return self.title
 
+# --- NUEVO MODELO PARA COMISIONISTAS LOCALES ---
+class TarifaLocal(models.Model):
+    codigo_postal = models.CharField(max_length=10, unique=True, verbose_name="Código Postal")
+    localidad = models.CharField(max_length=100, verbose_name="Nombre de la Localidad/Barrio")
+    costo_envio = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Costo de Envío ($)")
+    activo = models.BooleanField(default=True, verbose_name="Habilitar esta ruta")
+
+    class Meta:
+        verbose_name = "Tarifa de Comisionista Local"
+        verbose_name_plural = "Tarifas de Comisionistas Locales"
+
+    def __str__(self):
+        return f"{self.localidad} (CP: {self.codigo_postal}) - ${self.costo_envio}"
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre")
@@ -149,8 +177,16 @@ class Pedido(models.Model):
     email_cliente = models.EmailField()
     telefono_cliente = models.CharField(max_length=20, null=True, blank=True)
 
+    # 👇 NUEVOS: Campos técnicos ocultos para la API de Envia.com
+    envia_carrier = models.CharField(max_length=100, blank=True, null=True) # Ej: "correoargentino"
+    envia_service = models.CharField(max_length=100, blank=True, null=True) # Ej: "estandar"
+
     # 👇 NUEVO CAMPO: Guardará la dirección o si retira en el local
     direccion_envio = models.CharField(max_length=255, null=True, blank=True, verbose_name="Método/Dirección de Envío")
+
+    # 👇 Agregamos estos dos campos para tener el desglose claro
+    costo_envio = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Costo de Envío Cobrado")
+    tipo_envio = models.CharField(max_length=255, blank=True, null=True, verbose_name="Tipo de Envío (Local/Envia.com)")
     
     # Datos del pago
     total = models.DecimalField(max_digits=10, decimal_places=2)

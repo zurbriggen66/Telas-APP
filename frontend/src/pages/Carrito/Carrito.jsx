@@ -1,31 +1,88 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ShoppingBag } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom'; // Agregamos useNavigate aquí
+import { Trash2, ShoppingBag, Truck } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../Navbar/Navbar.jsx';
 import './Carrito.css';
 
 const Carrito = () => {
-    // Inicializamos la herramienta para cambiar de página
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
+    // --- NUEVOS ESTADOS PARA LOGÍSTICA ---
+    const [codigoPostal, setCodigoPostal] = useState('');
+    const [costoEnvio, setCostoEnvio] = useState(0);
+    const [infoEnvio, setInfoEnvio] = useState(null);
+    const [errorEnvio, setErrorEnvio] = useState('');
+    const [isLoadingEnvio, setIsLoadingEnvio] = useState(false);
+
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
-    const total = cart.reduce((acc, item) => acc + (Number(item.precio_por_metro) * item.cantidad), 0);
+    const subtotal = cart.reduce((acc, item) => acc + (Number(item.precio_por_metro) * item.cantidad), 0);
+    const total = subtotal + costoEnvio;
 
     const eliminarItem = (id) => {
         setCart(prev => prev.filter(item => item.id !== id));
     };
+    
+    // --- FUNCIÓN: Conectar con el backend de Django ---
+    const handleCalcularEnvio = async () => {
+        if (!codigoPostal || codigoPostal.trim() === '') {
+            setErrorEnvio('Ingresa tu Código Postal');
+            return;
+        }
 
-    // NUEVA FUNCIÓN: Simplemente te lleva a la pantalla de selección de pago
+        setIsLoadingEnvio(true);
+        setErrorEnvio('');
+        setInfoEnvio(null);
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/cotizar-envio/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ codigo_postal: codigoPostal })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                setErrorEnvio(data.mensaje || 'Error al calcular el envío');
+                setCostoEnvio(0);
+            } else {
+                setCostoEnvio(data.costo);
+                setInfoEnvio({
+                    proveedor: data.proveedor,
+                    tiempo: data.tiempo_entrega,
+                    tipo: data.tipo
+                });
+            }
+        } catch (error) {
+            setErrorEnvio('Error de conexión con el servidor.');
+            setCostoEnvio(0);
+        } finally {
+            setIsLoadingEnvio(false);
+        }
+    };
+
+    // Enviar los datos de envío a la pantalla de Checkout
     const handleIrAlCheckout = () => {
-        navigate('/checkout'); 
+        navigate('/checkout', { 
+            state: { 
+                subtotal: subtotal,
+                costoEnvio: costoEnvio,
+                total: total,
+                codigoPostal: codigoPostal,
+                tipoEnvio: infoEnvio ? infoEnvio.tipo : null
+            } 
+        }); 
     };
 
     return (
@@ -71,14 +128,47 @@ const Carrito = () => {
 
                         <aside className="cart-summary-card">
                             <h2>Resumen del Pedido</h2>
+                            
+                            {/* --- SECCIÓN DE CÁLCULO DE ENVÍO --- */}
+                            <div className="shipping-calculator">
+                                <label className="shipping-label"><Truck size={18} /> Calcular Envío</label>
+                                <div className="shipping-input-group">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Código Postal (ej: 5000)" 
+                                        className="shipping-input"
+                                        value={codigoPostal}
+                                        onChange={(e) => setCodigoPostal(e.target.value)}
+                                        maxLength={8}
+                                    />
+                                    <button 
+                                        className="btn-calc-shipping" 
+                                        onClick={handleCalcularEnvio}
+                                        disabled={isLoadingEnvio || cart.length === 0}
+                                    >
+                                        {isLoadingEnvio ? 'Calculando...' : 'Cotizar'}
+                                    </button>
+                                </div>
+                                {errorEnvio && <p className="shipping-error">{errorEnvio}</p>}
+                                {infoEnvio && (
+                                    <p className="shipping-success">
+                                        Se enviará por <strong>{infoEnvio.proveedor}</strong>. 
+                                        {infoEnvio.tiempo && infoEnvio.tiempo !== 'Desconocido' && ` Llega en ${infoEnvio.tiempo}.`}
+                                    </p>
+                                )}
+                            </div>
+                            {/* ---------------------------------- */}
+
                             <div className="summary-details">
                                 <div className="summary-line">
                                     <span>Subtotal</span>
-                                    <span>${total.toLocaleString('es-AR')}</span>
+                                    <span>${subtotal.toLocaleString('es-AR')}</span>
                                 </div>
                                 <div className="summary-line">
                                     <span>Envío</span>
-                                    <span className="free-shipping">Por acordar</span>
+                                    <span className={costoEnvio === 0 ? "free-shipping" : ""}>
+                                        {costoEnvio > 0 ? `$${costoEnvio.toLocaleString('es-AR')}` : 'A calcular'}
+                                    </span>
                                 </div>
                                 <div className="summary-line total">
                                     <span>Total Estimado</span>
@@ -86,7 +176,6 @@ const Carrito = () => {
                                 </div>
                             </div>
 
-                            {/* EL BOTÓN ACTUALIZADO */}
                             <button 
                                 className="btn-checkout" 
                                 onClick={handleIrAlCheckout} 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StoreConfiguration, Categoria, Producto, ProductoImagen
+from .models import StoreConfiguration, Categoria, Producto, ProductoImagen, TarifaLocal
 
 class ProductoImagenInline(admin.TabularInline):
     model = ProductoImagen
@@ -28,3 +28,9 @@ class ProductoAdmin(admin.ModelAdmin):
 @admin.register(StoreConfiguration)
 class StoreConfigurationAdmin(admin.ModelAdmin):
     list_display = ('title', 'is_active')
+
+@admin.register(TarifaLocal)
+class TarifaLocalAdmin(admin.ModelAdmin):
+    list_display = ['localidad', 'codigo_postal', 'costo_envio', 'activo']
+    list_editable = ['costo_envio', 'activo'] # Te permite editar los precios rápido desde la lista sin entrar a cada uno
+    search_fields = ['localidad', 'codigo_postal']
