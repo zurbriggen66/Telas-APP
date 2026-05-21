@@ -11,6 +11,7 @@ import VistaDiseno from './pages/dashboard/VistaDiseno';
 import VistaStats from './pages/dashboard/VistaStats';
 import VistaPedidos from './pages/dashboard/VistaPedidos';
 import VistaTransferencias from './pages/dashboard/VistaTransferencias';
+import VistaPuntosEntrega from './pages/dashboard/VistaPuntosEntrega';
 
 // Importamos las páginas públicas
 import Home from './pages/Home/Home.jsx';
@@ -48,6 +49,7 @@ function App() {
           <Route path="estadisticas" element={<VistaStats />} />
           <Route path="pedidos" element={<VistaPedidos />} />
           <Route path="transferencias" element={<VistaTransferencias />} />
+          <Route path="puntos-entrega" element={<VistaPuntosEntrega />} />
           {/* Ya la sacamos de acá */}
         </Route>
       </Routes>

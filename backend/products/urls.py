@@ -6,6 +6,9 @@ router = DefaultRouter()
 router.register(r'categorias', views.CategoriaViewSet, basename='categoria')
 router.register(r'productos', views.ProductoViewSet, basename='producto')
 router.register(r'pedidos', views.PedidoViewSet)
+# ... tus otras rutas ...
+router.register(r'tarifas-locales', views.TarifaLocalViewSet)
+# ...
 
 urlpatterns = [
     path('api/banner/', views.get_main_banner, name='main-banner'),
@@ -21,6 +24,8 @@ urlpatterns = [
     path('api/pedidos/<int:pedido_id>/generar-etiqueta/', views.generar_etiqueta_envio_view, name='generar_etiqueta'),
 
     path('api/cotizar-envio/', views.cotizar_envio_api, name='cotizar_envio'),
+
+    
 
     # El router siempre debe ir al final
     path('api/', include(router.urls)),

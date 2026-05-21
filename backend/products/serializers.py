@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem
+from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem, TarifaLocal
 
 # 1. Serializer para la configuración (Banner)
 class StoreConfigurationSerializer(serializers.ModelSerializer):
@@ -56,3 +56,9 @@ class ProductoDesplegableSerializer(serializers.ModelSerializer):
         model = Producto
         # Solo necesitamos el ID para la URL y el nombre para mostrar
         fields = ['id', 'nombre']
+
+
+class TarifaLocalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TarifaLocal
+        fields = '__all__'

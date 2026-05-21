@@ -6,9 +6,9 @@ import mercadopago
 import requests
 import os
 # revisar luego si todos los import son necesarios o si quedaron algunos de pruebas anteriores
-from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
+from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal
 from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, Producto
-from .serializers import ProductoDesplegableSerializer
+from .serializers import ProductoDesplegableSerializer, TarifaLocalSerializer
 from decimal import Decimal
 from rest_framework import status, viewsets, generics
 from django.conf import settings
@@ -214,7 +214,15 @@ class PedidoViewSet(viewsets.ModelViewSet):
             return Response({"mensaje": "Pedido cancelado y stock devuelto exitosamente"}, status=status.HTTP_200_OK)
         
         return Response({"error": "El pedido no está esperando transferencia"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['post'])
+    def marcar_enviado(self, request, pk=None):
+        pedido = self.get_object()
+        
+        pedido.estado = 'Enviado'
+        pedido.save()
 
+        return Response({"mensaje": "Pedido marcado como enviado por comisionista"}, status=status.HTTP_200_OK)
 
 # =========================================================================
 #  3. VISTA PARA CREAR EL PEDIDO DESDE EL CHECKOUT DE REACT
@@ -632,8 +640,8 @@ def generar_etiqueta_envio_view(request, pedido_id):
             # 4. Guardamos los datos devueltos por Envia en nuestro Pedido
             pedido.estado = 'Enviado'
             # Si agregaste campos para el tracking o la URL del PDF, los guardás acá:
-            # pedido.tracking_number = info_envio.get('trackingNumber')
-            # pedido.url_etiqueta = info_envio.get('label')
+            pedido.tracking_number = info_envio.get('trackingNumber')
+            pedido.url_etiqueta = info_envio.get('label')
             pedido.save()
 
             return Response({
@@ -647,3 +655,8 @@ def generar_etiqueta_envio_view(request, pedido_id):
 
     except Exception as e:
         return Response({"error": f"Error interno: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+class TarifaLocalViewSet(viewsets.ModelViewSet):
+    queryset = TarifaLocal.objects.all().order_by('localidad')
+    serializer_class = TarifaLocalSerializer

@@ -111,6 +111,10 @@ const Dashboard = () => {
           <button style={getLinkStyle('/dashboard/transferencias')} onClick={() => navigate('/dashboard/transferencias')}>
             <Icon d={icons.orders} size={18} color={isActive('/dashboard/transferencias') ? '#6366f1' : '#94a3b8'} /> Transferencias
           </button>
+          <button style={getLinkStyle('/dashboard/puntos-entrega')} onClick={() => navigate('/dashboard/puntos-entrega')}>
+            {/* Si no tenés un ícono de mapa en tu Icons.jsx, usamos el de package por ahora */}
+            <Icon d={icons.package} size={18} color={isActive('/dashboard/puntos-entrega') ? '#6366f1' : '#94a3b8'} /> Puntos de Entrega
+          </button>
           
         </nav>
       </aside>

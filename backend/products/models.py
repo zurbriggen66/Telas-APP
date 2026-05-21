@@ -187,6 +187,8 @@ class Pedido(models.Model):
     # 👇 Agregamos estos dos campos para tener el desglose claro
     costo_envio = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, verbose_name="Costo de Envío Cobrado")
     tipo_envio = models.CharField(max_length=255, blank=True, null=True, verbose_name="Tipo de Envío (Local/Envia.com)")
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    url_etiqueta = models.URLField(blank=True, null=True) # Opcional, para que la puedas re-imprimir
     
     # Datos del pago
     total = models.DecimalField(max_digits=10, decimal_places=2)
