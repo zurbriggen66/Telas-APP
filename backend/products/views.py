@@ -174,7 +174,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
                     f"Pronto nos comunicaremos para coordinar el envío.\n\n"
                     f"¡Gracias por elegir Telas APP!"
                 )
-                send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
+                send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
             except Exception as e:
                 print(f"⚠️ Error al enviar correo de aprobación: {e}")
 
@@ -245,7 +245,6 @@ class CrearPedidoView(APIView):
             estado_inicial = 'Esperando_Transferencia' if metodo_pago == 'Transferencia' else 'Pendiente'
 
             # 2. Bloque atómico (Base de datos segura y control de concurrencia)
-            # 2. Bloque atómico (Base de datos segura y control de concurrencia)
             with transaction.atomic():
                 pedido = Pedido.objects.create(
                     nombre_cliente=f"{payer_data.get('nombre', '')} {payer_data.get('apellido', '')}".strip() or "Cliente",
@@ -256,7 +255,6 @@ class CrearPedidoView(APIView):
                     metodo_pago=metodo_pago,
                     estado=estado_inicial,
                     
-                    # 👇 ¡AQUÍ ESTABA EL CABLE CORTADO! Faltaba guardar los datos de envío 👇
                     costo_envio=request.data.get('costo_envio', 0),
                     tipo_envio=request.data.get('tipo_envio', 'Retiro en Local'),
                     envia_carrier=request.data.get('envia_carrier'),
@@ -294,7 +292,7 @@ class CrearPedidoView(APIView):
             # --- BIFURCACIÓN DE NOTIFICACIONES SEGÚN EL PAGO ---
             if metodo_pago == 'Transferencia':
                 try:
-                    # Mail descriptivo al cliente con CBU
+                    # 1. Mail descriptivo al cliente con CBU
                     asunto_cliente = "Tu pedido está reservado 🧵✨ - Detalles de Transferencia"
                     mensaje_cliente = (
                         f"¡Hola {pedido.nombre_cliente}!\n\nHemos registrado tu pedido #{pedido.id} correctamente.\n"
@@ -308,9 +306,23 @@ class CrearPedidoView(APIView):
                         f"Una vez realizada la transferencia, envíanos el comprobante respondiendo a este mail.\n\n"
                         f"¡Muchas gracias!"
                     )
-                    send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
+                    send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
                     
-                    # Alerta formateada para la plantilla de WhatsApp del dueño
+                    # 2. NUEVO: Mail de aviso para ti (el dueño)
+                    asunto_dueno = f"🚨 NUEVO PEDIDO - Transferencia Pendiente (# {pedido.id})"
+                    mensaje_dueno = (
+                        f"¡Hola! Tienes un nuevo pedido en la web.\n\n"
+                        f"👤 Cliente: {pedido.nombre_cliente}\n"
+                        f"📧 Email: {pedido.email_cliente}\n"
+                        f"📱 Teléfono: {pedido.telefono_cliente}\n"
+                        f"💰 Total: ${pedido.total}\n\n"
+                        f"📦 Detalle de telas:\n{pedido.detalle_items}\n"
+                        f"📍 Envío/Retiro: {pedido.direccion_envio}\n\n"
+                        f"El pedido está a la espera de que el cliente transfiera."
+                    )
+                    send_mail(asunto_dueno, mensaje_dueno, settings.DEFAULT_FROM_EMAIL, ['nachozubri15@gmail.com'], fail_silently=False)
+
+                    # 3. Alerta formateada para la plantilla de WhatsApp del dueño
                     datos_plantilla = [
                         str(pedido.nombre_cliente),
                         str(pedido.telefono_cliente or 'No especificado'),
@@ -324,6 +336,8 @@ class CrearPedidoView(APIView):
                 except Exception as e_notif:
                     print(f"⚠️ Error en notificaciones de transferencia: {e_notif}")
 
+                # CORRECCIÓN: El return de la transferencia ahora está fuera del try/except
+                # pero dentro de la condición de Transferencia.
                 return Response({
                     "status": "awaiting_transfer",
                     "pedido_id": pedido.id,
@@ -385,8 +399,6 @@ class CrearPedidoView(APIView):
             return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": f"Error interno del servidor: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 # =========================================================================
 #  4. WEBHOOKS Y REDIRECTS DE MERCADO PAGO
 # =========================================================================
@@ -429,11 +441,11 @@ def webhook_mercadopago(request):
                                 try:
                                     asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
                                     mensaje_cliente = f"¡Hola! Muchas gracias por tu compra.\n\nTu pago por ${pedido.total} ha sido procesado con éxito mediante Mercado Pago.\n\nDetalle de las telas:\n{pedido.detalle_items}\nNos comunicaremos pronto para coordinar el envío."
-                                    send_mail(asunto_cliente, mensaje_cliente, settings.EMAIL_HOST_USER, [pedido.email_cliente], fail_silently=False)
+                                    send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
 
                                     asunto_dueno = f"🚀 ¡NUEVA VENTA MP! - ${pedido.total} (Pedido #{pedido.id})"
                                     mensaje_dueno = f"¡Hola! Tienes una nueva venta aprobada vía Mercado Pago.\n\n💰 Monto: ${pedido.total}\n👤 Cliente: {pedido.nombre_cliente}\n📦 Detalle:\n{pedido.detalle_items}"
-                                    send_mail(asunto_dueno, mensaje_dueno, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=False)
+                                    send_mail(asunto_dueno, mensaje_dueno, settings.DEFAULT_FROM_EMAIL, ['nachozubri15@gmail.com'], fail_silently=False)
                                 except Exception as e_mail:
                                     print(f"⚠️ Error al enviar correos: {e_mail}")
 
@@ -455,8 +467,14 @@ def webhook_mercadopago(request):
                                 except Exception as e_wpp:
                                     print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
 
+                                
+
                         except Pedido.DoesNotExist:
                             print(f"⚠️ Alerta: Se recibió pago de MP para el Pedido #{pedido_id} pero no existe en la BD.")
+        
+                        
+
+                        
 
         return Response({"status": "recibido"}, status=status.HTTP_200_OK)
     except Exception as e:

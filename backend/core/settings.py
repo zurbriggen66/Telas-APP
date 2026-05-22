@@ -38,12 +38,14 @@ ALLOWED_HOSTS = ['*']
 
 # CONFIGURACIÓN DE ENVÍO DE EMAILS (GMAIL)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST = 'smtp.resend.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'nachozubri15@gmail.com' # Tu correo de Gmail
-EMAIL_HOST_PASSWORD = 'iwfkddsbrnccqycn'  # PEGA ACÁ TU CONTRASEÑA DE 16 CARACTERES
-DEFAULT_FROM_EMAIL = 'Telas APP <nachozubri15@gmail.com>'
+EMAIL_HOST_USER = 'resend' # ahora aqui va resend, en production deberías usar un correo verificado de resend
+EMAIL_HOST_PASSWORD = 're_ay23At3J_C1cz8Lwkfko7u3mw37you1f9'  # PEGA ACÁ TU API KEY DE RESEND (EMPIEZA CON "re_") 
+# DEFAULT_FROM_EMAIL = 'Telas APP <nachozubri15@gmail.com>'
+# Como aún no verificaste un dominio propio, DEBES usar este remitente de prueba:
+DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'
 
 # Application definition
 

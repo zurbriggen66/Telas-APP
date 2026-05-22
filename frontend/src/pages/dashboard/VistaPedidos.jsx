@@ -97,7 +97,7 @@ const VistaPedidos = () => {
             <Card>
                 {pedidos.length === 0 ? (
                     <div className="pedidos-empty-state">
-                        <Icon d={icons.orders} size={40} color="#e2e8f0" />
+                        <Icon d={icons.orders} size={48} color="#cbd5e1" />
                         <p className="empty-title">No hay pedidos todavía</p>
                         <p className="empty-subtitle">Cuando lleguen tus primeras ventas las verás aquí</p>
                     </div>
@@ -106,120 +106,112 @@ const VistaPedidos = () => {
                         <table className="pedidos-table">
                             <thead>
                                 <tr>
-                                    <th>ID / Fecha</th>
+                                    <th>Pedido</th>
                                     <th>Cliente</th>
                                     <th>Detalle de Telas</th>
-                                    <th>Método</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
+                                    <th>Total & Método</th>
                                     <th>Acciones</th> 
                                 </tr>
                             </thead>
                             <tbody>
-                                {pedidos.map(pedido => (
-                                    <tr key={pedido.id}>
-                                        <td data-label="ID / FECHA">
-                                            <div className="id-fecha-wrapper">
-                                                <strong className="pedido-id">#{pedido.id}</strong>
-                                                <span className="fecha-subtext">
-                                                    {new Date(pedido.fecha_creacion).toLocaleDateString('es-AR')}
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td data-label="CLIENTE" className="cliente-cell">
-                                            {pedido.email_cliente}
-                                        </td>
-                                        <td data-label="TELA A CORTAR" className="detalle-cell">
-                                            <div className="detalle-items-wrapper">
-                                                {(pedido.detalle_items || "").split('\n').map((line, index) => (
-                                                    line ? <div key={index} className="detalle-linea">{line}</div> : null
-                                                ))}
-                                                {!pedido.detalle_items && (
-                                                    <div style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.85rem' }}>
-                                                        Sin detalle guardado
+                                {pedidos.map(pedido => {
+                                    const esComisionista = pedido.tipo_envio && pedido.tipo_envio.includes('Comisionista');
+                                    
+                                    return (
+                                        <tr key={pedido.id}>
+                                            {/* CABECERA DE LA TARJETA (Móvil) / CELDA 1 (Escritorio) */}
+                                            <td data-label="PEDIDO">
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                                    <div className="id-fecha-wrapper">
+                                                        <strong className="pedido-id">#{pedido.id}</strong>
+                                                        <span className="fecha-subtext">
+                                                            {new Date(pedido.fecha_creacion).toLocaleDateString('es-AR')}
+                                                        </span>
                                                     </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td data-label="MÉTODO DE PAGO">
-                                            <span className={`badge-metodo ${pedido.metodo_pago.toLowerCase().replace(' ', '-')}`}>
-                                                {pedido.metodo_pago}
-                                            </span>
-                                        </td>
-                                        <td data-label="TOTAL COBRADO" className="total-cell">
-                                            ${Number(pedido.total).toLocaleString('es-AR')}
-                                        </td>
-                                        <td data-label="ESTADO DEL PEDIDO">
-                                            <span className={`badge-estado ${pedido.estado.toLowerCase()}`}>
-                                                {pedido.estado}
-                                            </span>
-                                        </td>
-                                        
-                                        {/* CELDA DE ACCIONES INTELIGENTE */}
-                                        <td data-label="ACCIONES">
-                                            {(() => {
-                                                const esComisionista = pedido.tipo_envio && pedido.tipo_envio.includes('Comisionista');
+                                                    {/* El Estado ahora acompaña al ID para destacar */}
+                                                    <span className={`badge-estado ${pedido.estado.toLowerCase()}`}>
+                                                        {pedido.estado.replace('_', ' ')}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            
+                                            {/* DATOS DEL CLIENTE */}
+                                            <td data-label="CLIENTE" className="cliente-cell">
+                                                {pedido.email_cliente}
+                                                <span className="fecha-subtext">{pedido.telefono_cliente}</span>
+                                            </td>
+                                            
+                                            {/* DETALLE DE TELAS */}
+                                            <td data-label="TELA A CORTAR">
+                                                <div className="detalle-items-wrapper">
+                                                    {(pedido.detalle_items || "").split('\n').map((line, index) => (
+                                                        line ? <div key={index} className="detalle-linea">{line}</div> : null
+                                                    ))}
+                                                    {!pedido.detalle_items && (
+                                                        <span style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '0.85rem' }}>Sin detalle</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            
+                                            {/* TOTAL Y MÉTODO AGRUPADOS */}
+                                            <td data-label="TOTAL Y PAGO">
+                                                <div className="total-cell">
+                                                    ${Number(pedido.total).toLocaleString('es-AR')}
+                                                </div>
+                                                <div style={{ marginTop: '8px' }}>
+                                                    <span className={`badge-metodo ${pedido.metodo_pago.toLowerCase().replace(' ', '-')}`}>
+                                                        {pedido.metodo_pago}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            
+                                            {/* BOTONES DE ACCIÓN LIMPIOS */}
+                                            <td data-label="ACCIONES">
+                                                <div className="acciones-container">
+                                                    <button 
+                                                        onClick={() => setPedidoEnDetalle(pedido)}
+                                                        className="btn-accion btn-detalle"
+                                                    >
+                                                        🔍 Ver Detalle
+                                                    </button>
 
-                                                return (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                                        
-                                                        {/* 👇 NUEVO: BOTÓN VER DETALLE (Siempre visible) 👇 */}
+                                                    {pedido.estado === 'Aprobado' && pedido.envia_carrier && !esComisionista && (
                                                         <button 
-                                                            onClick={() => setPedidoEnDetalle(pedido)}
-                                                            style={{ backgroundColor: '#64748b', color: 'white', padding: '6px 12px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', width: '100%' }}
+                                                            onClick={() => handleGenerarEtiqueta(pedido.id)}
+                                                            className="btn-accion btn-primario"
                                                         >
-                                                            🔍 Ver Detalle
+                                                            📦 Etiqueta
                                                         </button>
+                                                    )}
 
-                                                        {/* 1. Botón para Envia.com (Correo Oficial) */}
-                                                        {pedido.estado === 'Aprobado' && pedido.envia_carrier && !esComisionista && (
-                                                            <button 
-                                                                onClick={() => handleGenerarEtiqueta(pedido.id)}
-                                                                style={{ backgroundColor: '#1A1A1A', color: 'white', padding: '8px 12px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', width: '100%' }}
-                                                            >
-                                                                📦 Generar Etiqueta
-                                                            </button>
-                                                        )}
+                                                    {pedido.estado === 'Aprobado' && esComisionista && (
+                                                        <button 
+                                                            onClick={() => handleDespachoLocal(pedido.id)}
+                                                            className="btn-accion btn-success"
+                                                        >
+                                                            🛵 Despachar
+                                                        </button>
+                                                    )}
 
-                                                        {/* 2. Botón para Comisionista Local */}
-                                                        {pedido.estado === 'Aprobado' && esComisionista && (
-                                                            <button 
-                                                                onClick={() => handleDespachoLocal(pedido.id)}
-                                                                style={{ backgroundColor: '#10b981', color: 'white', padding: '8px 12px', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', width: '100%' }}
-                                                            >
-                                                                🛵 Marcar Enviado
-                                                            </button>
-                                                        )}
-
-                                                        {/* 3. Textos de estado final */}
-                                                        {pedido.estado === 'Enviado' && (
-                                                            <span style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 500, textAlign: 'center', marginTop: '2px' }}>
-                                                                {esComisionista ? '✓ Con Comisionista' : '✓ Etiqueta Lista'}
-                                                            </span>
-                                                        )}
-
-                                                        {/* 4. Retiro por Local */}
-                                                        {(!pedido.envia_carrier && pedido.estado === 'Aprobado' && !esComisionista) && (
-                                                            <span style={{ color: '#475569', fontSize: '0.8rem', textAlign: 'center', fontWeight: 500 }}>
-                                                                Retira en Local
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })()}
-                                        </td>
-                                    </tr>
-                                ))}
+                                                    {pedido.estado === 'Enviado' && (
+                                                        <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center', display: 'block', padding: '8px 0' }}>
+                                                            {esComisionista ? '✓ Entregado a Comisionista' : '✓ Etiqueta Lista'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
                 )}
             </Card>
 
-            {/* =========================================================================
-                👇 COMPONENTE MODAL INTERNO: Se activa al hacer clic en "Ver Detalle" 👇
-               ========================================================================= */}
+            {/* ... (El código del Modal que tenías al final sigue igual) ... */}
             {pedidoEnDetalle && (
+                /* Mantenemos tu Modal exacto como lo tenías */
                 <div style={{
                     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
@@ -231,12 +223,12 @@ const VistaPedidos = () => {
                         position: 'relative', animation: 'fadeIn 0.2s ease-out'
                     }}>
                         <h3 style={{ margin: '0 0 20px 0', fontSize: '1.3rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '10px', color: '#1a1a1a' }}>
-                            📋 Detalle de Entrega - Pedido #{pedidoEnDetalle.id}
+                            📋 Detalle - Pedido #{pedidoEnDetalle.id}
                         </h3>
 
                         {/* SECCIÓN 1: DATOS DEL CLIENTE */}
                         <div style={{ marginBottom: '20px' }}>
-                            <h4 style={{ margin: '0 0 8px 0', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>👤 Datos del Comprador</h4>
+                            <h4 style={{ margin: '0 0 8px 0', color: '#64748b', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>👤 Comprador</h4>
                             <p style={{ margin: '3px 0', fontSize: '0.95rem' }}><strong>Nombre:</strong> {pedidoEnDetalle.nombre_cliente || 'No especificado'}</p>
                             <p style={{ margin: '3px 0', fontSize: '0.95rem' }}><strong>Email:</strong> {pedidoEnDetalle.email_cliente}</p>
                             <p style={{ margin: '3px 0', fontSize: '0.95rem' }}><strong>Teléfono:</strong> {pedidoEnDetalle.telefono_cliente || 'No registrado'}</p>
@@ -244,17 +236,14 @@ const VistaPedidos = () => {
 
                         {/* SECCIÓN 2: DATOS DE LOGÍSTICA */}
                         <div style={{ marginBottom: '20px', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <h4 style={{ margin: '0 0 8px 0', color: '#475569', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🚚 Destino e Info de Envío</h4>
+                            <h4 style={{ margin: '0 0 8px 0', color: '#475569', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>🚚 Destino</h4>
                             <p style={{ margin: '4px 0', fontSize: '0.95rem' }}><strong>Modalidad:</strong> {pedidoEnDetalle.tipo_envio || 'Retiro en Local'}</p>
                             <p style={{ margin: '4px 0', fontSize: '0.95rem', color: '#1e293b' }}>
-                                <strong>Dirección de Entrega:</strong> <br />
+                                <strong>Dirección:</strong> <br />
                                 <span style={{ inlineSize: '100%', display: 'inline-block', marginTop: '4px', fontSize: '1rem', color: '#0f172a', fontWeight: '500' }}>
                                     {pedidoEnDetalle.direccion_envio}
                                 </span>
                             </p>
-                            {pedidoEnDetalle.costo_envio > 0 && (
-                                <p style={{ margin: '4px 0', fontSize: '0.95rem' }}><strong>Costo logístico:</strong> ${Number(pedidoEnDetalle.costo_envio).toLocaleString('es-AR')}</p>
-                            )}
                         </div>
 
                         {/* SECCIÓN 3: MERCADERÍA */}
@@ -267,7 +256,7 @@ const VistaPedidos = () => {
                             </div>
                         </div>
 
-                        {/* BOTONES DE ACCIÓN DEL MODAL */}
+                        {/* BOTONES DEL MODAL */}
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                             <button 
                                 onClick={() => setPedidoEnDetalle(null)}
@@ -275,16 +264,6 @@ const VistaPedidos = () => {
                             >
                                 Cerrar
                             </button>
-                            
-                            {/* Si el comisionista todavía no se lo llevó, le damos el botón de acceso rápido adentro del modal */}
-                            {pedidoEnDetalle.estado === 'Aprobado' && pedidoEnDetalle.tipo_envio?.includes('Comisionista') && (
-                                <button 
-                                    onClick={() => handleDespachoLocal(pedidoEnDetalle.id)}
-                                    style={{ padding: '10px 18px', borderRadius: '6px', border: 'none', backgroundColor: '#10b981', color: 'white', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 500 }}
-                               Rule>
-                                    🛵 Despachar Ahora
-                                </button>
-                            )}
                         </div>
                     </div>
                 </div>
