@@ -214,3 +214,4 @@ class PedidoItem(models.Model):
 
     def __str__(self):
         return f"{self.cantidad_metros}m de {self.nombre_producto} (Pedido #{self.pedido.id})"
+    

@@ -18,6 +18,9 @@ from django.shortcuts import redirect
 from django.core.mail import send_mail
 from .services_envia import calcular_costo_envio
 from django.shortcuts import redirect, get_object_or_404
+from django.db.models import Sum
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 # ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
@@ -678,3 +681,69 @@ def generar_etiqueta_envio_view(request, pedido_id):
 class TarifaLocalViewSet(viewsets.ModelViewSet):
     queryset = TarifaLocal.objects.all().order_by('localidad')
     serializer_class = TarifaLocalSerializer
+
+def api_estadisticas(request):
+    total_pedidos = Pedido.objects.count()
+
+    pedidos_exitosos = Pedido.objects.filter(estado__in=['Aprobado', 'Despachado', 'APROBADO', 'ENVIADO']).order_by('-id')
+    ingresos_totales = pedidos_exitosos.aggregate(Sum('total'))['total__sum'] or 0.00
+    
+    qs_pendientes = Pedido.objects.filter(estado__in=['Pendiente', 'Esperando_Transferencia', 'PENDIENTE']).order_by('-id')
+    qs_cancelados = Pedido.objects.filter(estado__in=['Cancelado', 'CANCELADO']).order_by('-id')
+
+    # Función rápida para convertir los pedidos en una lista que React entienda
+    # OJO: Si tu modelo no tiene el campo 'total' o 'id', cambialo por el nombre real acá
+    # Función mejorada para extraer toda la info del pedido
+    def armar_lista(queryset):
+        lista = []
+        for p in queryset:
+            # 1. Fecha (Tu modelo usa fecha_creacion)
+            fecha_str = p.fecha_creacion.strftime("%d/%m/%Y") if p.fecha_creacion else ""
+
+            # 2. Detalle de Telas (Usamos related_name='items', nombre_producto y cantidad_metros)
+            telas_detalle = "Sin detalles"
+            if p.items.exists():
+                # Formatea por ejemplo: "Gamuza Roja: 2.00m • Seda Blanca: 1.50m"
+                telas_detalle = " • ".join(
+                    [f"{item.nombre_producto}: {float(item.cantidad_metros):g}m" for item in p.items.all()]
+                )
+
+            # 3. Empaquetamos todo exactamente como React lo espera
+            lista.append({
+                "id": p.id,
+                "fecha": fecha_str,
+                "estado": p.estado,
+                "total": float(p.total) if p.total else 0.0,
+                "email": p.email_cliente,          # <-- Actualizado a tu modelo
+                "telefono": p.telefono_cliente or '-', # <-- Actualizado a tu modelo
+                "metodo_pago": p.metodo_pago,
+                "detalle_telas": telas_detalle
+            })
+        return lista
+
+    data = {
+        "ingresos": float(ingresos_totales),
+        "pedidos": {
+            "total": total_pedidos,
+            "exitosos": pedidos_exitosos.count(),
+            "pendientes": qs_pendientes.count(),
+            "cancelados": qs_cancelados.count()
+        },
+        # 👇 NUEVO BLOQUE: Mandamos las listas de datos 👇
+        "detalles": {
+            "ingresos": armar_lista(pedidos_exitosos), # Ingresos y Ventas cerradas muestran lo mismo
+            "exitosos": armar_lista(pedidos_exitosos),
+            "pendientes": armar_lista(qs_pendientes),
+            "cancelados": armar_lista(qs_cancelados)
+        }
+    }
+    return JsonResponse(data)
+
+@csrf_exempt  # Para evitar problemas de bloqueo de seguridad desde React
+def eliminar_pedido_api(request, pedido_id):
+    if request.method == 'DELETE':
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+        pedido.delete()
+        return JsonResponse({"message": "Pedido eliminado correctamente"}, status=200)
+    
+    return JsonResponse({"error": "Método no permitido"}, status=405)

@@ -19,6 +19,8 @@ urlpatterns = [
     path('api/productos-az/', views.ProductoAZList.as_view(), name='productos-az'),
     path('api/mercadopago/webhook/', views.webhook_mercadopago, name='mp-webhook'),
     path('api/mercadopago/success/', views.success_redirect, name='mp-success'),
+    path('api/estadisticas/', views.api_estadisticas, name='api_estadisticas'),
+    
 
     # 👇 NUEVA RUTA PARA GENERAR LA ETIQUETA DE UN PEDIDO ESPECÍFICO 👇
     path('api/pedidos/<int:pedido_id>/generar-etiqueta/', views.generar_etiqueta_envio_view, name='generar_etiqueta'),

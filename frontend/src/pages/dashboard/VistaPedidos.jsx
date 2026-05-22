@@ -54,6 +54,24 @@ const VistaPedidos = () => {
             alert('Error de conexión al intentar generar la etiqueta.');
         }
     };
+    const handleEliminarPedido = async (pedidoId) => {
+        if (window.confirm(`¿Estás seguro de que querés eliminar el Pedido #${pedidoId}?`)) {
+            try {
+                const response = await fetch(`http://localhost:8000/api/pedidos/${pedidoId}/`, {
+                    method: 'DELETE',
+                });
+                if (response.ok) {
+                    alert("Pedido eliminado con éxito");
+                    // Acá poné la función que recarga tus pedidos para que desaparezca de la tabla
+                    // Ej: fetchPedidos();
+                } else {
+                    alert("Hubo un error al intentar eliminar el pedido");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+    };
 
     // --- FUNCIÓN: Marcar como enviado localmente (Comisionista) ---
     const handleDespachoLocal = async (pedidoId) => {
@@ -198,6 +216,12 @@ const VistaPedidos = () => {
                                                             {esComisionista ? '✓ Entregado a Comisionista' : '✓ Etiqueta Lista'}
                                                         </span>
                                                     )}
+                                                    <button 
+                                                        onClick={() => handleEliminarPedido(pedido.id)}
+                                                        className="btn-accion btn-eliminar"
+                                                    >
+                                                        Eliminar
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
