@@ -51,9 +51,10 @@ const Home = () => {
         const fetchData = async () => {
             try {
                 const [resProductos, resCategorias, resBanner] = await Promise.all([
-                    axios.get('http://127.0.0.1:8000/api/productos/'),
-                    axios.get('http://127.0.0.1:8000/api/categorias/'),
-                    axios.get('http://127.0.0.1:8000/api/banner/'),
+                    axios.get(import.meta.env.VITE_API_URL + '/api/productos/'),
+                    axios.get(import.meta.env.VITE_API_URL + '/api/categorias/'),
+                    axios.get(import.meta.env.VITE_API_URL + '/api/banner/')
+                    
                 ]);
                 setProductos(resProductos.data);
                 setCategorias(resCategorias.data);
