@@ -7,7 +7,7 @@ import Dashboard from './pages/Dashboard';
 import VistaInicio from './pages/dashboard/VistaInicio';
 import VistaProductos from './pages/dashboard/VistaProductos';
 import VistaCategorias from './pages/dashboard/VistaCategorias';
-import VistaDiseno from './pages/dashboard/VistaDiseno';
+import VistaDiseno from './pages/dashboard/Vistadiseno';
 import VistaStats from './pages/dashboard/VistaStats';
 import VistaPedidos from './pages/dashboard/VistaPedidos';
 import VistaTransferencias from './pages/dashboard/VistaTransferencias';
