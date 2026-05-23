@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, ShoppingBag, Clock, XCircle, TrendingUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const EstadisticasDashboard = () => {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     
-    // 👇 NUEVO ESTADO: Guarda qué tarjeta se hizo clic 👇
+    // Guarda qué tarjeta se hizo clic
     const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
 
     useEffect(() => {
@@ -51,7 +52,7 @@ const EstadisticasDashboard = () => {
         flexDirection: 'column',
         justifyContent: 'space-between',
         transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease',
-        cursor: 'pointer', // <-- Cambiado a pointer para que parezcan botones
+        cursor: 'pointer',
         fontFamily: 'system-ui, -apple-system, sans-serif'
     };
 
@@ -69,7 +70,7 @@ const EstadisticasDashboard = () => {
         };
 
         return (
-            <div style={{ marginTop: '40px', padding: '24px', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+            <div style={{ marginTop: '40px', padding: '24px', backgroundColor: '#ffffff', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontFamily: 'system-ui, -apple-system, sans-serif', animation: 'deslizarArriba 0.3s ease-out' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f3f4f6', paddingBottom: '16px', marginBottom: '20px' }}>
                     <h2 style={{ margin: 0, color: '#1f2937' }}>{titulos[categoriaSeleccionada]}</h2>
                     <button 
@@ -160,6 +161,16 @@ const EstadisticasDashboard = () => {
     return (
         <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
             
+            {/* Animación global para que tanto la tabla como el gráfico entren suaves */}
+            <style>
+                {`
+                @keyframes deslizarArriba {
+                    from { opacity: 0; transform: translateY(20px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                `}
+            </style>
+
             <div style={{ marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <TrendingUp size={32} color="#1f2937" />
                 <h1 style={{ margin: 0, color: '#1f2937', fontSize: '2rem', fontWeight: 'bold' }}>Panel de Rendimiento</h1>
@@ -241,7 +252,55 @@ const EstadisticasDashboard = () => {
 
             </div>
 
-            {/* 👇 ACÁ SE DIBUJA LA TABLA SI HAY UNA CATEGORÍA SELECCIONADA 👇 */}
+            {/* SECCIÓN DEL GRÁFICO (Solo se muestra si NO hay categoría seleccionada) */}
+            {!categoriaSeleccionada && stats && (
+                <div style={{ 
+                    marginTop: '40px', 
+                    padding: '24px', 
+                    backgroundColor: '#ffffff', 
+                    borderRadius: '16px', 
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    animation: 'deslizarArriba 0.3s ease-out'
+                }}>
+                    <h2 style={{ margin: '0 0 20px 0', color: '#1f2937', fontSize: '1.2rem' }}>
+                        Distribución de Pedidos
+                    </h2>
+                    
+                    <div style={{ width: '100%', height: 300 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={[
+                                    { name: 'Exitosos', cantidad: stats.pedidos.exitosos, color: '#3b82f6' },
+                                    { name: 'Pendientes', cantidad: stats.pedidos.pendientes, color: '#f59e0b' },
+                                    { name: 'Cancelados', cantidad: stats.pedidos.cancelados, color: '#ef4444' },
+                                ]}
+                                margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                                <Tooltip 
+                                    cursor={{ fill: '#f3f4f6' }}
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
+                                />
+                                <Bar dataKey="cantidad" radius={[6, 6, 0, 0]}>
+                                    {
+                                        [
+                                            { color: '#3b82f6' }, // Azul
+                                            { color: '#f59e0b' }, // Naranja
+                                            { color: '#ef4444' }  // Rojo
+                                        ].map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))
+                                    }
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            )}
+
+            {/* SECCIÓN DE LA TABLA (Solo se muestra SI HAY una categoría seleccionada) */}
             {renderizarDetalle()}
 
         </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowLeft, Ruler, Layers, AlertTriangle,  CheckCircle } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Ruler, Layers, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import './Detalle_producto.css';
 
@@ -174,10 +174,10 @@ const DetalleProducto = () => {
 
                         <div className="detalle-info">
                             <span className="detalle-categoria">
-    {producto.categorias_nombres && producto.categorias_nombres.length > 0 
-        ? producto.categorias_nombres.join(' • ') 
-        : 'Sin categoría'}
-</span>
+                                {producto.categorias_nombres && producto.categorias_nombres.length > 0 
+                                    ? producto.categorias_nombres.join(' • ') 
+                                    : 'Sin categoría'}
+                            </span>
                             <h1 className="detalle-titulo">{producto.nombre}</h1>
                             
                             <p className="detalle-precio">${parseFloat(producto.precio_por_metro).toLocaleString('es-AR')} <span style={{fontSize: '1rem', color: '#666'}}>/ Metro</span></p>
@@ -200,12 +200,7 @@ const DetalleProducto = () => {
 
                             <div style={{ marginTop: '10px', padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
                                 {/* NOTIFICACIÓN DELICADA */}
-                            {notification.show && (
-                                <div className={`pd-notification-subtle ${notification.type}`}>
-                                    {notification.type === 'error' ? <AlertTriangle size={18} /> : <CheckCircle size={18} />}
-                                    <span>{notification.message}</span>
-                                </div>
-                            )}
+                            
                                 <label style={{ display: 'block', marginBottom: '12px', fontWeight: '700', fontSize: '0.85rem', color: '#475569', letterSpacing: '0.5px' }}>
                                     ¿CUÁNTOS METROS NECESITÁS? (ENTEROS)
                                 </label>
@@ -237,7 +232,27 @@ const DetalleProducto = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> {/* Cierre de detalle-page */}
+
+            {/* 👇 NUEVA ALERTA FLOTANTE ESTILO MERCADO LIBRE 👇 */}
+            {notification.show && (
+                <div className="alerta-flotante">
+                    <div className="alerta-contenido">
+                        {notification.type === 'success' ? (
+                            <CheckCircle size={24} color="#10b981" strokeWidth={1.5} />
+                        ) : (
+                            <AlertTriangle size={24} color="#ef4444" strokeWidth={1.5} />
+                        )}
+                        <span className="alerta-texto">{notification.message}</span>
+                    </div>
+                    <button 
+                        className="alerta-cerrar" 
+                        onClick={() => setNotification({ show: false, message: '', type: '' })}
+                    >
+                        <X size={18} color="#3b82f6" strokeWidth={2} />
+                    </button>
+                </div>
+            )}
         </>
     );
 };

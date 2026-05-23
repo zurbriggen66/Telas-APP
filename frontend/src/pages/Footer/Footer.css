@@ -1,0 +1,116 @@
+/* Contenedor principal: Verde oscuro para equilibrar el Navbar */
+.footer-container {
+    background-color: #1a2f24; /* Ajustá al verde exacto de tu navbar */
+    color: #fdfbf7; /* Tono crema claro para contraste */
+    font-family: 'Montserrat', sans-serif; /* O la tipografía que uses para textos */
+    padding: 60px 20px 20px 20px;
+    margin-top: 80px; /* Separa el footer del contenido de arriba */
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+}
+
+/* Títulos de las columnas */
+.footer-content h3 {
+    font-family: 'Playfair Display', serif; /* Tipo serif elegante como el de tu imagen */
+    font-size: 1.2rem;
+    color: #dcb14a; /* Tono mostaza/dorado de tus botones */
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+/* Columna de la Marca */
+.footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #fdfbf7;
+}
+
+.footer-description {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #d1d5db;
+}
+
+/* Listas de Links y Contacto */
+.footer-links ul,
+.footer-contact ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-links li,
+.footer-contact li {
+    margin-bottom: 12px;
+}
+
+.footer-links a {
+    color: #d1d5db;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
+    color: #dcb14a; /* Efecto hover dorado */
+}
+
+/* Íconos y texto de contacto */
+.footer-contact li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #d1d5db;
+    font-size: 0.95rem;
+}
+
+/* Redes Sociales */
+.social-icons {
+    display: flex;
+    gap: 15px;
+}
+
+.social-icons a {
+    color: #fdfbf7;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.social-icons a:hover {
+    color: #dcb14a;
+    transform: translateY(-3px); /* Pequeño salto al pasar el mouse */
+}
+
+/* Copyright (Bottom) */
+.footer-bottom {
+    max-width: 1200px;
+    margin: 50px auto 0;
+    padding-top: 20px;
+    border-top: 1px solid rgba(253, 251, 247, 0.1);
+    text-align: center;
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+/* Responsive para celulares */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    
+    .footer-contact li {
+        justify-content: center;
+    }
+    
+    .social-icons {
+        justify-content: center;
+    }
+}

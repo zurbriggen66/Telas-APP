@@ -350,3 +350,72 @@
 .pd-cart-info-badge strong {
     font-weight: 700;
 }
+/* =========================================
+   ALERTA FLOTANTE (ESTILO ML)
+========================================= */
+.alerta-flotante {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background-color: #f5f5f5; /* Gris muy clarito de la foto */
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    z-index: 9999;
+    animation: deslizarArriba 0.3s ease-out;
+    min-width: 320px;
+}
+
+.alerta-contenido {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alerta-texto {
+    font-size: 1rem;
+    color: #4b5563; /* Gris oscuro para el texto */
+    font-weight: 500;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.alerta-cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.alerta-cerrar:hover {
+    transform: scale(1.1);
+}
+
+@keyframes deslizarArriba {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Ajuste para celulares: que flote centrada abajo o ocupe todo el ancho */
+@media (max-width: 768px) {
+    .alerta-flotante {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        min-width: auto;
+    }
+}

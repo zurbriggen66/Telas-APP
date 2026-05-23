@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom';
 
 // Importamos el Layout (el esqueleto)
 import Dashboard from './pages/Dashboard';
@@ -21,25 +21,38 @@ import CheckoutSelection from './pages/Checkoutselection/CheckoutSelection.jsx';
 import Success from './pages/Success/Success.jsx'; 
 import TransferenciaSuccess from './pages/TransferenciaSuccess'; // <-- IMPORTACIÓN ACÁ ESTÁ PERFECTA
 import Productos from './pages/Products/Products.jsx';
+import Footer from './pages/Footer/Footer.jsx';
+
+const PublicLayout = () => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <main style={{ flex: 1 }}>
+        <Outlet /> 
+      </main>
+      <Footer />
+    </div>
+  );
+};
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* === RUTAS PÚBLICAS === */}
-        <Route path="/" element={<Home />} />
-        <Route path="/carrito" element={<Carrito />} />
-        <Route path="/producto/:id" element={<DetalleProducto />} />
-        <Route path="/productos" element={<Productos />} />
         
-        {/* RUTAS DE PAGO */}
-        <Route path="/checkout" element={<CheckoutSelection />} />
-        <Route path="/success" element={<Success />} /> 
-        
-        {/* 👇 ACÁ VA LA RUTA NUEVA 👇 */}
-        <Route path="/transferencia-success" element={<TransferenciaSuccess />} />
+        {/* === RUTAS PÚBLICAS (Agrupadas adentro del Layout con Footer) === */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/carrito" element={<Carrito />} />
+          <Route path="/producto/:id" element={<DetalleProducto />} />
+          <Route path="/productos" element={<Productos />} />
+          
+          {/* RUTAS DE PAGO */}
+          <Route path="/checkout" element={<CheckoutSelection />} />
+          <Route path="/success" element={<Success />} /> 
+          <Route path="/transferencia-success" element={<TransferenciaSuccess />} />
+        </Route>
 
-        {/* === RUTA PADRE: DASHBOARD === */}
+        {/* === RUTA PADRE: DASHBOARD (Aislado, libre del Footer) === */}
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<Navigate to="inicio" replace />} />
           <Route path="inicio" element={<VistaInicio />} />
@@ -50,8 +63,8 @@ function App() {
           <Route path="pedidos" element={<VistaPedidos />} />
           <Route path="transferencias" element={<VistaTransferencias />} />
           <Route path="puntos-entrega" element={<VistaPuntosEntrega />} />
-          {/* Ya la sacamos de acá */}
         </Route>
+
       </Routes>
     </BrowserRouter>
   );
