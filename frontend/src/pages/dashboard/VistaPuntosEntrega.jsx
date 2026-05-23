@@ -18,7 +18,7 @@ const VistaPuntosEntrega = () => {
 
     const fetchPuntos = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/tarifas-locales/');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tarifas-locales/`);
             const data = await response.json();
             setPuntos(data);
         } catch (error) {
@@ -60,8 +60,8 @@ const VistaPuntosEntrega = () => {
     const handleGuardar = async (e) => {
         e.preventDefault();
         const url = editandoId 
-            ? `http://localhost:8000/api/tarifas-locales/${editandoId}/` 
-            : 'http://localhost:8000/api/tarifas-locales/';
+            ? `${import.meta.env.VITE_API_URL}/api/tarifas-locales/${editandoId}/` 
+            : `${import.meta.env.VITE_API_URL}/api/tarifas-locales/`;
         const method = editandoId ? 'PUT' : 'POST';
 
         try {
@@ -87,7 +87,7 @@ const VistaPuntosEntrega = () => {
         if (!window.confirm("¿Estás seguro de eliminar este punto de entrega?")) return;
 
         try {
-            const response = await fetch(`http://localhost:8000/api/tarifas-locales/${id}/`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tarifas-locales/${id}/`, {
                 method: 'DELETE'
             });
             if (response.ok) {

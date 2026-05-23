@@ -32,17 +32,17 @@ const Navbar = ({ cartCount = 0 }) => {
     // 3. EFECTOS (Llamadas a la API y eventos)
     useEffect(() => {
         // Cargar el Logo del banner
-        axios.get('http://127.0.0.1:8000/api/banner/')
+        axios.get(`${import.meta.env.VITE_API_URL}/api/banner/`)
             .then(res => { if (res.data?.logo) setLogoUrl(res.data.logo); })
             .catch(() => {});
 
         // Cargar las telas para el menú A-Z
-        axios.get('http://127.0.0.1:8000/api/productos-az/')
+        axios.get(`${import.meta.env.VITE_API_URL}/api/productos-az/`)
             .then(res => setTelasAZ(res.data))
             .catch(err => console.error("Error cargando telas A-Z", err));
 
         // 👇 NUEVO: Cargar los colores para el menú 👇
-        axios.get('http://127.0.0.1:8000/api/colores/')
+        axios.get(`${import.meta.env.VITE_API_URL}/api/colores/`)
             .then(res => setColores(Array.isArray(res.data) ? res.data : res.data.results || []))
             .catch(err => console.error("Error cargando colores", err));
     }, []);

@@ -36,7 +36,7 @@ const DetalleProducto = () => {
     useEffect(() => {
         const fetchProducto = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/api/productos/${id}/`);
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/${id}/`);
                 if (!response.ok) {
                     throw new Error('No se pudo cargar el producto');
                 }

@@ -6,7 +6,7 @@ import ImageUploader from '../../components/ImageUploader';
 import { Icon, icons } from '../../components/Icons';
 import './VistaCategorias.css'; // 👈 ¡NUEVO! Importamos los estilos
 
-const API = 'http://127.0.0.1:8000/api';
+const API = import.meta.env.VITE_API_URL + '/api';
 
 const VistaCategorias = () => {
   const [categorias,  setCategorias]  = useState([]);

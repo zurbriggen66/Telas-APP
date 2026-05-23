@@ -13,7 +13,7 @@ const EstadisticasDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await fetch('http://localhost:8000/api/estadisticas/');
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/estadisticas/`);
                 if (!response.ok) throw new Error('Respuesta de red no OK');
                 const data = await response.json();
                 setStats(data);

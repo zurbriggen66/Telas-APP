@@ -8,7 +8,7 @@ import Card from '../../components/Card';
 import StatCard from '../../components/StatCard';
 import CheckItem from '../../components/CheckItem';
 
-const API = 'http://127.0.0.1:8000/api';
+const API = import.meta.env.VITE_API_URL + '/api';
 
 const VistaInicio = () => {
   const [stats, setStats] = useState({ productos: 0, pedidos: 0, ventas: 0 });

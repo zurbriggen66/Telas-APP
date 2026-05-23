@@ -13,7 +13,7 @@ const VistaPedidos = () => {
 
     const fetchPedidos = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/pedidos/');
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/`);
             const data = await response.json();
             setPedidos(data);
         } catch (error) {
@@ -31,7 +31,7 @@ const VistaPedidos = () => {
     const handleGenerarEtiqueta = async (pedidoId) => {
         try {
             const token = localStorage.getItem('access_token');
-            const response = await fetch(`http://localhost:8000/api/pedidos/${pedidoId}/generar-etiqueta/`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/${pedidoId}/generar-etiqueta/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -57,7 +57,7 @@ const VistaPedidos = () => {
     const handleEliminarPedido = async (pedidoId) => {
         if (window.confirm(`¿Estás seguro de que querés eliminar el Pedido #${pedidoId}?`)) {
             try {
-                const response = await fetch(`http://localhost:8000/api/pedidos/${pedidoId}/`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/${pedidoId}/`, {
                     method: 'DELETE',
                 });
                 if (response.ok) {
@@ -79,7 +79,7 @@ const VistaPedidos = () => {
         if (!confirmar) return;
 
         try {
-            const response = await fetch(`http://localhost:8000/api/pedidos/${pedidoId}/marcar_enviado/`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/${pedidoId}/marcar_enviado/`, {
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
