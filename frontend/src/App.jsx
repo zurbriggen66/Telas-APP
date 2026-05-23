@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom'
 
 // Importamos el Layout (el esqueleto)
 import Dashboard from './pages/Dashboard';
-
+// nada
 // Importamos las páginas fragmentadas
 import VistaInicio from './pages/dashboard/VistaInicio';
 import VistaProductos from './pages/dashboard/VistaProductos';
