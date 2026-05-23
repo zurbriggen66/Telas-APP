@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown, Palette } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = ({ cartCount = 0 }) => {
@@ -15,12 +15,18 @@ const Navbar = ({ cartCount = 0 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileAzOpen, setIsMobileAzOpen] = useState(false);
 
+    // 👇 NUEVOS ESTADOS PARA DESPLEGABLE COLORES 👇
+    const [colores, setColores] = useState([]);
+    const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
+    const [isMobileColorOpen, setIsMobileColorOpen] = useState(false);
+
     // 2. FUNCIONES
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
     
     const closeMenu = () => {
         setIsMenuOpen(false);
-        setIsMobileAzOpen(false); // Cierra también el acordeón al cerrar el menú
+        setIsMobileAzOpen(false);
+        setIsMobileColorOpen(false); // Cerramos también el de colores
     };
 
     // 3. EFECTOS (Llamadas a la API y eventos)
@@ -34,6 +40,11 @@ const Navbar = ({ cartCount = 0 }) => {
         axios.get('http://127.0.0.1:8000/api/productos-az/')
             .then(res => setTelasAZ(res.data))
             .catch(err => console.error("Error cargando telas A-Z", err));
+
+        // 👇 NUEVO: Cargar los colores para el menú 👇
+        axios.get('http://127.0.0.1:8000/api/colores/')
+            .then(res => setColores(Array.isArray(res.data) ? res.data : res.data.results || []))
+            .catch(err => console.error("Error cargando colores", err));
     }, []);
 
     useEffect(() => {
@@ -78,7 +89,40 @@ const Navbar = ({ cartCount = 0 }) => {
                         <Link to="/" className="nav-link">Inicio</Link>
                         <Link to="/productos" className="nav-link">Productos</Link>
                         
-                        {/* MODIFICACIÓN 1: DESPLEGABLE DESKTOP */}
+                        {/* 🌟 DESPLEGABLE COLORES (DESKTOP) 🌟 */}
+                        <div 
+                            className="nav-dropdown-container"
+                            onMouseEnter={() => setIsColorDropdownOpen(true)}
+                            onMouseLeave={() => setIsColorDropdownOpen(false)}
+                        >
+                            <span className="nav-link nav-link--az" style={{ cursor: 'pointer' }}>
+                                <Palette size={14} strokeWidth={1.5} /> Colores
+                            </span>
+                            
+                            {isColorDropdownOpen && (
+                                <div className="dropdown-menu">
+                                    {colores.length > 0 ? (
+                                        colores.map(color => (
+                                            <Link 
+                                                key={color.id} 
+                                                to={`/productos?color=${color.id}`} 
+                                                className="dropdown-item"
+                                                onClick={() => setIsColorDropdownOpen(false)}
+                                            >
+                                                <div className="color-item-content">
+                                                    <span className="color-circle" style={{ backgroundColor: color.codigo_hex }}></span>
+                                                    {color.nombre}
+                                                </div>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <span className="dropdown-item">Cargando...</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* DESPLEGABLE A-Z (DESKTOP) */}
                         <div 
                             className="nav-dropdown-container"
                             onMouseEnter={() => setIsDropdownOpen(true)}
@@ -149,7 +193,41 @@ const Navbar = ({ cartCount = 0 }) => {
 
                     <div className="drawer-divider" />
 
-                    {/* MODIFICACIÓN 2: ACORDEÓN MÓVIL */}
+                    {/* 🌟 ACORDEÓN COLORES (MÓVIL) 🌟 */}
+                    <div className="drawer-accordion">
+                        <button 
+                            className="drawer-link drawer-link--az w-100" 
+                            onClick={() => setIsMobileColorOpen(!isMobileColorOpen)}
+                            style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+                        >
+                            <span className="az-inner">
+                                <Palette size={18} strokeWidth={1.5} /> Filtrar por Color
+                            </span>
+                            <ChevronDown 
+                                size={18} 
+                                strokeWidth={1.5} 
+                                style={{ transform: isMobileColorOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }} 
+                            />
+                        </button>
+                        
+                        <div className={`mobile-dropdown-list ${isMobileColorOpen ? 'open' : ''}`}>
+                            {colores.map(color => (
+                                <Link 
+                                    key={color.id} 
+                                    to={`/productos?color=${color.id}`} 
+                                    className="mobile-dropdown-item" 
+                                    onClick={closeMenu}
+                                >
+                                    <div className="color-item-content">
+                                        <span className="color-circle" style={{ backgroundColor: color.codigo_hex }}></span>
+                                        {color.nombre}
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ACORDEÓN A-Z (MÓVIL) */}
                     <div className="drawer-accordion">
                         <button 
                             className="drawer-link drawer-link--az w-100" 

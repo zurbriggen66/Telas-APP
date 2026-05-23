@@ -6,9 +6,9 @@ import mercadopago
 import requests
 import os
 # revisar luego si todos los import son necesarios o si quedaron algunos de pruebas anteriores
-from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal
+from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal, Color
 from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, Producto
-from .serializers import ProductoDesplegableSerializer, TarifaLocalSerializer
+from .serializers import ProductoDesplegableSerializer, TarifaLocalSerializer, ColorSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
 from decimal import Decimal
 from rest_framework import status, viewsets, generics
 from django.conf import settings
@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 # ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
-from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
+from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer, ColorSerializer
 
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser, FormParser])
@@ -98,6 +98,24 @@ class ProductoViewSet(viewsets.ModelViewSet):
         for key, file in request.FILES.items():
             if key.startswith('imagen_extra_'):
                 ProductoImagen.objects.create(producto=producto, imagen=file)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Leemos si la URL trae un filtro de color (ej: /api/productos/?color=3)
+        color_id = self.request.query_params.get('color', None)
+        
+        if color_id:
+            queryset = queryset.filter(color_id=color_id)
+            
+        return queryset
+    
+
+# =========================================================================
+#  VIEWSET PARA COLORES
+# =========================================================================
+class ColorViewSet(viewsets.ModelViewSet):
+    queryset = Color.objects.all().order_by('nombre')
+    serializer_class = ColorSerializer
 
 def enviar_plantilla_whatsapp(numero_destino, nombre_plantilla, parametros):
     """
@@ -240,10 +258,14 @@ class CrearPedidoView(APIView):
             if not cart_items:
                 return Response({"error": "El carrito está vacío"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # 1. Calcular el total del pedido
+            # 1. Calcular el total de las telas
             total = Decimal('0.00')
             for item in cart_items:
                 total += Decimal(str(item.get('precio_por_metro', 0))) * Decimal(str(item.get('cantidad', 1)))
+            
+            # 👇 CORRECCIÓN: Calcular y sumar el costo de envío al total final
+            costo_envio_calculado = Decimal(str(request.data.get('costo_envio', 0)))
+            total += costo_envio_calculado
 
             estado_inicial = 'Esperando_Transferencia' if metodo_pago == 'Transferencia' else 'Pendiente'
 
@@ -254,11 +276,12 @@ class CrearPedidoView(APIView):
                     email_cliente=payer_data.get('email', ''),
                     telefono_cliente=payer_data.get('telefono', ''),
                     direccion_envio=payer_data.get('direccion_envio', 'No especificado'),
-                    total=total,
+                    total=total,  # ¡Ahora incluye telas + envío!
                     metodo_pago=metodo_pago,
                     estado=estado_inicial,
                     
-                    costo_envio=request.data.get('costo_envio', 0),
+                    # Se asigna el costo de envío limpio y se eliminó la línea duplicada
+                    costo_envio=costo_envio_calculado,
                     tipo_envio=request.data.get('tipo_envio', 'Retiro en Local'),
                     envia_carrier=request.data.get('envia_carrier'),
                     envia_service=request.data.get('envia_service')
@@ -311,7 +334,7 @@ class CrearPedidoView(APIView):
                     )
                     send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
                     
-                    # 2. NUEVO: Mail de aviso para ti (el dueño)
+                    # 2. Mail de aviso para ti (el dueño)
                     asunto_dueno = f"🚨 NUEVO PEDIDO - Transferencia Pendiente (# {pedido.id})"
                     mensaje_dueno = (
                         f"¡Hola! Tienes un nuevo pedido en la web.\n\n"
@@ -339,8 +362,7 @@ class CrearPedidoView(APIView):
                 except Exception as e_notif:
                     print(f"⚠️ Error en notificaciones de transferencia: {e_notif}")
 
-                # CORRECCIÓN: El return de la transferencia ahora está fuera del try/except
-                # pero dentro de la condición de Transferencia.
+                # Respuesta a React de Transferencia
                 return Response({
                     "status": "awaiting_transfer",
                     "pedido_id": pedido.id,
@@ -361,7 +383,17 @@ class CrearPedidoView(APIView):
                         "currency_id": "ARS",
                     })
 
-                ngrok_url = "https://elvia-uncited-humbly.ngrok-free.dev"
+                # 👇 ¡OJO! Opcionalmente, puedes añadir el costo de envío como un ítem extra en MP para que quede desglosado
+                if costo_envio_calculado > 0:
+                    items_for_mp.append({
+                        "id": "envio",
+                        "title": "Costo de Envío",
+                        "quantity": 1,
+                        "unit_price": float(costo_envio_calculado),
+                        "currency_id": "ARS",
+                    })
+
+                ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
 
                 preference_data = {
                     "items": items_for_mp,
@@ -402,7 +434,6 @@ class CrearPedidoView(APIView):
             return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": f"Error interno del servidor: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# =========================================================================
 #  4. WEBHOOKS Y REDIRECTS DE MERCADO PAGO
 # =========================================================================
 @api_view(['GET'])
@@ -504,7 +535,7 @@ class MercadoPagoPreferenceView(APIView):
                     "currency_id": "ARS",
                 })
 
-            ngrok_url = "https://elvia-uncited-humbly.ngrok-free.dev"
+            ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
 
             preference_data = {
                 "items": items_for_mp,

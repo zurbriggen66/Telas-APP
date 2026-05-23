@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Categoria, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem, TarifaLocal
+from .models import Categoria, Color, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem, TarifaLocal
 
 # 1. Serializer para la configuración (Banner)
 class StoreConfigurationSerializer(serializers.ModelSerializer):
@@ -33,13 +33,18 @@ class ProductoSerializer(serializers.ModelSerializer):
             'ancho_cm', 'stock_metros', 'es_favorito',
             'categorias', # Recibe/envía un array de IDs (ej: [11, 15])
             'categorias_nombres', # Envía a React un array de nombres (ej: ["Gamuza", "Algodón"])
-            'imagen', 'imagenes_galeria'
+            'imagen', 'imagenes_galeria', 'color'
         ]
 
 class PedidoItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PedidoItem
         fields = ['id', 'producto', 'nombre_producto', 'cantidad_metros', 'precio_unitario']
+
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = '__all__'
 
 class PedidoSerializer(serializers.ModelSerializer):
     items = PedidoItemSerializer(many=True, read_only=True)
@@ -48,7 +53,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         model = Pedido
         fields = [
             'id', 'mp_id', 'nombre_cliente', 'email_cliente', 'telefono_cliente',
-            'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion','direccion_envio', 'costo_envio', 'tipo_envio', 'envia_carrier', 'envia_service'
+            'total', 'metodo_pago', 'estado', 'detalle_items', 'items', 'fecha_creacion','direccion_envio', 'costo_envio', 'tipo_envio', 'envia_carrier', 'envia_service', 'url_etiqueta', 'tracking_number'
         ]
 
 class ProductoDesplegableSerializer(serializers.ModelSerializer):

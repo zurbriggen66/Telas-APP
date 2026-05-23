@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Eye, Loader2, SlidersHorizontal, ChevronDown } from 'lucide-react'; 
-import { useNavigate } from 'react-router-dom'; 
+import { useNavigate, useSearchParams } from 'react-router-dom'; 
 import Navbar from '../Navbar/Navbar';
 import './Products.css';
+
+// 👇 AQUÍ FALTABA DEFINIR ESTA CONSTANTE
+const API = 'http://127.0.0.1:8000/api';
 
 const Productos = () => {
     const [productos, setProductos] = useState([]);
@@ -17,6 +20,10 @@ const Productos = () => {
     const [filtroCategoria, setFiltroCategoria] = useState('Todas');
     const [ordenPrecio, setOrdenPrecio] = useState('defecto');
     
+    // Captura el color de la URL
+    const [searchParams] = useSearchParams();
+    const colorFiltroURL = searchParams.get('color');
+
     // NUEVO: Estado para el menú desplegable personalizado
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -26,7 +33,6 @@ const Productos = () => {
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // Opciones del menú desplegable
     const opcionesOrden = [
         { id: 'defecto', label: 'Relevancia' },
         { id: 'menor', label: 'Menor a Mayor precio' },
@@ -38,12 +44,22 @@ const Productos = () => {
     // 1. Traer los productos
     useEffect(() => {
         const fetchProductos = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/productos/');
+                // Construimos la URL dinámica
+                let url = `${API}/productos/`;
+                if (colorFiltroURL) {
+                    url += `?color=${colorFiltroURL}`;
+                }
+
+                // Llamada única a la API
+                const response = await axios.get(url);
                 const data = response.data;
+                
                 setProductos(data);
                 setProductosFiltrados(data);
                 
+                // Extraer categorías únicas
                 const catsExtraidas = [];
                 data.forEach(item => {
                     if (item.categorias_nombres && Array.isArray(item.categorias_nombres)) {
@@ -52,7 +68,6 @@ const Productos = () => {
                 });
 
                 const catsUnicas = [...new Set(catsExtraidas)].filter(Boolean).sort();
-                
                 setCategorias(catsUnicas);
                 setLoading(false);
             } catch (err) {
@@ -62,7 +77,7 @@ const Productos = () => {
             }
         };
         fetchProductos();
-    }, []);
+    }, [colorFiltroURL]); // <-- Se ejecuta cada vez que cambia el color en la URL
 
     // Cerrar el dropdown al hacer clic afuera
     useEffect(() => {
@@ -75,7 +90,7 @@ const Productos = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [dropdownRef]);
 
-    // 2. Aplicar Filtros y Ordenamiento
+    // 2. Aplicar Filtros y Ordenamiento (Clienteside)
     useEffect(() => {
         let resultado = [...productos];
 
@@ -92,7 +107,6 @@ const Productos = () => {
         }
 
         setProductosFiltrados(resultado);
-        
     }, [filtroCategoria, ordenPrecio, productos]);
 
     const irAlDetalle = (idProducto) => {
@@ -156,7 +170,6 @@ const Productos = () => {
                             <SlidersHorizontal size={16} /> Ordenar por:
                         </label>
                         
-                        {/* NUEVO: Dropdown personalizado y elegante */}
                         <div className="custom-dropdown" ref={dropdownRef}>
                             <div 
                                 className="custom-dropdown-header" 
@@ -174,7 +187,7 @@ const Productos = () => {
                                             className={`custom-dropdown-item ${ordenPrecio === opt.id ? 'selected' : ''}`}
                                             onClick={() => {
                                                 setOrdenPrecio(opt.id);
-                                                setIsDropdownOpen(false); // Cierra al seleccionar
+                                                setIsDropdownOpen(false);
                                             }}
                                         >
                                             {opt.label}
@@ -186,7 +199,6 @@ const Productos = () => {
                     </div>
                 </section>
 
-                {/* GRILLA DE PRODUCTOS */}
                 <main className="catalogo-grid">
                     {productosFiltrados.length === 0 ? (
                         <div className="sin-resultados">

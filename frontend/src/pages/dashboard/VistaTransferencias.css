@@ -1,99 +1,132 @@
+/* ==========================================================================
+   ESTILOS GENERALES Y TIPOGRAFÍA PREMIUM
+   ========================================================================== */
 .vista-transferencias-container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: relative;
+    width: 100%;
+    font-family: 'DM Sans', 'Inter', 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #1e293b;
+    min-height: 100vh;
 }
 
-.loading-state, .transferencias-empty {
-    padding: 80px 20px;
+/* Forzamos que el componente <Header /> herede un estilo más refinado */
+.vista-transferencias-container h1, 
+.vista-transferencias-container h2 {
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    letter-spacing: -0.03em !important; /* Acerca un poco las letras para dar look moderno */
+}
+
+.vista-transferencias-container p {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Estados de carga y vacío */
+.loading-state {
     text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    padding: 80px 20px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 1.1rem;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.transferencias-empty {
+    text-align: center;
+    padding: 80px 20px;
 }
 
 .empty-title {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 0;
+    margin-top: 24px;
+    font-weight: 800;
+    color: #0f172a;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
 }
 
 .empty-subtitle {
-    color: #64748b;
     font-size: 0.95rem;
-    margin: 0;
+    margin-top: 8px;
+    color: #64748b;
 }
 
-/* === GRID RESPONSIVE === */
+/* ==========================================================================
+   GRILLA DE TARJETAS (FINTECH LOOK)
+   ========================================================================== */
 .grid-transferencias {
     display: grid;
-    /* En pantallas grandes: tarjetas de al menos 350px. En móviles: 100% */
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    /* Las tarjetas se acomodan solas, nunca serán más chicas que 320px */
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 24px;
+    padding: 10px 0;
 }
 
-@media (max-width: 768px) {
-    .grid-transferencias {
-        grid-template-columns: 1fr; /* 1 sola columna en móviles */
-    }
-}
-
-/* === TARJETAS === */
 .transferencia-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border-radius: 16px;
     padding: 24px;
+    box-shadow: 0 10px 40px rgba(149, 157, 165, 0.08); /* Sombra amplia y elegante */
+    border: 1px solid rgba(226, 232, 240, 0.5); /* Borde casi invisible */
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
 }
 
 .transferencia-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    transform: translateY(-4px);
+    box-shadow: 0 16px 50px rgba(149, 157, 165, 0.12);
 }
 
+/* ==========================================================================
+   CABECERA DE LA TARJETA (Badge, Título y Precio)
+   ========================================================================== */
 .transferencia-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     border-bottom: 1px solid #f1f5f9;
     padding-bottom: 16px;
+    margin-bottom: 16px;
 }
 
 .badge-transferencia {
-    display: inline-block;
-    background-color: #fef08a;
-    color: #854d0e;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 4px 8px;
-    border-radius: 6px;
-    margin-bottom: 8px;
+    background-color: #fffbeb;
+    color: #d97706; /* Dorado oscuro */
+    border: 1px solid #fde68a;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.08em;
+    display: inline-block;
+    margin-bottom: 8px;
 }
 
 .pedido-titulo {
     margin: 0;
     color: #0f172a;
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: -0.02em;
 }
 
 .monto-destacado {
-    font-size: 1.5rem;
+    color: #059669; /* Verde Esmeralda Premium */
     font-weight: 800;
-    color: #10b981;
+    font-size: 1.6rem;
+    letter-spacing: -0.04em;
+    background: #ecfdf5;
+    padding: 4px 12px;
+    border-radius: 10px;
 }
 
+/* ==========================================================================
+   CUERPO DE LA TARJETA (Datos del Cliente)
+   ========================================================================== */
 .transferencia-body {
+    flex-grow: 1; /* Empuja el footer hacia abajo */
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -102,147 +135,194 @@
 .info-grupo {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
 }
 
 .info-label {
-    font-size: 0.8rem;
-    text-transform: uppercase;
+    font-size: 0.65rem;
     color: #94a3b8;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em; /* Mucho espacio entre letras para look técnico */
 }
 
 .info-valor {
     font-size: 0.95rem;
-    color: #334155;
-    font-weight: 500;
+    color: #1e293b;
+    font-weight: 600;
     line-height: 1.4;
 }
 
+/* Caja del recibo de Telas */
 .detalle-telas-box {
     margin-top: 8px;
-    padding: 12px;
     background-color: #f8fafc;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
+    border: 1px dashed #cbd5e1; /* Borde de ticket */
+    border-radius: 10px;
+    padding: 16px;
 }
 
 .telas-lista {
-    margin-top: 6px;
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #475569;
+    font-weight: 500;
 }
 
 .tela-line {
-    color: #475569;
-    font-size: 0.9rem;
     padding: 4px 0;
-    border-bottom: 1px dashed #cbd5e1;
+    border-bottom: 1px solid #e2e8f0;
 }
-.tela-line:last-child {
-    border-bottom: none;
-}
+.tela-line:last-child { border-bottom: none; }
 
-/* === BOTONES === */
+/* ==========================================================================
+   BOTONES DE ACCIÓN (FOOTER)
+   ========================================================================== */
 .transferencia-footer {
     display: flex;
     gap: 12px;
-    margin-top: auto;
+    margin-top: 24px;
     padding-top: 16px;
+    border-top: 1px solid #f1f5f9;
 }
 
 .btn-accion {
     flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.95rem;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
     cursor: pointer;
-    border: none;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     text-align: center;
+    border: none;
 }
 
-.btn-aprobar {
-    background-color: #10b981;
-    color: white;
+.btn-accion:active {
+    transform: scale(0.96); /* Efecto de hundimiento táctil */
 }
-.btn-aprobar:hover { background-color: #059669; }
 
+/* Botón Rechazar (Rojo Suave) */
 .btn-rechazar {
-    background-color: #fee2e2;
+    background-color: #fff0f0;
     color: #ef4444;
+    border: 1px solid #fee2e2;
 }
-.btn-rechazar:hover { background-color: #fca5a5; color: #b91c1c; }
+.btn-rechazar:hover { background-color: #fee2e2; }
 
-/* === MODAL CUSTOM === */
+/* Botón Aprobar (Verde Degradado) */
+.btn-aprobar {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+.btn-aprobar:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35); transform: translateY(-1px); }
+
+/* ==========================================================================
+   ⚡ VENTANA EMERGENTE (MODAL PREMIUM)
+   ========================================================================== */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(15, 23, 42, 0.6); /* Fondo azul oscuro transparente */
+    backdrop-filter: blur(5px); /* Efecto cristal / Glassmorphism */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    animation: fadeIn 0.2s ease-out;
+    z-index: 9999;
+    padding: 20px;
 }
 
 .modal-content {
-    background-color: white;
-    border-radius: 16px;
+    background: #ffffff;
     padding: 32px;
-    width: 90%;
-    max-width: 450px;
+    border-radius: 24px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: slideUp 0.3s ease-out;
+    animation: modalPopIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .modal-content h2 {
-    margin: 0 0 12px 0;
     color: #0f172a;
+    font-weight: 800;
     font-size: 1.4rem;
+    margin: 0 0 12px 0;
 }
 
 .modal-content p {
-    color: #64748b;
+    color: #475569;
+    font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 24px;
 }
 
 .modal-actions {
     display: flex;
-    justify-content: flex-end;
     gap: 12px;
 }
 
-.btn-modal-cerrar {
-    padding: 10px 16px;
-    background: transparent;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    color: #475569;
-    font-weight: 600;
+.btn-modal-cerrar, .btn-modal-confirmar {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
     cursor: pointer;
-}
-.btn-modal-cerrar:hover { background-color: #f1f5f9; }
-
-.btn-modal-confirmar {
-    padding: 10px 20px;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-modal-cerrar {
+    background-color: #f1f5f9;
+    color: #475569;
+}
+.btn-modal-cerrar:hover { background-color: #e2e8f0; }
+
+.btn-modal-confirmar.aprobar {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
-    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
-.btn-modal-confirmar.aprobar { background-color: #10b981; }
-.btn-modal-confirmar.aprobar:hover { background-color: #059669; }
-.btn-modal-confirmar.rechazar { background-color: #ef4444; }
-.btn-modal-confirmar.rechazar:hover { background-color: #dc2626; }
 
-.btn-modal-confirmar:disabled, .btn-modal-cerrar:disabled {
-    opacity: 0.6;
+.btn-modal-confirmar.rechazar {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.btn-modal-confirmar:disabled {
+    opacity: 0.7;
     cursor: not-allowed;
+    transform: none !important;
 }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+/* Animación de entrada para el modal */
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+@keyframes modalPopIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ==========================================================================
+   RESPONSIVE MÓVIL
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+    .grid-transferencias {
+        grid-template-columns: 1fr; /* Una sola columna en celulares */
+    }
+    
+    .transferencia-card {
+        padding: 20px;
+    }
+    
+    .monto-destacado {
+        font-size: 1.4rem;
+    }
+}

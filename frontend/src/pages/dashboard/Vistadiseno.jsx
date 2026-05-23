@@ -47,11 +47,14 @@ const ImageUploadBox = ({ title, fieldName, fileData, onFileChange, recomendacio
 
 
 const VistaDiseno = () => {
-  // Estado para detectar si es versión móvil (celular)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
   const [textData, setTextData] = useState({ instagram: '', telefono: '' });
   
+  // 👇 NUEVOS ESTADOS PARA LOS COLORES 👇
+  const [colores, setColores] = useState([]);
+  const [nuevoColor, setNuevoColor] = useState({ nombre: '', codigo_hex: '#6366f1' }); // Color por defecto al abrir
+  const [loadingColor, setLoadingColor] = useState(false);
+
   const [images, setImages] = useState({
     banner_1: { file: null, preview: null },
     banner_2: { file: null, preview: null },
@@ -65,15 +68,15 @@ const VistaDiseno = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(null);
 
-  // Escuchar cambios en el tamaño de la pantalla
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Cargar datos actuales desde el backend
+  // Cargar datos actuales (Configuración y Colores)
   useEffect(() => {
+    // 1. Cargar Banners y Textos
     axios.get(`${API}/banner/`).then(res => {
       const data = res.data;
       const config = Array.isArray(data) ? data[0] : data;
@@ -94,7 +97,47 @@ const VistaDiseno = () => {
       });
       setImages(loadedImages);
     }).catch(() => {});
+
+    // 2. Cargar Colores Disponibles
+    fetchColores();
   }, []);
+
+  // --- FUNCIONES DE COLORES ---
+  const fetchColores = async () => {
+    try {
+      const res = await axios.get(`${API}/colores/`);
+      setColores(Array.isArray(res.data) ? res.data : res.data.results || []);
+    } catch (error) {
+      console.error("Error al cargar colores:", error);
+    }
+  };
+
+  const handleAddColor = async () => {
+    if (!nuevoColor.nombre.trim()) {
+      alert("El nombre del color es obligatorio.");
+      return;
+    }
+    setLoadingColor(true);
+    try {
+      await axios.post(`${API}/colores/`, nuevoColor);
+      setNuevoColor({ nombre: '', codigo_hex: '#6366f1' }); // Resetear formulario
+      fetchColores(); // Recargar la lista
+    } catch (error) {
+      alert("Hubo un error al agregar el color. Quizás el nombre ya existe.");
+    } finally {
+      setLoadingColor(false);
+    }
+  };
+
+  const handleDeleteColor = async (id) => {
+    if (!window.confirm("¿Seguro que querés eliminar este color?")) return;
+    try {
+      await axios.delete(`${API}/colores/${id}/`);
+      setColores(colores.filter(c => c.id !== id));
+    } catch (error) {
+      alert("No se pudo eliminar el color. Quizás está siendo usado por alguna tela.");
+    }
+  };
 
   const handleTextChange = (e) => {
     setTextData({ ...textData, [e.target.name]: e.target.value });
@@ -108,7 +151,7 @@ const VistaDiseno = () => {
     }));
   };
 
-  // Guardado Maestro
+  // Guardado Maestro de Banners
   const handleGuardarTodo = async () => {
     setLoading(true); setStatus(null);
     const formData = new FormData();
@@ -138,8 +181,8 @@ const VistaDiseno = () => {
   const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 14, outline: 'none', color: '#1e293b', boxSizing: 'border-box', marginBottom: 16 };
 
   return (
-    <div style={{ paddingBottom: '90px' }}> {/* Margen inferior ampliado para que no tape contenido el botón flotante */}
-      <Header title="Diseño & Configuración" subtitle="Personalizá la información y aspecto visual de tu tienda" />
+    <div style={{ paddingBottom: '90px' }}>
+      <Header title="Diseño & Colores" subtitle="Personalizá la información y aspecto visual de tu tienda" />
       
       {/* MENSAJE RECORDATORIO */}
       <div style={{
@@ -155,7 +198,80 @@ const VistaDiseno = () => {
         </span>
       </div>
 
-      {/* GRID EN 2 COLUMNAS */}
+      {/* SECCIÓN NUEVA: GESTIÓN DE COLORES (Arriba para destacar) */}
+      <Card style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div style={{ background: '#f0fdf4', padding: '6px', borderRadius: '8px' }}>
+            <Icon d={icons.tag} size={20} color="#16a34a" />
+          </div>
+          <h3 style={{ margin: 0, fontSize: 18, color: '#0f172a', fontWeight: 800 }}>Paleta de Colores</h3>
+        </div>
+        <p style={{ fontSize: 13, color: '#64748b', margin: '0 0 20px 0' }}>Agregá los colores oficiales que luego podrás asignarle a tus telas en el inventario.</p>
+
+        {/* Formulario rápido de Colores */}
+        <div style={{ 
+          display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap', 
+          background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: 20
+        }}>
+           <div style={{ flex: 1, minWidth: '200px' }}>
+              <label style={{ fontWeight: 700, fontSize: 12, color: '#475569', marginBottom: 6, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nombre del Color</label>
+              <input 
+                value={nuevoColor.nombre} 
+                onChange={e => setNuevoColor({...nuevoColor, nombre: e.target.value})} 
+                placeholder="Ej: Verde Oliva, Azul Marino..." 
+                style={{ ...inputStyle, marginBottom: 0 }} 
+              />
+           </div>
+           <div style={{ width: isMobile ? '100%' : '140px' }}>
+              <label style={{ fontWeight: 700, fontSize: 12, color: '#475569', marginBottom: 6, display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tono (Hex)</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, ...inputStyle, marginBottom: 0, padding: '7px 12px' }}>
+                 <input 
+                    type="color" 
+                    value={nuevoColor.codigo_hex} 
+                    onChange={e => setNuevoColor({...nuevoColor, codigo_hex: e.target.value})} 
+                    style={{ border: 'none', padding: 0, width: 30, height: 30, cursor: 'pointer', background: 'transparent', borderRadius: '50%' }} 
+                  />
+                 <span style={{ fontSize: 13, color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>{nuevoColor.codigo_hex}</span>
+              </div>
+           </div>
+           <button 
+              onClick={handleAddColor} 
+              disabled={loadingColor} 
+              style={{ 
+                background: '#10b981', color: 'white', border: 'none', borderRadius: 8, 
+                padding: '12px 24px', fontWeight: 700, cursor: 'pointer', marginTop: isMobile ? '0' : '23px',
+                width: isMobile ? '100%' : 'auto', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+              }}>
+              {loadingColor ? 'Guardando...' : 'Agregar Color'}
+           </button>
+        </div>
+
+        {/* Lista de Colores Creados */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+           {colores.map(c => (
+              <div key={c.id} style={{ 
+                display: 'flex', alignItems: 'center', gap: 10, background: 'white', 
+                border: '1px solid #cbd5e1', padding: '8px 14px', borderRadius: '30px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+              }}>
+                 {/* Circulito de color */}
+                 <div style={{ width: 18, height: 18, borderRadius: '50%', backgroundColor: c.codigo_hex, border: '1px solid rgba(0,0,0,0.1)' }}></div>
+                 <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{c.nombre}</span>
+                 
+                 {/* Botón cruz roja */}
+                 <button onClick={() => handleDeleteColor(c.id)} title="Eliminar color" style={{ 
+                   background: '#fee2e2', border: 'none', cursor: 'pointer', display: 'flex', 
+                   alignItems: 'center', justifyContent: 'center', marginLeft: 4, width: 22, height: 22, borderRadius: '50%', padding: 0
+                 }}>
+                    <Icon d={icons.x} size={12} color="#ef4444" />
+                 </button>
+              </div>
+           ))}
+           {colores.length === 0 && <span style={{ fontSize: 14, color: '#94a3b8', fontStyle: 'italic' }}>Aún no has agregado ningún color a tu paleta.</span>}
+        </div>
+      </Card>
+
+      {/* GRID EN 2 COLUMNAS (Banners y Redes) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, alignItems: 'start' }}>
         
         {/* COLUMNA 1: Redes y Logos */}
@@ -211,7 +327,7 @@ const VistaDiseno = () => {
         position: 'fixed', 
         bottom: isMobile ? 16 : 20, 
         right: isMobile ? 16 : 20, 
-        left: isMobile ? 16 : 270, // 270px asume el ancho de tu Sidebar en escritorio
+        left: isMobile ? 16 : 270,
         padding: isMobile ? '12px' : '16px 24px', 
         background: 'white', 
         borderRadius: 12, 
@@ -223,7 +339,6 @@ const VistaDiseno = () => {
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)'
       }}>
         
-        {/* En escritorio mostramos el estado a la izquierda */}
         {!isMobile && (
           <div>
             {status === 'ok' && <span style={{ color: '#15803d', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}><Icon d={icons.check} size={18} color="#16a34a" /> Cambios guardados correctamente</span>}
@@ -231,10 +346,8 @@ const VistaDiseno = () => {
           </div>
         )}
         
-        {/* Contenedor del botón (y mensajes de estado en mobile) */}
         <div style={{ width: isMobile ? '100%' : 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           
-          {/* En mobile mostramos el estado centrado arriba del botón */}
           {isMobile && status === 'ok' && <span style={{ color: '#15803d', fontWeight: 700, fontSize: 13, textAlign: 'center' }}>¡Cambios guardados!</span>}
           {isMobile && status === 'error' && <span style={{ color: '#dc2626', fontWeight: 700, fontSize: 13, textAlign: 'center' }}>Error al guardar</span>}
 

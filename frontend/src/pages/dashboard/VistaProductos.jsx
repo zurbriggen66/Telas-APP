@@ -4,7 +4,7 @@ import Header from '../../components/Header';
 import Card from '../../components/Card';
 import ImageUploader from '../../components/ImageUploader';
 import { Icon, icons } from '../../components/Icons';
-import { Star } from 'lucide-react'; // NUEVO: Importamos la estrella
+import { Star } from 'lucide-react';
 
 const API = 'http://127.0.0.1:8000/api';
 
@@ -59,8 +59,15 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {prod.categorias_nombres && prod.categorias_nombres.length > 0 ? prod.categorias_nombres.join(' • ') : 'Sin categoría'} • {prod.ancho_cm}cm ancho
+          
+          {/* 👇 NUEVO: Mostrar el circulito de color en la lista 👇 */}
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {prod.color_hex && (
+              <div title={prod.color_nombre} style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: prod.color_hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }}></div>
+            )}
+            <span>
+              {prod.categorias_nombres && prod.categorias_nombres.length > 0 ? prod.categorias_nombres.join(' • ') : 'Sin categoría'} • {prod.ancho_cm}cm ancho
+            </span>
           </div>
         </div>
       </div>
@@ -142,7 +149,6 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         </span>
 
         <div style={{ display: 'flex', gap: '8px' }}>
-          {/* BOTÓN ESTRELLA (FAVORITOS) */}
           <button 
             onClick={(e) => { e.stopPropagation(); onToggleFavorito(prod); }} 
             title={prod.es_favorito ? "Quitar de favoritas" : "Marcar como favorita"} 
@@ -170,12 +176,21 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
 // --- VISTA PRINCIPAL ---
 const VistaProductos = () => {
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], es_favorito: false });
+  
+  // 👇 NUEVO: Agregamos 'color' al estado inicial del formulario
+  const [form, setForm] = useState({ 
+    nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', 
+    stock_metros: '', categorias: [], color: '', es_favorito: false 
+  });
+  
   const [images, setImages] = useState([]);
   const [statusMsg, setStatusMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [colores, setColores] = useState([]); // 👇 NUEVO ESTADO PARA COLORES
+
   const [fetching, setFetching] = useState(true);
   const [editando, setEditando] = useState(null); 
   const [imagenesOriginales, setImagenesOriginales] = useState([]); 
@@ -192,14 +207,17 @@ const VistaProductos = () => {
   const fetchData = async () => {
     setFetching(true);
     try {
-      const [prodRes, catRes] = await Promise.all([
+      // 👇 NUEVO: Hacemos fetch también de los colores
+      const [prodRes, catRes, colRes] = await Promise.all([
         axios.get(`${API}/productos/`),
         axios.get(`${API}/categorias/`),
+        axios.get(`${API}/colores/`),
       ]);
       setProductos(Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.results || []);
       setCategorias(Array.isArray(catRes.data) ? catRes.data : catRes.data.results || []);
+      setColores(Array.isArray(colRes.data) ? colRes.data : colRes.data.results || []);
     } catch {
-      setProductos([]); setCategorias([]);
+      setProductos([]); setCategorias([]); setColores([]);
     } finally {
       setFetching(false);
     }
@@ -222,7 +240,6 @@ const VistaProductos = () => {
     }
   };
 
-  // NUEVA FUNCIÓN: Alternar estado de Favorito
   const handleToggleFavorito = async (prod) => {
     try {
       const nuevoEstado = !prod.es_favorito;
@@ -243,6 +260,7 @@ const VistaProductos = () => {
       ancho_cm: prod.ancho_cm, 
       stock_metros: prod.stock_metros, 
       categorias: prod.categorias || [],
+      color: prod.color || '', // 👇 NUEVO: Cargamos el color actual al editar
       es_favorito: prod.es_favorito || false
     });
 
@@ -261,7 +279,7 @@ const VistaProductos = () => {
 
   const resetForm = () => {
     setShowForm(false);
-    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], es_favorito: false });
+    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], color: '', es_favorito: false });
     setImages([]); setImagenesOriginales([]); setEditando(null); setStatusMsg('');
   };
 
@@ -278,6 +296,13 @@ const VistaProductos = () => {
       formData.append('stock_metros', form.stock_metros);
       formData.append('descripcion', form.descripcion);
       formData.append('es_favorito', form.es_favorito ? 'True' : 'False');
+      
+      // 👇 NUEVO: Enviamos el color seleccionado (o cadena vacía si lo quitó)
+      if (form.color) {
+        formData.append('color', form.color);
+      } else {
+        formData.append('color', '');
+      }
       
       if (form.categorias && form.categorias.length > 0) {
         form.categorias.forEach(catId => {
@@ -400,7 +425,47 @@ const VistaProductos = () => {
               </div>
             </div>
 
-            {/* Checkbox alternativo para Favorito desde el formulario */}
+            {/* 👇 NUEVA SECCIÓN: Selector Visual de Colores 👇 */}
+            <div style={{ gridColumn: '1/-1' }}>
+              <label style={{...labelStyle, marginBottom: 2}}>Color Principal (Opcional)</label>
+              <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 8px 0' }}>El cliente podrá filtrar por este color.</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setForm(prev => ({ ...prev, color: '' })); }}
+                  style={{
+                    padding: '6px 14px', borderRadius: '20px',
+                    border: form.color === '' ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
+                    background: form.color === '' ? '#f1f5f9' : 'white',
+                    color: form.color === '' ? '#0f172a' : '#64748b',
+                    fontWeight: 600, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  🚫 Sin color
+                </button>
+
+                {colores.map(c => {
+                  const isSelected = form.color === c.id;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); setForm(prev => ({ ...prev, color: c.id })); }}
+                      style={{
+                        padding: '6px 14px', borderRadius: '20px',
+                        border: isSelected ? '1.5px solid #0f172a' : '1px solid #e2e8f0',
+                        background: isSelected ? '#f8fafc' : 'white',
+                        display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ width: 14, height: 14, borderRadius: '50%', backgroundColor: c.codigo_hex, border: '1px solid rgba(0,0,0,0.1)' }}></div>
+                      <span style={{ fontWeight: 600, fontSize: '13px', color: isSelected ? '#0f172a' : '#64748b' }}>{c.nombre}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ gridColumn: '1/-1', display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
                 <input 
                     type="checkbox" 
@@ -517,7 +582,7 @@ const VistaProductos = () => {
                    onEditarCompleto={abrirEditar} 
                    onEliminar={handleEliminar}
                    onQuickSave={handleQuickSave}
-                   onToggleFavorito={handleToggleFavorito} // NUEVO: Pasamos la función
+                   onToggleFavorito={handleToggleFavorito}
                  />
                ))
             )}

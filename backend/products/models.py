@@ -105,6 +105,13 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
+class Color(models.Model):
+    nombre = models.CharField(max_length=50, unique=True, verbose_name="Nombre del Color")
+    codigo_hex = models.CharField(max_length=7, default="#FFFFFF", verbose_name="Código Hexadecimal", help_text="Ejemplo: #FF0000 para rojo")
+
+    def __str__(self):
+        return self.nombre
+
 class Producto(models.Model):
     # ⚠️ Cambiamos a ManyToManyField. Nota que ahora es plural: "categorias"
     categorias = models.ManyToManyField(
@@ -115,6 +122,8 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=200, verbose_name="Nombre de la Tela")
     descripcion = models.TextField(verbose_name="Descripción")
     es_favorito = models.BooleanField(default=False, verbose_name="Tela Favorita/Destacada")
+
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos', verbose_name="Color Principal")
     
     precio_por_metro = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio por Metro")
     ancho_cm = models.PositiveIntegerField(verbose_name="Ancho (cm)", help_text="Ejemplo: 150, 180, 300")
@@ -150,6 +159,7 @@ class ProductoImagen(models.Model):
     def __str__(self):
         return f"Imagen galería de {self.producto.nombre}"      
     
+
 
 class PagoProcesado(models.Model):
     pago_id = models.CharField(max_length=100, unique=True)

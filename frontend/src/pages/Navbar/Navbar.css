@@ -421,3 +421,21 @@
     color: var(--verde-atelier);
     background-color: rgba(207, 159, 64, 0.1);
 }
+
+/* =========================================
+   ELEMENTOS DE LA LISTA DE COLORES
+========================================= */
+.color-item-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.color-circle {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: inline-block;
+    flex-shrink: 0;
+}

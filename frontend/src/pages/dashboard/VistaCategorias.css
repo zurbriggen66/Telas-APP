@@ -1,0 +1,68 @@
+/* VistaCategorias.css */
+
+.categorias-list-container {
+    width: 100%;
+}
+
+.categorias-header {
+    display: grid;
+    grid-template-columns: 48px 1.5fr 1fr auto;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 16px;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.categoria-row {
+    display: grid;
+    grid-template-columns: 48px 1.5fr 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.categoria-row:hover {
+    background-color: #f1f5f9;
+}
+
+.categoria-nombre {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.categoria-jerarquia-mobile {
+    display: none; /* Oculto en PC */
+}
+
+/* =======================================================
+   ⚡ MAGIA RESPONSIVE: VISTA PARA CELULARES
+   ======================================================= */
+@media screen and (max-width: 768px) {
+    .categorias-header {
+        display: none; /* Ocultamos los títulos de las columnas en móvil */
+    }
+
+    .categoria-row {
+        /* Pasamos de 4 columnas a 3: [Imagen] [Textos] [Botones] */
+        grid-template-columns: 48px 1fr auto; 
+        padding: 16px 16px;
+        gap: 14px;
+    }
+
+    .categoria-jerarquia-desktop {
+        display: none; /* Escondemos la columna separada de jerarquía */
+    }
+
+    .categoria-jerarquia-mobile {
+        display: block; /* Mostramos la jerarquía justo debajo del nombre de la categoría */
+        margin-top: 6px;
+        font-size: 12px;
+    }
+}

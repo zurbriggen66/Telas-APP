@@ -8,6 +8,7 @@ router.register(r'productos', views.ProductoViewSet, basename='producto')
 router.register(r'pedidos', views.PedidoViewSet)
 # ... tus otras rutas ...
 router.register(r'tarifas-locales', views.TarifaLocalViewSet)
+router.register(r'colores', views.ColorViewSet) # 👈 NUEVA RUTA
 # ...
 
 urlpatterns = [

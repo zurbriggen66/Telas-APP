@@ -193,6 +193,7 @@ const VistaPedidos = () => {
                                                         🔍 Ver Detalle
                                                     </button>
 
+                                                    {/* Botón para GENERAR por primera vez */}
                                                     {pedido.estado === 'Aprobado' && pedido.envia_carrier && !esComisionista && (
                                                         <button 
                                                             onClick={() => handleGenerarEtiqueta(pedido.id)}
@@ -202,6 +203,7 @@ const VistaPedidos = () => {
                                                         </button>
                                                     )}
 
+                                                    {/* Botón para Despacho Local */}
                                                     {pedido.estado === 'Aprobado' && esComisionista && (
                                                         <button 
                                                             onClick={() => handleDespachoLocal(pedido.id)}
@@ -211,10 +213,32 @@ const VistaPedidos = () => {
                                                         </button>
                                                     )}
 
+                                                    {/* ESTADO FINAL: ENVIADO */}
                                                     {pedido.estado === 'Enviado' && (
-                                                        <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center', display: 'block', padding: '8px 0' }}>
-                                                            {esComisionista ? '✓ Entregado a Comisionista' : '✓ Etiqueta Lista'}
-                                                        </span>
+                                                        <>
+                                                            {esComisionista ? (
+                                                                <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center', display: 'block', padding: '8px 0' }}>
+                                                                    ✓ Entregado a Comisionista
+                                                                </span>
+                                                            ) : (
+                                                                /* Si no es comisionista, mostramos el botón para abrir el PDF de nuevo */
+                                                                pedido.url_etiqueta ? (
+                                                                    <a 
+                                                                        href={pedido.url_etiqueta} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer"
+                                                                        className="btn-accion"
+                                                                        style={{ backgroundColor: '#e2e8f0', color: '#334155', textDecoration: 'none' }}
+                                                                    >
+                                                                        🖨️ Ver Etiqueta
+                                                                    </a>
+                                                                ) : (
+                                                                    <span style={{ color: '#10b981', fontSize: '0.85rem', fontWeight: 600, textAlign: 'center', display: 'block', padding: '8px 0' }}>
+                                                                        ✓ Etiqueta Lista
+                                                                    </span>
+                                                                )
+                                                            )}
+                                                        </>
                                                     )}
                                                     <button 
                                                         onClick={() => handleEliminarPedido(pedido.id)}
@@ -233,9 +257,8 @@ const VistaPedidos = () => {
                 )}
             </Card>
 
-            {/* ... (El código del Modal que tenías al final sigue igual) ... */}
+            {/* ... (Modal de Detalle) ... */}
             {pedidoEnDetalle && (
-                /* Mantenemos tu Modal exacto como lo tenías */
                 <div style={{
                     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center',
@@ -278,7 +301,7 @@ const VistaPedidos = () => {
                                     line ? <div key={index} style={{ padding: '2px 0' }}>{line}</div> : null
                                 ))}
                             </div>
-                        </div>
+                        </div>  
 
                         {/* BOTONES DEL MODAL */}
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>

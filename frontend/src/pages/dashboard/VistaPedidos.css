@@ -1,31 +1,25 @@
 /* ==========================================================================
-   ESTILOS GENERALES Y ESCRITORIO
+   ESTILOS GENERALES Y ESCRITORIO - PREMIUM UI
    ========================================================================== */
-.vista-pedidos-container {
+   .vista-pedidos-container {
     width: 100%;
-    font-family: 'Inter', 'Montserrat', sans-serif; /* Tipografía más limpia */
+    font-family: 'DM Sans', 'Inter', 'Montserrat', sans-serif;
+    -webkit-font-smoothing: antialiased; /* Suaviza las fuentes para un look Apple/Premium */
+    color: #1e293b;
 }
 
-.pedidos-loading {
-    text-align: center;
-    padding: 60px 20px;
-    color: #64748b;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-/* Empty State (Estado Vacío) */
-.pedidos-empty-state {
+.pedidos-loading, .pedidos-empty-state {
     text-align: center;
     padding: 80px 20px;
-    color: #94a3b8;
+    color: #64748b;
 }
 
 .empty-title {
-    margin-top: 20px;
-    font-weight: 600;
-    color: #334155;
-    font-size: 1.25rem;
+    margin-top: 24px;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
 }
 
 .empty-subtitle {
@@ -34,136 +28,147 @@
     color: #64748b;
 }
 
-/* Contenedor de la tabla */
+/* Contenedor y Tabla */
 .table-wrapper {
     width: 100%;
-    overflow-x: auto; /* Para que no rompa el diseño en pantallas pequeñas si algo sobresale */
+    overflow-x: auto;
 }
 
 .pedidos-table {
     width: 100%;
-    border-collapse: separate; /* Cambiado a separate para mejor control de bordes */
+    border-collapse: separate;
     border-spacing: 0;
     text-align: left;
 }
 
-/* Encabezados de la Tabla (Escritorio) */
 .pedidos-table th {
-    background-color: #f8fafc;
-    padding: 16px 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #475569;
+    background-color: #ffffff;
+    padding: 20px 24px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid #e2e8f0;
+    letter-spacing: 0.08em;
+    border-bottom: 2px solid #f1f5f9;
 }
 
-/* Celdas de la Tabla (Escritorio) */
 .pedidos-table td {
-    padding: 20px;
+    padding: 24px;
     font-size: 0.95rem;
-    color: #1e293b;
-    border-bottom: 1px solid #f1f5f9;
-    vertical-align: middle; /* Centrado vertical para alinear con botones */
+    color: #334155;
+    border-bottom: 1px solid #f8fafc;
+    vertical-align: middle;
 }
 
 .pedidos-table tbody tr {
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .pedidos-table tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: #fcfcfd;
+    box-shadow: inset 4px 0 0 #6366f1; /* Detalle de color al hacer hover en PC */
 }
 
-/* Tipografía de celdas específicas */
+/* Tipografía de celdas */
 .pedido-id {
     color: #0f172a;
-    font-size: 1.05rem;
-    font-weight: 600;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
 }
 
 .fecha-subtext {
     display: block;
     font-size: 0.8rem;
-    color: #64748b;
-    margin-top: 4px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-top: 6px;
 }
 
 .cliente-cell {
-    font-weight: 500;
-    color: #334155;
-}
-
-.detalle-linea {
-    margin-bottom: 6px;
-    font-size: 0.9rem;
-    color: #475569;
-    line-height: 1.4;
+    font-weight: 600;
+    color: #1e293b;
 }
 
 .total-cell {
-    font-weight: 700;
+    font-weight: 800;
     color: #0f172a;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
 }
 
 /* ==========================================================================
-   ETIQUETAS VISUALES (BADGES)
+   ETIQUETAS VISUALES (BADGES) - HIGH CONTRAST
    ========================================================================== */
 .badge-estado, .badge-metodo {
-    padding: 6px 12px;
-    border-radius: 9999px; /* Pill shape */
+    padding: 6px 14px;
+    border-radius: 8px; /* Bordes un poco más cuadrados y modernos */
     font-size: 0.75rem;
-    font-weight: 600;
-    display: inline-flex; /* Mejor alineación del texto */
+    font-weight: 700;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    white-space: nowrap;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02); /* Sombra ultra sutil */
 }
 
-/* Colores de Estado */
-.badge-estado.aprobado { background-color: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.badge-estado.esperando_transferencia { background-color: #fef08a; color: #854d0e; border: 1px solid #fde047; }
-.badge-estado.pendiente { background-color: #fef08a; color: #854d0e; border: 1px solid #fde047; }
-.badge-estado.cancelado { background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.badge-estado.enviado { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+/* Paleta de colores Premium para Estados */
+.badge-estado.aprobado { 
+    background-color: #ecfdf5; 
+    color: #059669; 
+    border: 1px solid #a7f3d0; 
+}
+.badge-estado.esperando_transferencia, .badge-estado.pendiente { 
+    background-color: #fffbeb; 
+    color: #d97706; 
+    border: 1px solid #fde68a; 
+}
+.badge-estado.cancelado { 
+    background-color: #fef2f2; 
+    color: #dc2626; 
+    border: 1px solid #fecaca; 
+}
+.badge-estado.enviado { 
+    background-color: #eff6ff; 
+    color: #2563eb; 
+    border: 1px solid #bfdbfe; 
+}
 
-/* Colores de Método */
-.badge-metodo.mercado-pago { background-color: #f1f5f9; color: #475569; }
-.badge-metodo.transferencia { background-color: #f1f5f9; color: #475569; }
+/* Método de pago */
+.badge-metodo.transferencia, .badge-metodo.mercado-pago { 
+    background-color: #f8fafc; 
+    color: #475569; 
+    border: 1px solid #e2e8f0;
+}
 
 /* ==========================================================================
-   BOTONES DE ACCIÓN (Escritorio)
+   BOTONES DE ACCIÓN - TACTILES Y MODERNOS
    ========================================================================== */
 .acciones-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 140px; /* Evita que los botones colapsen */
+    gap: 10px;
+    min-width: 150px;
 }
 
 .btn-accion {
-    padding: 8px 16px;
-    border-radius: 6px;
+    padding: 10px 16px;
+    border-radius: 8px;
     border: none;
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     width: 100%;
 }
 
-.btn-detalle {
-    background-color: #f1f5f9;
-    color: #334155;
-    border: 1px solid #e2e8f0;
+.btn-accion:active {
+    transform: scale(0.97); /* Efecto de hundimiento al clickear */
 }
 .btn-eliminar {
     background-color: #fee2e2;
@@ -171,36 +176,38 @@
     border: 1px solid #fecaca;
 }
 
-.btn-detalle:hover { background-color: #e2e8f0; }
+.btn-detalle {
+    background-color: #f8fafc;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+.btn-detalle:hover { background-color: #f1f5f9; color: #0f172a; border-color: #94a3b8; }
 
 .btn-primario {
-    background-color: #0f172a;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
-
-.btn-primario:hover { background-color: #1e293b; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.btn-primario:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.25); transform: translateY(-1px); }
 
 .btn-success {
-    background-color: #10b981;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
 }
-
-.btn-success:hover { background-color: #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
+.btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); transform: translateY(-1px); }
 
 /* ==========================================================================
-   ⚡ VISTA MÓVIL (Smart Cards)
+   ⚡ VISTA MÓVIL (APP NATIVE FEEL)
    ========================================================================== */
 @media screen and (max-width: 768px) {
     .vista-pedidos-container {
-        background-color: #f8fafc; /* Fondo gris claro detrás de las tarjetas */
-        padding: 10px;
+        background-color: #f4f7f9; /* Fondo general un poco más oscuro para que la tarjeta resalte */
+        padding: 12px 10px;
+        min-height: 100vh;
     }
 
-    .pedidos-table thead {
-        display: none;
-    }
-
+    .pedidos-table thead { display: none; }
     .pedidos-table, .pedidos-table tbody, .pedidos-table tr, .pedidos-table td {
         display: block;
         width: 100%;
@@ -210,87 +217,86 @@
     /* DISEÑO DE LA TARJETA (TR) */
     .pedidos-table tr {
         background-color: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        margin-bottom: 20px;
-        padding: 0; /* Quitamos el padding general para controlar cada sección */
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        overflow: hidden; /* Para que el header gris no se salga de las esquinas */
+        border: none;
+        border-radius: 16px; /* Esquinas muy redondeadas tipo iOS */
+        margin-bottom: 24px;
+        padding: 0;
+        box-shadow: 0 8px 30px rgba(149, 157, 165, 0.08); /* Sombra elegante, grande pero ultra difuminada */
+        overflow: hidden;
     }
 
-    /* HEADER DE LA TARJETA (ID y Estado) - Ocupa todo el ancho superior */
+    /* HEADER DE LA TARJETA (ID y Estado) */
     .pedidos-table td:first-child {
-        background-color: #f8fafc;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 16px 20px;
+        background-color: #ffffff;
+        border-bottom: 1px solid #f1f5f9;
+        padding: 20px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
-    /* Ocultamos el pseudo-elemento "ID / FECHA" en el header de la tarjeta */
-    .pedidos-table td:first-child::before {
-        display: none;
-    }
+    .pedidos-table td:first-child::before { display: none; }
 
-    /* El resto de las celdas (Cuerpo de la tarjeta) */
+    /* CUERPO DE LA TARJETA */
     .pedidos-table td:not(:first-child) {
-        padding: 16px 20px;
-        border-bottom: 1px solid #f1f5f9;
+        padding: 18px 24px;
+        border-bottom: 1px solid #f8fafc;
         display: flex;
-        flex-direction: column; /* Apilamos etiqueta y valor */
-        align-items: flex-start; /* Alineamos a la izquierda */
+        flex-direction: column;
+        align-items: flex-start;
         text-align: left;
     }
 
-    /* Etiquetas grises ("CLIENTE", "TOTAL", etc.) */
+    /* ETIQUETAS GRISES (Títulos de los datos) */
     .pedidos-table td:not(:first-child)::before {
         content: attr(data-label);
-        font-weight: 600;
-        color: #64748b;
-        font-size: 0.7rem;
+        font-weight: 800;
+        color: #94a3b8;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 6px;
+        letter-spacing: 0.1em; /* Más espacio entre letras = Más pro */
+        margin-bottom: 8px;
         display: block;
     }
 
-    /* Ajustes específicos para móviles */
-    .cliente-cell { word-break: break-all; }
-    
-    .total-cell {
-        font-size: 1.25rem;
-        color: #0f172a;
+    .cliente-cell { 
+        word-break: break-all; 
+        font-size: 1rem;
     }
 
-    /* Contenedor de las telas */
+    /* DETALLE DE TELAS (Efecto Recibo Físico) */
     .detalle-items-wrapper {
         width: 100%;
-        background-color: #fafafa;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid #f1f5f9;
-        font-size: 0.9rem;
+        background-color: #f8fafc;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px dashed #cbd5e1; /* Borde punteado como un ticket de corte */
+        font-size: 0.95rem;
+        color: #475569;
+        font-weight: 500;
     }
+    
+    .detalle-linea {
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .detalle-linea:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0;}
 
-    /* Contenedor de Botones - Al fondo de la tarjeta */
+    /* CONTENEDOR DE BOTONES AL FONDO */
     .pedidos-table td:last-child {
         border-bottom: none;
         background-color: #ffffff;
-        padding: 20px;
+        padding: 24px;
     }
     
-    /* Ocultamos la etiqueta "ACCIONES" en móvil */
-    .pedidos-table td:last-child::before {
-        display: none;
-    }
+    .pedidos-table td:last-child::before { display: none; }
 
-    .acciones-container {
-        width: 100%;
-    }
+    .acciones-container { width: 100%; gap: 12px; }
 
     .btn-accion {
-        padding: 12px; /* Botones más altos para tocarlos fácil con el dedo */
-        font-size: 0.9rem;
+        padding: 14px; /* Botones más altos y cómodos para el dedo */
+        font-size: 0.95rem;
+        border-radius: 10px;
     }
 }
