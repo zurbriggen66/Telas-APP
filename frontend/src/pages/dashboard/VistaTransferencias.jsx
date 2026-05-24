@@ -13,7 +13,7 @@ const VistaTransferencias = () => {
 
     const fetchPendientes = async () => {
         try {
-            const response = await fetch('http://localhost:8000/api/pedidos/');
+            const response = await fetch(import.meta.env.VITE_API_URL + '/api/pedidos/');
             const data = await response.json();
             const filtrados = data.filter(pedido => pedido.estado === 'Esperando_Transferencia');
             setPedidosPendientes(filtrados);
@@ -41,7 +41,7 @@ const VistaTransferencias = () => {
         const endpoint = modal.tipo === 'aprobar' ? 'aprobar_transferencia' : 'cancelar_transferencia';
 
         try {
-            const response = await fetch(`http://localhost:8000/api/pedidos/${modal.pedidoId}/${endpoint}/`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/${modal.pedidoId}/${endpoint}/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
