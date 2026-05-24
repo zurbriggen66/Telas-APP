@@ -167,65 +167,80 @@ html, body {
 }
 
 /* =========================================
-   BLOQUE 2: EXPLORADOR DE CATEGORÍAS
+   BLOQUE 2: GRILLA DE CATEGORÍAS HORIZONTALES
 ========================================= */
 .category-section {
-    margin-bottom: 5rem;
+    margin-bottom: 4rem;
 }
 
-.category-explorer {
-    display: flex;
-    gap: 1.2rem;
-    overflow-x: auto;
+.category-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.8rem; /* Espacio reducido entre tarjetas */
     padding-bottom: 1rem;
-    scrollbar-width: none;
 }
 
-.category-explorer::-webkit-scrollbar {
-    display: none;
+@media (min-width: 768px) {
+    .category-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+    .category-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .category-card-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     cursor: pointer;
     transition: transform 0.3s ease;
-    min-width: 120px;
-    flex-shrink: 0;
+    width: 100%;
 }
 
 .category-card-item:hover {
-    transform: translateY(-6px);
+    transform: translateY(-3px);
 }
 
 .category-rect {
-    width: 130px;
-    height: 130px;
-    border-radius: 6px;
+    width: 100%;
+    height: 100px; /* Tarjetas más bajas y elegantes */
+    border-radius: 10px;
     background-size: cover;
     background-position: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border: 3px solid transparent;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
-    margin-bottom: 10px;
     background-color: #e8e0d4;
+    
+    /* Flexbox para ubicar el texto adentro */
+    display: flex;
+    align-items: flex-end; /* Texto abajo */
+    justify-content: flex-start; /* Texto a la izquierda */
+    padding: 12px 16px; 
+    
+    position: relative;
+    overflow: hidden;
+}
+
+/* Sombra degradada para que el texto blanco siempre resalte */
+.category-rect::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%);
+    z-index: 1;
 }
 
 .category-card-item:hover .category-rect {
-    border-color: var(--color-mostaza, #dcb35a);
-    box-shadow: 0 8px 24px rgba(220, 179, 90, 0.35);
+    box-shadow: 0 6px 18px rgba(220, 179, 90, 0.25);
 }
 
 .category-name {
+    position: relative;
+    z-index: 2; /* Para que quede por encima de la sombra */
     font-family: var(--font-cursiva);
     font-style: italic;
     font-weight: 600;
-    color: var(--color-negro, #111);
-    font-size: 0.8rem;
-    text-align: center;
+    color: #ffffff; /* Letra blanca para contrastar */
+    font-size: 1.2rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    margin: 0;
 }
 
 /* =========================================
@@ -303,94 +318,106 @@ html, body {
     min-height: 300px;
 }
 
-
-/* =========================================
-   NUEVA SECCIÓN: CARRUSEL DE FAVORITAS
-========================================= */
-.favoritas-section {
-    margin-bottom: 4rem;
-}
-
-.favoritas-slider {
-    display: flex;
-    gap: 1.5rem;
-    overflow-x: auto;
-    padding: 0.5rem 0.5rem 2rem 0.5rem; /* Ajustado para pantallas grandes */
-    scrollbar-width: none; 
-    -ms-overflow-style: none;
-    scroll-behavior: auto; /* IMPORTANTE: Para que el JS corra fluido */
-}
-
-.favoritas-slider::-webkit-scrollbar {
-    display: none;
-}
-
-/* Tarjeta cuadrada y compacta */
+/* Tarjeta estilo "Boutique" delicada */
 .favorita-card {
-    width: 200px; /* Tamaño compacto como solicitaste */
+    width: 250px; 
     flex-shrink: 0;
-    background: #fff;
-    border-radius: 12px; /* Bordes un poco más suaves */
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    background-color: #ffffff; /* Fondo blanco puro que contrasta suave con el crema del fondo */
+    padding: 12px; /* Este padding crea el "marco" blanco alrededor de la foto */
+    border-radius: 12px; /* Bordes suaves */
+    border: 1px solid rgba(0, 0, 0, 0.04); /* Un borde imperceptible para definirla */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* Sombra súper etérea */
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .favorita-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
-.favorita-card img {
+/* Contenedor de la imagen */
+.favorita-img-wrapper {
+    position: relative;
     width: 100%;
-    height: 200px; /* Foto perfectamente cuadrada */
+    border-radius: 6px; /* Redondeo un poco más sutil adentro */
+    overflow: hidden;
+    margin-bottom: 16px; /* Un poco más de aire antes del texto */
+}
+
+/* Etiqueta FAVORITO más pequeña y sutil */
+.badge-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--color-negro, #111);
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px; /* Forma de pastilla redondeada */
+    letter-spacing: 1.5px;
+    z-index: 2;
+}
+
+.favorita-img-wrapper img {
+    width: 100%;
+    height: 260px; /* Altura un poco más controlada */
     object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
 }
 
+.favorita-card:hover .favorita-img-wrapper img {
+    transform: scale(1.04);
+}
+
+/* Información inferior centrada */
 .favorita-info {
-    padding: 1rem;
-    text-align: center;
+    text-align: center; /* Centramos todo el texto */
+    padding: 0 4px 6px 4px;
 }
 
+.favorita-specs {
+    display: flex;
+    justify-content: center; /* Centramos las etiquetas */
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Pastillas de "Ancho" más delicadas (con borde fino en vez de fondo gris) */
+.spec-badge {
+    background-color: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    padding: 3px 12px;
+    border: 1px solid #e0e0e0; /* Borde muy finito */
+    border-radius: 20px;
+    font-family: var(--font-cuerpo, sans-serif);
+    letter-spacing: 0.5px;
+}
+
+/* Título con la letra elegante de la marca */
 .favorita-info h4 {
-    font-family: var(--font-titulos, serif);
-    font-size: 1rem;
-    margin: 0 0 6px 0;
+    font-family: var(--font-titulos, serif); /* Volvemos a la tipografía Serif principal */
+    font-size: 1.2rem;
+    font-weight: 500; /* No tan grueso para que sea delicado */
+    margin: 0 0 8px 0;
     color: var(--color-negro, #111);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; 
 }
 
-.favorita-info p {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--color-verde-bosque, #2d4a2d);
+/* Precio definido pero fino */
+.favorita-precio {
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-verde-bosque, #2d4a2d); /* Usa tu verde principal para destacar */
     margin: 0;
 }
-
-/* Estado si no hay favoritas */
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: var(--color-gris-oscuro, #888);
-    font-size: 0.95rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    background: #fff;
-    border-radius: 12px;
-    border: 1px dashed #ddd;
-}
-
-.empty-icon {
-    font-size: 2.5rem;
-    filter: grayscale(100%);
-    opacity: 0.5;
-}
-
 
 /* =========================================
    PANTALLA DE CARGA (LOADER) Y TRANSICIÓN
@@ -458,6 +485,125 @@ html, body {
     100% { transform: scaleX(1); }
 }
 
+/* =========================================
+   SECCIÓN FAVORITAS (COMPLETA Y CORREGIDA)
+========================================= */
+.favoritas-section {
+    margin-bottom: 5rem;
+}
+
+.favoritas-slider {
+    display: flex;
+    gap: 0.6rem; /* Tarjetas mucho más pegaditas (antes estaba en 1.5rem) */
+    overflow-x: auto;
+    padding: 0.5rem 0.5rem 2rem 0.5rem;
+    scrollbar-width: none; 
+    -ms-overflow-style: none;
+    scroll-behavior: auto;
+}
+
+.favoritas-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.favorita-card {
+    width: 250px; 
+    flex-shrink: 0;
+    background-color: #ffffff; 
+    padding: 8px; /* Redujimos el marco blanco para que la foto se vea más grande */
+    border-radius: 12px; 
+    border: 1px solid rgba(0, 0, 0, 0.04); 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.favorita-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+.favorita-img-wrapper img {
+    width: 100%;
+    height: 320px; /* Imagen mucho más alta y protagonista */
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+/* Etiqueta FAVORITO más pequeña y sutil */
+.badge-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.95);
+    color: var(--color-negro, #111);
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 0.6rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px; 
+    letter-spacing: 1.5px;
+    z-index: 2;
+}
+
+.favorita-img-wrapper img {
+    width: 100%;
+    height: 260px; 
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+
+.favorita-card:hover .favorita-img-wrapper img {
+    transform: scale(1.04);
+}
+
+/* Información inferior centrada */
+.favorita-info {
+    text-align: center; 
+    padding: 0 4px 6px 4px;
+}
+
+.favorita-specs {
+    display: flex;
+    justify-content: center; 
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+/* Pastillas de "Ancho" más delicadas (con borde fino) */
+.spec-badge {
+    background-color: transparent;
+    color: #666;
+    font-size: 0.7rem;
+    padding: 3px 12px;
+    border: 1px solid #e0e0e0; 
+    border-radius: 20px;
+    font-family: var(--font-cuerpo, sans-serif);
+    letter-spacing: 0.5px;
+}
+
+/* Título con la letra elegante de la marca */
+.favorita-info h4 {
+    font-family: var(--font-titulos, serif); 
+    font-size: 1.2rem;
+    font-weight: 500; 
+    margin: 0 0 8px 0;
+    color: var(--color-negro, #111);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+}
+
+/* Precio definido pero fino */
+.favorita-precio {
+    font-family: var(--font-cuerpo, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-verde-bosque, #2d4a2d); 
+    margin: 0;
+}
 
 /* =========================================
    RESPONSIVE MÓVIL
@@ -470,15 +616,22 @@ html, body {
     .promo-image { height: 220px; flex: none; }
     .promo-content { padding: 2rem 1.5rem; align-items: center; text-align: center; }
     .promo-content p { max-width: 100%; }
-    .category-rect { width: 100px; height: 100px; }
-    .category-card-item { min-width: 100px; }
     
-    /* Favoritas más pequeñas en el celular */
-    .favorita-card { width: 150px; }
-    .favorita-card img { height: 150px; }
-    .favoritas-slider { padding: 0.5rem 0.5rem 1.5rem 0.5rem; }
+    /* Favoritas ajustadas para que no se vean gigantes en el celular */
+    .favorita-card { width: 230px; padding: 8px; }
+    .favorita-img-wrapper img { height: 290px; }
+    .favoritas-slider { gap: 0.5rem; padding: 0.5rem 0.5rem 1.5rem 0.5rem; }
 }
 
+/* =========================================
+   ESTILOS EXTRA PARA EL PRECIO
+========================================= */
+.precio-unidad {
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: #666; /* Un gris sutil para que no compita con el número */
+    text-transform: lowercase;
+}
 
 /* =========================================
    SECCIÓN REDES SOCIALES (ESTILO LIBRAFEMME)

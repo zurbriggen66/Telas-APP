@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet} from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 
 // Importamos el Layout (el esqueleto)
 import Dashboard from './pages/Dashboard';
-// nada
+
 // Importamos las páginas fragmentadas
 import VistaInicio from './pages/dashboard/VistaInicio';
 import VistaProductos from './pages/dashboard/VistaProductos';
@@ -19,10 +20,23 @@ import Carrito from './pages/Carrito/Carrito.jsx';
 import DetalleProducto from './pages/Detalle producto/Detalle_producto.jsx';
 import CheckoutSelection from './pages/Checkoutselection/CheckoutSelection.jsx';
 import Success from './pages/Success/Success.jsx'; 
-import TransferenciaSuccess from './pages/TransferenciaSuccess'; // <-- IMPORTACIÓN ACÁ ESTÁ PERFECTA
+import TransferenciaSuccess from './pages/TransferenciaSuccess'; 
 import Productos from './pages/Products/Products.jsx';
 import Footer from './pages/Footer/Footer.jsx';
 
+// 1. CREAMOS EL COMPONENTE SCROLL-TO-TOP
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Cada vez que cambia la ruta (pathname), forzamos la ventana a subir
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null; // Este componente es invisible, solo ejecuta la lógica
+};
+
+// 2. AJUSTE MENOR DE SEMÁNTICA (Saqué el Footer fuera del <main> por buenas prácticas)
 const PublicLayout = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -37,8 +51,10 @@ const PublicLayout = () => {
 function App() {
   return (
     <BrowserRouter>
+      {/* 3. COLOCAMOS EL SCROLL-TO-TOP ACÁ */}
+      <ScrollToTop />
+      
       <Routes>
-        
         {/* === RUTAS PÚBLICAS (Agrupadas adentro del Layout con Footer) === */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />

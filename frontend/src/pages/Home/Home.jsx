@@ -111,7 +111,7 @@ const Home = () => {
         if (slider && productosFavoritos.length > 0) {
             const scroll = () => {
                 if (slider) {
-                    slider.scrollLeft += 1; // Velocidad del deslizamiento
+                    slider.scrollLeft += 0.5; // Velocidad del deslizamiento
                     // Bucle infinito: si llega al final, vuelve al inicio sutilmente
                     if (slider.scrollLeft >= (slider.scrollWidth - slider.clientWidth)) {
                         slider.scrollLeft = 0; 
@@ -171,38 +171,40 @@ const Home = () => {
 
             <div className="home-container">
 
-                {/* ── CATEGORÍAS ── */}
-                <section className="category-section reveal-section" ref={revealRef}>
-                    <div className="section-header">
-                        <h2 className="section-title">Nuestras Telas</h2>
-                        <div className="section-line" />
-                    </div>
+               {/* ── CATEGORÍAS ── */}
+<section className="category-section reveal-section" ref={revealRef}>
+    <div className="section-header">
+        <h2 className="section-title">Nuestras Telas</h2>
+        <div className="section-line" />
+    </div>
 
-                    <div className="category-explorer">
-                        {loading
-                            ? [1, 2, 3, 4].map((n) => (
-                                  <div key={n} className="category-card-item">
-                                      <div className="category-rect skeleton-rect" />
-                                      <div className="skeleton-text-small" />
-                                  </div>
-                              ))
-                            : categorias.map((cat) => (
-                                  <div
-                                      key={cat.id}
-                                      className="category-card-item"
-                                      onClick={() => navigate('/productos')} // Redirige al catálogo completo
-                                  >
-                                      <div
-                                          className="category-rect"
-                                          style={{
-                                              backgroundImage: `url(${cat.imagen || 'https://via.placeholder.com/150'})`,
-                                          }}
-                                      />
-                                      <span className="category-name">{cat.nombre}</span>
-                                  </div>
-                              ))}
-                    </div>
-                </section>
+    {/* Cambiamos 'category-explorer' por 'category-grid' */}
+    <div className="category-grid">
+        {/* Cambiamos la condición acá */}
+        {categorias.length === 0
+            ? [1, 2, 3, 4, 5, 6].map((n) => (
+                  <div key={n} className="category-card-item">
+                      <div className="category-rect skeleton-rect" />
+                  </div>
+              ))
+            : categorias.map((cat) => (
+                  <div
+                      key={cat.id}
+                      className="category-card-item"
+                      onClick={() => navigate('/productos')}
+                  >
+                      <div
+                          className="category-rect"
+                          style={{
+                              backgroundImage: `url(${cat.imagen || 'https://via.placeholder.com/600x300'})`,
+                          }}
+                      >
+                          <span className="category-name">{cat.nombre}</span>
+                      </div>
+                  </div>
+              ))}
+    </div>
+</section>
 
                 {/* ── SECCIÓN PROMOCIONAL ── */}
                 <section className="promo-section reveal-section" ref={revealRef}>
@@ -226,39 +228,51 @@ const Home = () => {
                 </section>
 
                 {/* ── SECCIÓN FAVORITAS ── */}
-                <section className="favoritas-section reveal-section" ref={revealRef}>
-                    <div className="section-header">
-                        <h2 className="section-title">FAVORITAS</h2>
-                        <div className="section-line" />
-                    </div>
+<section className="favoritas-section reveal-section" ref={revealRef}>
+    <div className="section-header">
+        <h2 className="section-title">Favoritas</h2>
+        <div className="section-line" />
+    </div>
 
-                    {productosFavoritos.length === 0 ? (
-                        <div className="empty-state">
-                            <span className="empty-icon">⭐</span>
-                            <p>Aún no hay telas destacadas. Se mostrarán aquí cuando las marques como favoritas.</p>
+    {productosFavoritos.length === 0 ? (
+        <div className="empty-state">
+            <span className="empty-icon">⭐</span>
+            <p>Aún no hay telas destacadas. Se mostrarán aquí cuando las marques como favoritas.</p>
+        </div>
+    ) : (
+        <div className="favoritas-slider" ref={sliderFavoritasRef}>
+            {[...productosFavoritos, ...productosFavoritos, ...productosFavoritos, ...productosFavoritos].map((prod, index) => (
+                <div 
+                    key={`${prod.id}-${index}`} 
+                    className="favorita-card"
+                    onClick={() => navigate(`/producto/${prod.id}`)}
+                >
+                    <div className="favorita-img-wrapper">
+                        {/* Etiqueta flotante sobre la imagen */}
+                        
+                        <img 
+                            src={prod.imagen || 'https://via.placeholder.com/300x400'} 
+                            alt={prod.nombre} 
+                            loading="lazy" 
+                        />
+                    </div>
+                    <div className="favorita-info">
+                        {/* Etiquetas de especificaciones (Ancho, Peso, etc.) */}
+                        <div className="favorita-specs">
+                            <span className="spec-badge">Ancho: {prod.ancho || '1.50 m'}</span>
+                            {prod.peso && <span className="spec-badge">Peso: {prod.peso}</span>}
                         </div>
-                    ) : (
-                        <div className="favoritas-slider" ref={sliderFavoritasRef}>
-                            {[...productosFavoritos, ...productosFavoritos, ...productosFavoritos, ...productosFavoritos].map((prod, index) => (
-                                <div 
-                                    key={`${prod.id}-${index}`} 
-                                    className="favorita-card"
-                                    onClick={() => navigate(`/producto/${prod.id}`)}
-                                >
-                                    <img 
-                                        src={prod.imagen || 'https://via.placeholder.com/200'} 
-                                        alt={prod.nombre} 
-                                        loading="lazy" 
-                                    />
-                                    <div className="favorita-info">
-                                        <h4>{prod.nombre}</h4>
-                                        <p>${Number(prod.precio_por_metro).toLocaleString('es-AR')}</p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </section>
+                        
+                        <h4>{prod.nombre}</h4>
+                        <p className="favorita-precio">
+    ${Number(prod.precio_por_metro || prod.precio).toLocaleString('es-AR')} <span className="precio-unidad">cada/metro</span>
+</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+    )}
+</section>
 
                 {/* ── SECCIÓN REDES SOCIALES (ESTILO LIBRAFEMME) ── */}
                 {banner?.instagram && (() => {
