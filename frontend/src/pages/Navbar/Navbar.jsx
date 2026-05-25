@@ -8,14 +8,18 @@ const Navbar = ({ cartCount = 0 }) => {
     // 1. ESTADOS
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
-    const [logoUrl, setLogoUrl] = useState(null);
+    
+    // Intentamos cargar el logo de la memoria primero para que sea instantáneo
+    const [logoUrl, setLogoUrl] = useState(() => sessionStorage.getItem('telasLogo') || null);
+    // Si no está en memoria, significa que está cargando
+    const [isLogoLoading, setIsLogoLoading] = useState(!sessionStorage.getItem('telasLogo'));
     
     // ESTADOS PARA DESPLEGABLE A-Z
     const [telasAZ, setTelasAZ] = useState([]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileAzOpen, setIsMobileAzOpen] = useState(false);
 
-    // 👇 NUEVOS ESTADOS PARA DESPLEGABLE COLORES 👇
+    // ESTADOS PARA DESPLEGABLE COLORES
     const [colores, setColores] = useState([]);
     const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
     const [isMobileColorOpen, setIsMobileColorOpen] = useState(false);
@@ -26,22 +30,28 @@ const Navbar = ({ cartCount = 0 }) => {
     const closeMenu = () => {
         setIsMenuOpen(false);
         setIsMobileAzOpen(false);
-        setIsMobileColorOpen(false); // Cerramos también el de colores
+        setIsMobileColorOpen(false);
     };
 
     // 3. EFECTOS (Llamadas a la API y eventos)
     useEffect(() => {
-        // Cargar el Logo del banner
+        // Cargar el Logo del banner y guardarlo en memoria
         axios.get(`${import.meta.env.VITE_API_URL}/api/banner/`)
-            .then(res => { if (res.data?.logo) setLogoUrl(res.data.logo); })
-            .catch(() => {});
+            .then(res => { 
+                if (res.data?.logo) {
+                    setLogoUrl(res.data.logo);
+                    sessionStorage.setItem('telasLogo', res.data.logo); 
+                } 
+            })
+            .catch(() => {})
+            .finally(() => setIsLogoLoading(false)); // Terminó de cargar
 
         // Cargar las telas para el menú A-Z
         axios.get(`${import.meta.env.VITE_API_URL}/api/productos-az/`)
             .then(res => setTelasAZ(res.data))
             .catch(err => console.error("Error cargando telas A-Z", err));
 
-        // 👇 NUEVO: Cargar los colores para el menú 👇
+        // Cargar los colores para el menú
         axios.get(`${import.meta.env.VITE_API_URL}/api/colores/`)
             .then(res => setColores(Array.isArray(res.data) ? res.data : res.data.results || []))
             .catch(err => console.error("Error cargando colores", err));
@@ -78,10 +88,13 @@ const Navbar = ({ cartCount = 0 }) => {
 
                     {/* LOGO */}
                     <Link to="/" className="navbar-logo" onClick={closeMenu}>
-                        {logoUrl 
-                            ? <img src={logoUrl} alt="Logo Telas" className="logo-img" />
-                            : <div className="logo-fallback"><Store size={22} /><span className="logo-text">TELAS<span>APP</span></span></div>
-                        }
+                        {logoUrl ? (
+                            <img src={logoUrl} alt="Logo Telas" className="logo-img" />
+                        ) : isLogoLoading ? (
+                            <div style={{ width: '130px', height: '30px' }} /> 
+                        ) : (
+                            <div className="logo-fallback"><Store size={22} /><span className="logo-text">TELAS<span>APP</span></span></div>
+                        )}
                     </Link>
 
                     {/* LINKS DE ESCRITORIO */}
@@ -156,9 +169,7 @@ const Navbar = ({ cartCount = 0 }) => {
 
                     {/* ACCIONES (USUARIO Y CARRITO) */}
                     <div className="navbar-actions">
-                        <Link to="/cuenta" className="icon-btn" aria-label="Mi cuenta">
-                            <User size={22} strokeWidth={1.5} />
-                        </Link>
+                       
                         <Link to="/carrito" className="icon-btn cart-btn" aria-label="Carrito">
                             <ShoppingCart size={22} strokeWidth={1.5} />
                             {cartCount > 0 && (

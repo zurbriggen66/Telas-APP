@@ -13,7 +13,7 @@ const Carrito = () => {
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // --- NUEVOS ESTADOS PARA LOGÍSTICA ---
+    // --- ESTADOS PARA LOGÍSTICA ---
     const [codigoPostal, setCodigoPostal] = useState('');
     const [costoEnvio, setCostoEnvio] = useState(0);
     const [infoEnvio, setInfoEnvio] = useState(null);
@@ -34,7 +34,7 @@ const Carrito = () => {
     // --- FUNCIÓN: Conectar con el backend de Django ---
     const handleCalcularEnvio = async () => {
         if (!codigoPostal || codigoPostal.trim() === '') {
-            setErrorEnvio('Ingresa tu Código Postal');
+            setErrorEnvio('Ingresá tu Código Postal');
             return;
         }
 
@@ -56,14 +56,42 @@ const Carrito = () => {
             if (data.error) {
                 setErrorEnvio(data.mensaje || 'Error al calcular el envío');
                 setCostoEnvio(0);
-            } else {
+                
+            } else if (data.tipo === 'Local') {
+                // 1. CASO COMISIONISTA: El backend devuelve 'costo' directamente
                 setCostoEnvio(data.costo);
                 setInfoEnvio({
                     proveedor: data.proveedor,
-                    tiempo: data.tiempo_entrega,
+                    tiempo: '24-48hs', // Agregamos un tiempo estimado estándar
                     tipo: data.tipo
                 });
+                
+            } else if (data.opciones && data.opciones.length > 0) {
+                // 2. CASO ENVIA.COM: El backend devuelve una lista de 'opciones'
+                // Filtramos igual que en el checkout para mantener coherencia de precios
+                const opcionesDomicilio = data.opciones.filter(opcion => {
+                    const servicioStr = (opcion.servicio || '').toLowerCase();
+                    return servicioStr.includes('domicilio') && !servicioStr.includes('sucursal');
+                });
+
+                if (opcionesDomicilio.length > 0) {
+                    // Tomamos el costo de la primera opción para dar el "Estimado"
+                    const opcionEstimada = opcionesDomicilio[0];
+                    setCostoEnvio(opcionEstimada.costo);
+                    setInfoEnvio({
+                        proveedor: opcionEstimada.proveedor,
+                        tiempo: opcionEstimada.tiempo_entrega,
+                        tipo: data.tipo
+                    });
+                } else {
+                    setErrorEnvio('No hay opciones de envío a domicilio para este CP.');
+                    setCostoEnvio(0);
+                }
+            } else {
+                setErrorEnvio('No se encontraron opciones de envío.');
+                setCostoEnvio(0);
             }
+            
         } catch (error) {
             setErrorEnvio('Error de conexión con el servidor.');
             setCostoEnvio(0);
@@ -92,17 +120,18 @@ const Carrito = () => {
             <div className="cart-container">
                 <header className="cart-header">
                     <h1>Mi Bolsa de Compras</h1>
-                    <p>{cart.length === 0 ? 'Aún no hay telas en tu bolsa' : `Tienes ${cart.length} corte(s) de tela listos para crear`}</p>
+                    <p>{cart.length === 0 ? 'Aún no hay telas en tu bolsa' : `Tenés ${cart.length} corte(s) de tela listos para crear`}</p>
                 </header>
 
                 {cart.length === 0 ? (
                     <div className="cart-empty">
-                        <ShoppingBag size={60} strokeWidth={1} color="#C4A484" />
+                        <ShoppingBag size={50} strokeWidth={1.5} color="#dcb35a" style={{ marginBottom: '15px' }} />
                         <p>Tu bolsa de compras está vacía.</p>
-                        <Link to="/" className="btn-back">Descubrir Telas</Link>
+                        <Link to="/productos" className="btn-back">Descubrir Telas</Link>
                     </div>
                 ) : (
                     <div className="cart-layout">
+                        {/* LISTA DE PRODUCTOS */}
                         <div className="cart-items-list">
                             {cart.map(item => (
                                 <div key={item.id} className="cart-item-card">
@@ -126,27 +155,27 @@ const Carrito = () => {
                             ))}
                         </div>
 
+                        {/* RESUMEN LATERAL */}
                         <aside className="cart-summary-card">
                             <h2>Resumen del Pedido</h2>
                             
                             {/* --- SECCIÓN DE CÁLCULO DE ENVÍO --- */}
                             <div className="shipping-calculator">
-                                <label className="shipping-label"><Truck size={18} /> Calcular Envío</label>
+                                <label className="shipping-label"><Truck size={18} /> Calculá tu Envío</label>
                                 <div className="shipping-input-group">
                                     <input 
-                                        type="text" 
+                                        type="number" 
                                         placeholder="Código Postal (ej: 5000)" 
                                         className="shipping-input"
                                         value={codigoPostal}
                                         onChange={(e) => setCodigoPostal(e.target.value)}
-                                        maxLength={8}
                                     />
                                     <button 
                                         className="btn-calc-shipping" 
                                         onClick={handleCalcularEnvio}
-                                        disabled={isLoadingEnvio || cart.length === 0}
+                                        disabled={isLoadingEnvio || cart.length === 0 || !codigoPostal}
                                     >
-                                        {isLoadingEnvio ? 'Calculando...' : 'Cotizar'}
+                                        {isLoadingEnvio ? '...' : 'Cotizar'}
                                     </button>
                                 </div>
                                 {errorEnvio && <p className="shipping-error">{errorEnvio}</p>}
@@ -183,7 +212,7 @@ const Carrito = () => {
                             >
                                 Ir al Checkout
                             </button>
-                            <p className="secure-checkout">Pago seguro y protegido</p>
+                            <p className="secure-checkout">Pago seguro y protegido mediante Mercado Pago o Transferencia</p>
                         </aside>
                     </div>
                 )}

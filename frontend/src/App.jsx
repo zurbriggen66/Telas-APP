@@ -24,7 +24,10 @@ import TransferenciaSuccess from './pages/TransferenciaSuccess';
 import Productos from './pages/Products/Products.jsx';
 import Footer from './pages/Footer/Footer.jsx';
 
-// 1. CREAMOS EL COMPONENTE SCROLL-TO-TOP
+// 👇 1. IMPORTAMOS EL NUEVO COMPONENTE ACÁ 👇
+import WhatsAppFlotante from './components/WhatsAppFlotante'; 
+
+// CREAMOS EL COMPONENTE SCROLL-TO-TOP
 const ScrollToTop = () => {
   const { pathname } = useLocation();
 
@@ -36,13 +39,17 @@ const ScrollToTop = () => {
   return null; // Este componente es invisible, solo ejecuta la lógica
 };
 
-// 2. AJUSTE MENOR DE SEMÁNTICA (Saqué el Footer fuera del <main> por buenas prácticas)
+// LAYOUT PÚBLICO (Con Footer y WhatsApp Flotante)
 const PublicLayout = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <main style={{ flex: 1 }}>
         <Outlet /> 
       </main>
+      
+      {/* 👇 2. LO INTEGRÁS ACÁ: Se ve en toda la web menos en el Admin Panel 👇 */}
+      <WhatsAppFlotante />
+      
       <Footer />
     </div>
   );
@@ -51,11 +58,11 @@ const PublicLayout = () => {
 function App() {
   return (
     <BrowserRouter>
-      {/* 3. COLOCAMOS EL SCROLL-TO-TOP ACÁ */}
+      {/* COLOCAMOS EL SCROLL-TO-TOP ACÁ */}
       <ScrollToTop />
       
       <Routes>
-        {/* === RUTAS PÚBLICAS (Agrupadas adentro del Layout con Footer) === */}
+        {/* === RUTAS PÚBLICAS (Agrupadas adentro del Layout con Footer y WhatsApp) === */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/carrito" element={<Carrito />} />
@@ -68,7 +75,7 @@ function App() {
           <Route path="/transferencia-success" element={<TransferenciaSuccess />} />
         </Route>
 
-        {/* === RUTA PADRE: DASHBOARD (Aislado, libre del Footer) === */}
+        {/* === RUTA PADRE: DASHBOARD (Aislado, libre del Footer y de WhatsApp) === */}
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<Navigate to="inicio" replace />} />
           <Route path="inicio" element={<VistaInicio />} />

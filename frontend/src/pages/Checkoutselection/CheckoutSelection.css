@@ -1,12 +1,25 @@
+/* =========================================
+   RESETEO Y CONTENEDORES
+========================================= */
 .checkout-selection-page {
     background-color: #FDFCFB;
     min-height: 100vh;
     padding-top: 100px;
     font-family: 'Montserrat', sans-serif;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* 🌟 LA MAGIA ACÁ: Evita que el padding expanda las tarjetas y rompa el diseño 🌟 */
+.checkout-selection-page *, 
+.checkout-selection-page *::before, 
+.checkout-selection-page *::after {
+    box-sizing: border-box;
 }
 
 .checkout-selection-container {
     max-width: 1000px;
+    width: 100%;
     margin: 0 auto;
     padding: 20px;
 }
@@ -49,6 +62,7 @@
     border-radius: 8px; 
     border: 1px solid #F0F0F0; 
     margin-bottom: 25px; 
+    width: 100%; /* Aseguramos que no exceda su contenedor */
 }
 
 .section-title {
@@ -65,6 +79,7 @@
     display: grid; 
     grid-template-columns: 1fr 1fr; 
     gap: 15px; 
+    width: 100%;
 }
 
 .form-grid input { 
@@ -75,6 +90,7 @@
     font-size: 0.95rem; 
     outline: none; 
     transition: border-color 0.2s;
+    width: 100%;
 }
 
 .form-grid input:focus { 
@@ -85,7 +101,145 @@
     grid-column: 1 / -1; 
 }
 
-/* === MENSAJE DE ERROR SUTIL === */
+/* =======================================================
+   MÉTODOS DE ENTREGA (RETIRO / DOMICILIO)
+======================================================= */
+.opciones-entrega-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.metodo-entrega-card {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border: 1px solid #E5E5E5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    width: 100%;
+}
+
+.metodo-entrega-card:hover { border-color: #1A1A1A; }
+.metodo-entrega-card.active {
+    border: 2px solid #1A1A1A;
+    background-color: #FAFAFA;
+}
+.metodo-entrega-card input[type="radio"] {
+    accent-color: #1A1A1A;
+    margin-right: 12px;
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* =======================================================
+   TARJETAS DE COTIZACIÓN (CORREO ARGENTINO)
+======================================================= */
+.envio-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.envio-card {
+    padding: 16px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.2s;
+    background-color: white;
+    border: 1px solid #E5E5E5;
+    width: 100%; /* Forzamos a respetar el ancho de la caja blanca */
+    overflow: hidden; 
+}
+.envio-card:hover { border-color: #1A1A1A; }
+.envio-card.selected {
+    border: 2px solid #1A1A1A;
+    background-color: #FAFAFA;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.envio-card-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    min-width: 0; 
+}
+
+.envio-logo {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.envio-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+/* DESPUÉS */
+.envio-proveedor {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1A1A1A;
+    white-space: normal;       /* Permite que corte en líneas */
+    word-break: break-word;
+}
+.envio-detalle {
+    font-size: 0.8rem;
+    color: #666;
+    line-height: 1.4;
+    white-space: normal;       /* También puede estar cortando acá */
+    word-break: break-word;
+}
+
+.envio-card-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-shrink: 0;
+}
+.envio-precio {
+    font-weight: 600;
+    color: #1A1A1A;
+    font-size: 1rem;
+}
+.envio-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #E5E5E5;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.envio-card.selected .envio-check {
+    border-color: #1A1A1A;
+    background-color: #1A1A1A;
+}
+
+/* ======================================================= */
+
 .error-message-subtle {
     margin-top: 20px;
     padding: 12px 16px;
@@ -169,7 +323,6 @@
     top: 100px;
 }
 
-/* Le damos elegancia y respiro al título */
 .checkout-summary h2 {
     font-family: 'Playfair Display', serif;
     font-size: 1.5rem;
@@ -184,7 +337,7 @@
 .summary-list {
     display: flex;
     flex-direction: column;
-    gap: 10px; /* Separa los renglones de las telas */
+    gap: 10px;
 }
 
 .summary-item-mini {
@@ -227,63 +380,65 @@
     transition: background-color 0.3s;
 }
 
-.btn-pay-now:hover {
-    background: #333;
-}
-
-.btn-pay-now:disabled {
-    background: #CCC;
-    cursor: not-allowed;
-}
-
+.btn-pay-now:hover { background: #333; }
+.btn-pay-now:disabled { background: #CCC; cursor: not-allowed; }
 
 /* =======================================================
    ⚡ MAGIA RESPONSIVE PARA MÓVILES
-   ======================================================= */
+======================================================= */
+/* Ya tenés esto, verificá que esté exactamente así */
 @media screen and (max-width: 900px) {
-    /* Rompemos el layout de dos columnas para que sea una sola vertical */
-    .checkout-selection-layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .checkout-summary {
-        position: static; /* Quitamos el sticky en móvil */
-        margin-top: 20px; /* Un poco de espacio respecto al formulario de arriba */
+    .checkout-selection-layout { 
+        grid-template-columns: 1fr;  /* ← ¿Está este 1fr? */
     }
 }
 
 @media screen and (max-width: 600px) {
-    .checkout-selection-page {
-        padding-top: 80px;
-    }
-
-    .checkout-header h1 {
-        font-size: 2rem;
-    }
-
-    /* En celulares chicos, las cajas de input van al 100% del ancho */
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    /* Reseteamos el span del input full-width ya que ahora todos lo son */
-    .form-grid .full-width {
-        grid-column: auto;
-    }
-
-    .checkout-form-section {
-        padding: 20px;
-    }
+    .checkout-selection-page { padding-top: 80px; }
+    .checkout-header h1 { font-size: 2rem; }
     
-    .payment-card {
-        padding: 15px;
+    .form-grid { 
+        grid-template-columns: 1fr !important; 
     }
+    .form-grid .full-width { 
+        grid-column: 1 / -1 !important; 
+    }
+    .checkout-form-section { padding: 20px !important; }
     
-    .payment-card-icon {
-        margin-right: 15px;
-    }
+    .payment-card { padding: 15px; }
+    .payment-card-icon { margin-right: 15px; }
+    .selection-indicator { right: 15px; }
     
-    .selection-indicator {
-        right: 15px;
-    }
+    /* Ajustes mínimos para que respiren en pantallas chicas */
+    .envio-card { padding: 12px 15px; gap: 10px; }
+    .envio-card-left { gap: 10px; }
+    .envio-logo { width: 38px; height: 38px; }
+}
+
+/* AGREGAR al final del CSS */
+.datos-envio-container {
+    grid-column: 1 / -1;  /* Ocupa todo el ancho del grid */
+    width: 100%;
+}
+
+.envio-cards-container {
+    width: 100%;
+    overflow: hidden;  /* Agrega esto */
+}
+
+.checkout-selection-page {
+    background-color: #FDFCFB;
+    min-height: 100vh;
+    padding-top: 100px;
+    font-family: 'Montserrat', sans-serif;
+    width: 100%;
+    overflow-x: hidden;
+    max-width: 100vw; /* ← AGREGAR ESTO */
+}
+
+/* Y esto nuevo: */
+.checkout-left-column {
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
 }

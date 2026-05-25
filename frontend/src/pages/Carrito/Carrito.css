@@ -1,20 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-
+/* =========================================
+   RESETEO Y CONTENEDORES
+========================================= */
 .cart-page {
     font-family: 'Montserrat', sans-serif;
-    background-color: #FDFCFB; /* Fondo cálido y elegante */
+    background-color: #fbf9f4; /* Mismo crema elegante del Home */
     min-height: 100vh;
-    color: #333333;
-    padding-top: 80px;
+    color: #111;
+    padding-top: 100px;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.cart-page *, 
+.cart-page *::before, 
+.cart-page *::after {
+    box-sizing: border-box; /* Fundamental para que no se rompa en celulares */
 }
 
 .cart-container {
     max-width: 1100px;
+    width: 100%;
     margin: 0 auto;
-    padding: 20px 20px 60px;
+    padding: 0 20px 60px 20px;
 }
 
-/* Header del Carrito */
+/* =========================================
+   HEADER DEL CARRITO
+========================================= */
 .cart-header {
     margin-bottom: 40px;
     text-align: center;
@@ -22,7 +34,7 @@
 
 .cart-header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 2.8rem;
+    font-size: 2.5rem;
     font-weight: 600;
     color: #1A1A1A;
     margin-bottom: 10px;
@@ -30,42 +42,57 @@
 }
 
 .cart-header p {
-    color: #888888;
-    font-size: 0.95rem;
-    font-weight: 300;
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 400;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
-/* Layout Principal */
+/* =========================================
+   LAYOUT PRINCIPAL
+========================================= */
 .cart-layout {
     display: grid;
     grid-template-columns: 1fr 380px;
     gap: 40px;
     align-items: start;
+    width: 100%;
 }
 
-/* Tarjetas de Producto */
+/* =========================================
+   TARJETAS DE PRODUCTO (LISTA)
+========================================= */
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
 .cart-item-card {
     display: flex;
     background: #FFFFFF;
-    padding: 20px;
-    margin-bottom: 15px;
-    border: 1px solid #F0F0F0;
-    border-radius: 4px;
+    padding: 16px;
+    border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
     transition: box-shadow 0.3s ease;
+    align-items: center;
+    width: 100%;
 }
 
 .cart-item-card:hover {
-    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
 }
 
 .cart-item-img-wrapper {
-    width: 130px;
-    height: 150px;
-    background-color: #F8F8F8;
+    width: 110px;
+    height: 110px;
+    border-radius: 8px;
     flex-shrink: 0;
     overflow: hidden;
+    background-color: #F8F8F8;
 }
 
 .cart-item-img {
@@ -78,27 +105,33 @@
     flex: 1;
     display: flex;
     justify-content: space-between;
-    padding-left: 25px;
+    align-items: center;
+    padding-left: 20px;
+    min-width: 0;
 }
 
 .cart-item-info {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    gap: 4px;
+    min-width: 0;
 }
 
 .cart-item-info h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    margin: 0 0 12px 0;
+    font-size: 1.3rem;
+    margin: 0 0 4px 0;
     font-weight: 600;
     color: #1A1A1A;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .item-meta {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #888888;
-    margin: 0 0 6px 0;
+    margin: 0;
     letter-spacing: 0.5px;
 }
 
@@ -112,13 +145,13 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    justify-content: center;
-    gap: 15px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .item-subtotal {
-    font-size: 1.3rem;
-    font-weight: 500;
+    font-size: 1.2rem;
+    font-weight: 600;
     color: #1A1A1A;
     margin: 0;
 }
@@ -128,7 +161,7 @@
     border: none;
     color: #A0A0A0;
     font-family: 'Montserrat', sans-serif;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
@@ -143,70 +176,164 @@
     color: #D9534F;
 }
 
-/* Resumen de Compra */
+/* =========================================
+   RESUMEN DE COMPRA (LATERAL)
+========================================= */
 .cart-summary-card {
     background: #FFFFFF;
-    padding: 35px 30px;
-    border: 1px solid #F0F0F0;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.04);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
     position: sticky;
     top: 100px;
+    width: 100%;
 }
 
 .cart-summary-card h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     margin: 0 0 25px 0;
     color: #1A1A1A;
     border-bottom: 1px solid #F0F0F0;
     padding-bottom: 15px;
+    text-align: center;
+}
+
+/* CALCULADOR DE ENVÍO INTEGRADO */
+.shipping-calculator {
+    background-color: #FAFAFA;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #F0F0F0;
+    width: 100%;
+}
+
+.shipping-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1A1A1A;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.shipping-input-group {
+    display: flex;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    transition: border-color 0.3s;
+}
+
+.shipping-input-group:focus-within {
+    border-color: #1A1A1A;
+}
+
+.shipping-input {
+    flex: 1;
+    border: none;
+    padding: 12px 15px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 0; /* Evita que el input rompa el flexbox */
+}
+
+.btn-calc-shipping {
+    background-color: #1A1A1A;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex-shrink: 0;
+}
+
+.btn-calc-shipping:hover:not(:disabled) {
+    background-color: #333;
+}
+
+.btn-calc-shipping:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.shipping-error {
+    color: #be123c;
+    font-size: 0.8rem;
+    margin: 8px 0 0 0;
+}
+
+.shipping-success {
+    color: var(--color-verde-bosque, #2d4a2d);
+    font-size: 0.8rem;
+    margin: 8px 0 0 0;
+    line-height: 1.4;
+}
+
+/* TOTALES */
+.summary-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
 }
 
 .summary-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 18px;
     font-size: 0.95rem;
     color: #555555;
+    gap: 10px;
 }
 
 .summary-line.total {
-    margin-top: 25px;
-    font-size: 1.2rem;
+    margin-top: 10px;
+    font-size: 1.3rem;
     font-weight: 600;
     color: #1A1A1A;
-    border-top: 1px solid #1A1A1A;
+    border-top: 2px dashed #E5E5E5;
     padding-top: 20px;
 }
 
 .free-shipping {
-    color: #C4A484; /* Tono cálido boutique */
-    font-weight: 500;
+    color: var(--color-mostaza, #dcb35a);
+    font-weight: 600;
 }
 
 .btn-checkout {
     width: 100%;
     background: #1A1A1A;
     color: #FFFFFF;
-    border: 1px solid #1A1A1A;
+    border: none;
+    border-radius: 6px;
     padding: 16px;
     font-family: 'Montserrat', sans-serif;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-top: 30px;
+    letter-spacing: 1.5px;
+    margin-top: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 .btn-checkout:hover:not(:disabled) {
-    background: #FFFFFF;
-    color: #1A1A1A;
+    background: #333;
 }
 
 .btn-checkout:disabled {
     background-color: #E5E5E5;
-    border-color: #E5E5E5;
     color: #A0A0A0;
     cursor: not-allowed;
 }
@@ -216,89 +343,131 @@
     font-size: 0.75rem;
     color: #A0A0A0;
     margin-top: 15px;
-    font-weight: 300;
+    font-weight: 400;
 }
 
-/* Empty State */
+/* =========================================
+   CARRITO VACÍO
+========================================= */
 .cart-empty {
     text-align: center;
     padding: 80px 20px;
     background: #FFFFFF;
-    border: 1px solid #F0F0F0;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.04);
     max-width: 600px;
     margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
 
 .cart-empty p {
     font-size: 1.1rem;
     margin: 20px 0 30px;
     color: #666666;
-    font-weight: 300;
 }
 
 .btn-back {
     display: inline-block;
-    background: #FFFFFF;
-    color: #1A1A1A;
+    background: #1A1A1A;
+    color: #FFFFFF;
     text-decoration: none;
     padding: 14px 35px;
-    border: 1px solid #1A1A1A;
+    border-radius: 6px;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    transition: all 0.3s ease;
+    letter-spacing: 1.5px;
+    transition: background-color 0.3s;
 }
 
 .btn-back:hover {
-    background: #1A1A1A;
-    color: #FFFFFF;
+    background: #333;
 }
 
-/* Responsive */
+/* =========================================
+   ⚡ MAGIA RESPONSIVE MÓVIL (BLINDAJE TOTAL)
+========================================= */
 @media (max-width: 900px) {
     .cart-layout {
         grid-template-columns: 1fr;
         gap: 30px;
     }
-    
-    .cart-item-card {
-        padding: 15px;
-    }
-
-    .cart-item-img-wrapper {
-        width: 100px;
-        height: 120px;
+    .cart-summary-card {
+        position: static;
     }
 }
 
 @media (max-width: 600px) {
-    .cart-header h1 {
-        font-size: 2.2rem;
+    .cart-page {
+        padding-top: 80px;
+    }
+    
+    .cart-container {
+        padding: 0 15px 40px 15px; /* Menos padding en los bordes de la pantalla */
     }
 
+    .cart-header h1 {
+        font-size: 2rem;
+    }
+
+    /* Ajustes críticos del resumen lateral */
+    .cart-summary-card {
+        padding: 20px 15px; /* Reducimos el padding interno para que respire el texto */
+    }
+
+    .shipping-calculator {
+        padding: 15px; /* Calculadora más compacta */
+    }
+
+    .shipping-input {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+
+    .btn-calc-shipping {
+        padding: 0 15px; /* Botón menos ancho */
+        font-size: 0.75rem;
+    }
+
+    .summary-line {
+        font-size: 0.9rem;
+    }
+
+    /* Diseño Horizontal Compacto para Celulares */
     .cart-item-card {
-        flex-direction: column;
+        padding: 12px;
+        align-items: stretch;
     }
 
     .cart-item-img-wrapper {
-        width: 100%;
-        height: 200px;
-        margin-bottom: 15px;
+        width: 85px; 
+        height: 100px;
     }
 
     .cart-item-details {
-        padding-left: 0;
+        padding-left: 15px;
         flex-direction: column;
-        gap: 15px;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .cart-item-info h3 {
+        font-size: 1.1rem;
+    }
+
+    .item-meta {
+        font-size: 0.75rem;
     }
 
     .cart-item-actions {
-        align-items: flex-start;
+        width: 100%;
         flex-direction: row;
         justify-content: space-between;
-        border-top: 1px solid #F0F0F0;
-        padding-top: 15px;
-        width: 100%;
+        align-items: center;
+        margin-top: auto; 
+    }
+
+    .item-subtotal {
+        font-size: 1.1rem;
     }
 }

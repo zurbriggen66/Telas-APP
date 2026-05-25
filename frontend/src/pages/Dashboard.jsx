@@ -8,6 +8,37 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // --- ESTADOS PARA LOS NOTIFICADORES (BADGES) ---
+  const [transferenciasCount, setTransferenciasCount] = useState(0);
+  const [pedidosNuevosCount, setPedidosNuevosCount] = useState(0);
+
+  // --- LÓGICA PARA BUSCAR NOTIFICACIONES EN VIVO ---
+  useEffect(() => {
+    const fetchNotificaciones = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/pedidos/`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Filtramos transferencias pendientes de validación
+          const transferencias = data.filter(p => p.estado === 'Esperando_Transferencia').length;
+          
+          // Filtramos pedidos que ya entraron y hay que armar (Ajustá estos estados según tu backend)
+          const pedidosNuevos = data.filter(p => p.estado === 'Pagado' || p.estado === 'Pendiente').length;
+
+          setTransferenciasCount(transferencias);
+          setPedidosNuevosCount(pedidosNuevos);
+        }
+      } catch (error) {
+        console.error("Error buscando notificaciones:", error);
+      }
+    };
+
+    fetchNotificaciones(); // Busca al entrar
+    const interval = setInterval(fetchNotificaciones, 60000); // Se actualiza solo cada 60 segundos
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const handleResize = () => { 
       setIsMobile(window.innerWidth <= 768);
@@ -32,11 +63,33 @@ const Dashboard = () => {
     color: isActive(path) ? '#ffffff' : '#94a3b8',
   });
 
+  // --- COMPONENTE MINI PARA LA BURBUJA ROJA ---
+  const Badge = ({ count }) => {
+    if (count === 0) return null; // Si es 0, no mostramos la burbuja
+    return (
+      <span style={{
+        backgroundColor: '#ef4444', // Rojo estilo notificación
+        color: '#ffffff',
+        fontSize: '11px',
+        fontWeight: 'bold',
+        padding: '2px 8px',
+        borderRadius: '999px',
+        marginLeft: 'auto', // Esto lo empuja bien a la derecha del botón
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: '20px',
+        height: '20px'
+      }}>
+        {count > 99 ? '99+' : count}
+      </span>
+    );
+  };
+
   return (
-    // CAMBIO CLAVE: Si es mobile, usamos flexDirection: 'column' para que el navbar quede arriba del todo
     <div className="dashboard-root" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', width: '100vw', marginLeft: 'calc(-50vw + 50%)', margin: 0, padding: 0, top: 0, left: 0, background: '#f8fafc', position: 'relative', fontFamily: "'DM Sans', sans-serif" }}>
       
-      {/* NUEVO HEADER MÓVIL: Profesional, oscuro, ocupa todo el ancho */}
+      {/* HEADER MÓVIL */}
       {isMobile && (
         <header style={{
           display: 'flex', alignItems: 'center', padding: '0 16px', height: '64px',
@@ -48,14 +101,16 @@ const Dashboard = () => {
             style={{ background: 'transparent', border: 'none', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
           >
             <Icon d={icons.menu} size={24} color="white" strokeWidth="2" />
+            {/* Opcional: un mini puntito rojo en la hamburguesa si hay notificaciones sin leer */}
+            {(transferenciasCount > 0 || pedidosNuevosCount > 0) && (
+              <span style={{ width: 8, height: 8, background: '#ef4444', borderRadius: '50%', position: 'absolute', top: 8, left: 24 }} />
+            )}
           </button>
           <span style={{ fontWeight: 800, fontSize: '18px', marginLeft: '12px', letterSpacing: '-0.5px' }}>
             Telas-APP
           </span>
         </header>
       )}
-
-      
 
       {/* OVERLAY OSCURO */}
       {isMobile && menuAbierto && (
@@ -69,7 +124,6 @@ const Dashboard = () => {
         top: 0, left: 0, height: '100vh', zIndex: 50, margin: 0, padding: 0, transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         transform: isMobile && !menuAbierto ? 'translateX(-100%)' : 'translateX(0)',
       }}>
-        {/* EN MOBILE OCULTAMOS ESTE TÍTULO PORQUE YA ESTÁ EN LA BARRA SUPERIOR */}
         {!isMobile && (
           <div style={{ padding: '32px 24px 24px' }}>
              <h2 style={{ fontSize: '20px', margin: 0, fontWeight: 800, letterSpacing: '-0.5px' }}>Telas-APP</h2>
@@ -105,14 +159,19 @@ const Dashboard = () => {
           <button style={getLinkStyle('/dashboard/diseno')} onClick={() => navigate('/dashboard/diseno')}>
             <Icon d={icons.design} size={18} color={isActive('/dashboard/diseno') ? '#6366f1' : '#94a3b8'} /> Diseño & Colores
           </button>
+          
+          {/* 👇 ACÁ ESTÁN LAS BURBUJAS DE NOTIFICACIÓN APLICADAS 👇 */}
           <button style={getLinkStyle('/dashboard/pedidos')} onClick={() => navigate('/dashboard/pedidos')}>
             <Icon d={icons.orders} size={18} color={isActive('/dashboard/pedidos') ? '#6366f1' : '#94a3b8'} /> Ventas & Pedidos
+            <Badge count={pedidosNuevosCount} />
           </button>
           <button style={getLinkStyle('/dashboard/transferencias')} onClick={() => navigate('/dashboard/transferencias')}>
             <Icon d={icons.orders} size={18} color={isActive('/dashboard/transferencias') ? '#6366f1' : '#94a3b8'} /> Transferencias
+            <Badge count={transferenciasCount} />
           </button>
+          {/* -------------------------------------------------------- */}
+
           <button style={getLinkStyle('/dashboard/puntos-entrega')} onClick={() => navigate('/dashboard/puntos-entrega')}>
-            {/* Si no tenés un ícono de mapa en tu Icons.jsx, usamos el de package por ahora */}
             <Icon d={icons.package} size={18} color={isActive('/dashboard/puntos-entrega') ? '#6366f1' : '#94a3b8'} /> Puntos de Entrega
           </button>
           
@@ -120,7 +179,6 @@ const Dashboard = () => {
       </aside>
 
       <main style={{
-        // Ahora el padding es normal, el espacio se adapta solo.
         flex: 1, padding: isMobile ? '24px 16px' : '20px 40px',
         maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden', margin: 0
       }}>

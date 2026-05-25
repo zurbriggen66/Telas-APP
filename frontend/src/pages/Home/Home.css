@@ -49,7 +49,7 @@ html, body {
     width: 100vw;
     margin-left: calc(-50vw + 50%);
     margin-top: 70px;
-    height: 88vh;
+    height: calc(100vh - 70px);
     min-height: 500px;
     position: relative; 
     display: flex;
@@ -253,7 +253,7 @@ html, body {
     overflow: hidden;
     margin-bottom: 5rem;
     box-shadow: 0 4px 30px rgba(0,0,0,0.08);
-    min-height: 380px;
+    min-height: 85vh; /* Hacemos que ocupe casi toda la pantalla en escritorio */
 }
 
 .promo-eyebrow {
@@ -312,12 +312,18 @@ html, body {
 }
 
 .promo-image {
-    flex: 1.1;
+    flex: 1.2;
     background-size: cover;
     background-position: center;
-    min-height: 300px;
+    min-height: 100%; /* La imagen se estira para cubrir el nuevo alto */
 }
-
+.whatsapp-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: #25D366; /* Verde oficial de WhatsApp */
+    color: white !important;
+    text-decoration: none;
+}
 /* Tarjeta estilo "Boutique" delicada */
 .favorita-card {
     width: 250px; 
@@ -486,141 +492,134 @@ html, body {
 }
 
 /* =========================================
-   SECCIÓN FAVORITAS (COMPLETA Y CORREGIDA)
+   SECCIÓN FAVORITAS (DISEÑO BOUTIQUE MINIMALISTA)
 ========================================= */
 .favoritas-section {
-    margin-bottom: 5rem;
+    margin-bottom: 6rem;
 }
 
 .favoritas-slider {
     display: flex;
-    gap: 0.6rem; /* Tarjetas mucho más pegaditas (antes estaba en 1.5rem) */
+    gap: 1.5rem; /* Más aire entre las telas */
     overflow-x: auto;
-    padding: 0.5rem 0.5rem 2rem 0.5rem;
+    padding: 1rem 0.5rem 2rem 0.5rem;
     scrollbar-width: none; 
     -ms-overflow-style: none;
-    scroll-behavior: auto;
+    scroll-behavior: smooth; /* Clave para el movimiento elegante */
 }
 
 .favoritas-slider::-webkit-scrollbar {
     display: none;
 }
 
+/* Tarjeta minimalista sin fondo ni bordes */
 .favorita-card {
-    width: 250px; 
+    width: 260px; 
     flex-shrink: 0;
-    background-color: #ffffff; 
-    padding: 8px; /* Redujimos el marco blanco para que la foto se vea más grande */
-    border-radius: 12px; 
-    border: 1px solid rgba(0, 0, 0, 0.04); 
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); 
+    background-color: transparent; 
+    padding: 0; 
+    border-radius: 0; 
+    border: none; 
+    box-shadow: none; 
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.4s ease;
 }
 
 .favorita-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transform: translateY(-6px);
+}
+
+/* Sombra etérea SOLO en la foto */
+.favorita-img-wrapper {
+    width: 100%;
+    border-radius: 4px; /* Apenas redondeado, casi recto */
+    overflow: hidden;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06); 
 }
 
 .favorita-img-wrapper img {
     width: 100%;
-    height: 320px; /* Imagen mucho más alta y protagonista */
+    height: 380px; /* Imagen más alargada y esbelta */
     object-fit: cover;
     display: block;
-    transition: transform 0.5s ease;
-}
-
-/* Etiqueta FAVORITO más pequeña y sutil */
-.badge-overlay {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: rgba(255, 255, 255, 0.95);
-    color: var(--color-negro, #111);
-    font-family: var(--font-cuerpo, sans-serif);
-    font-size: 0.6rem;
-    font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 20px; 
-    letter-spacing: 1.5px;
-    z-index: 2;
-}
-
-.favorita-img-wrapper img {
-    width: 100%;
-    height: 260px; 
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
+    transition: transform 1s ease; /* Efecto zoom muuy suave */
 }
 
 .favorita-card:hover .favorita-img-wrapper img {
-    transform: scale(1.04);
+    transform: scale(1.05);
 }
 
-/* Información inferior centrada */
+/* Textos ultra delicados */
 .favorita-info {
     text-align: center; 
-    padding: 0 4px 6px 4px;
+    padding: 0 10px;
 }
 
 .favorita-specs {
     display: flex;
     justify-content: center; 
-    gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
-/* Pastillas de "Ancho" más delicadas (con borde fino) */
 .spec-badge {
-    background-color: transparent;
-    color: #666;
-    font-size: 0.7rem;
-    padding: 3px 12px;
-    border: 1px solid #e0e0e0; 
-    border-radius: 20px;
-    font-family: var(--font-cuerpo, sans-serif);
-    letter-spacing: 0.5px;
+    color: #888;
+    font-size: 0.65rem;
+    font-family: var(--font-cuerpo, 'Montserrat', sans-serif);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 
-/* Título con la letra elegante de la marca */
+/* Nombre de la tela */
 .favorita-info h4 {
-    font-family: var(--font-titulos, serif); 
-    font-size: 1.2rem;
-    font-weight: 500; 
-    margin: 0 0 8px 0;
+    font-family: var(--font-cuerpo, 'Montserrat', sans-serif); 
+    font-size: 0.95rem;
+    font-weight: 400; /* Letra fina */
+    letter-spacing: 1px;
+    margin: 0 0 6px 0;
     color: var(--color-negro, #111);
+    text-transform: uppercase; /* Moda style */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; 
 }
 
-/* Precio definido pero fino */
+/* Precio: Cursiva y Serif (El detalle más fino) */
 .favorita-precio {
-    font-family: var(--font-cuerpo, sans-serif);
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--color-verde-bosque, #2d4a2d); 
+    font-family: var(--font-titulos, 'Playfair Display', serif);
+    font-size: 1.35rem;
+    font-weight: 400; 
+    font-style: italic; 
+    color: var(--color-negro, #111); 
     margin: 0;
 }
 
+.precio-unidad {
+    font-family: var(--font-cuerpo, 'Montserrat', sans-serif);
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: #999;
+    font-style: normal; /* Rompe la cursiva del precio */
+    text-transform: lowercase;
+    margin-left: 5px;
+}
 /* =========================================
    RESPONSIVE MÓVIL
 ========================================= */
 @media (max-width: 768px) {
-    .hero-banner { height: 75vh; }
+    .hero-banner { height: calc(100vh - 70px); }
     .hero-logo { max-width: 150px; } 
     .home-container { padding: 2.5rem 1.2rem; }
     .promo-section { flex-direction: column-reverse; }
-    .promo-image { height: 220px; flex: none; }
+    .promo-image { height: 75vh; flex: none; }
     .promo-content { padding: 2rem 1.5rem; align-items: center; text-align: center; }
     .promo-content p { max-width: 100%; }
+    .category-header-centered h2 { font-size: 2rem; } /* Achicamos un poco el título para móviles */
     
-    /* Favoritas ajustadas para que no se vean gigantes en el celular */
-    .favorita-card { width: 230px; padding: 8px; }
-    .favorita-img-wrapper img { height: 290px; }
-    .favoritas-slider { gap: 0.5rem; padding: 0.5rem 0.5rem 1.5rem 0.5rem; }
+    /* Favoritas ajustadas móvil (esbeltas) */
+    .favorita-card { width: 220px; }
+    .favorita-img-wrapper img { height: 320px; }
+    .favoritas-slider { gap: 1rem; }
 }
 
 /* =========================================
@@ -693,4 +692,78 @@ html, body {
         padding: 12px 28px;
         font-size: 0.85rem;
     }
+}
+
+/* =========================================
+   SECCIÓN TALLER / LOCAL
+========================================= */
+.taller-section {
+    display: flex;
+    justify-content: center;
+    margin-top: 4rem; /* Separación del bloque de Instagram */
+    margin-bottom: 2rem;
+}
+
+.taller-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 900px; /* Ancho máximo para que no se estire demasiado en PC */
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.taller-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+}
+
+.taller-image {
+    width: 100%;
+    height: 450px; /* Altura imponente para la foto del local */
+    background-size: cover;
+    background-position: center;
+}
+
+.taller-content {
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.taller-content h2 {
+    font-family: var(--font-titulos, serif);
+    font-size: 1.8rem;
+    color: var(--color-negro, #111);
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.taller-content p {
+    font-family: var(--font-cuerpo, sans-serif);
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+
+/* =========================================
+   TÍTULO DE CATEGORÍAS CENTRADO
+========================================= */
+.category-header-centered {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.category-header-centered h2 {
+    font-family: var(--font-titulos, 'Playfair Display', serif);
+    font-style: italic; /* Lo hace cursiva */
+    font-size: 2.5rem;
+    color: var(--color-negro, #111);
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 1px;
 }
