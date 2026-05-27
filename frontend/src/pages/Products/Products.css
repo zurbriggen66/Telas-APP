@@ -1,3 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+
+:root {
+    --font-cursiva: 'Great Vibes', cursive;}
+
 /* =========================================
    VARIABLES DE ESTILO - PALETA ATELIER
 ========================================= */
@@ -33,14 +38,6 @@
     animation: fadeInDown 0.8s ease-out;
 }
 
-.catalogo-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
-    color: var(--verde-atelier);
-    margin-bottom: 1rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
 
 .catalogo-subtitle {
     color: var(--gris-suave);
@@ -323,14 +320,7 @@
     margin-bottom: 1rem;
 }
 
-.catalogo-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 3.2rem;
-    color: var(--verde-atelier);
-    margin-bottom: 0;
-    font-weight: 500;
-    letter-spacing: 1px;
-}
+
 
 /* =========================================
    NUEVO: SLIDER DE CATEGORÍAS (TIPO PÍLDORAS)
@@ -574,4 +564,14 @@
         padding-bottom: 1.5rem;
         margin-bottom: 2rem;
     }
+}
+
+.catalogo-title {
+    font-family: var(--font-cursiva);
+    font-size: 3.5rem; /* Un poco más grande para que luzca el trazo */
+    font-weight: 400; /* Clave: sin negrita para que las letras se unan bien */
+    color: var(--verde-atelier); /* Usamos tu verde oscuro que queda hermoso */
+    margin: 10px 0;
+    text-transform: none; /* Evita que CSS intente pasarlo a mayúsculas */
+    letter-spacing: 0; /* Si tiene espacio entre letras, se corta el trazo continuo */
 }

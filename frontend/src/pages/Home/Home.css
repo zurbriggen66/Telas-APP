@@ -1,3 +1,18 @@
+/*@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@400;500;600;800&display=swap');*/
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=League+Spartan:wght@400;700&family=Poppins:wght@400;600;800&family=Raleway:wght@400;600;800&display=swap');
+
+/*:root {
+    --font-titulos: 'Montserrat', sans-serif;
+    --font-cursiva: 'Great Vibes', cursive;
+}*/
+
+:root {
+    --font-impacto: 'Anton', sans-serif;
+    --font-moderna: 'League Spartan', sans-serif;
+    --font-cuerpo: 'Poppins', sans-serif;
+    --font-elegante: 'Raleway', sans-serif;
+}
 
 /* =========================================
    RESETEO GLOBAL (ADIÓS BORDES BLANCOS)
@@ -232,17 +247,16 @@ html, body {
 
 .category-name {
     position: relative;
-    z-index: 2; /* Para que quede por encima de la sombra */
-    font-family: var(--font-cursiva);
-    font-style: italic;
-    font-weight: 600;
-    color: #ffffff; /* Letra blanca para contrastar */
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    z-index: 2; 
+    font-family: var(--font-elegante), 'Raleway', sans-serif; 
+    font-weight: 400; 
+    font-style: italic; /* ¡Acá sumamos la inclinación! */
+    color: #ffffff; 
+    font-size: 1.5rem; 
+    text-transform: capitalize; 
+    letter-spacing: 0px; 
     margin: 0;
 }
-
 /* =========================================
    SECCIÓN PROMOCIONAL
 ========================================= */
@@ -496,6 +510,14 @@ html, body {
 ========================================= */
 .favoritas-section {
     margin-bottom: 6rem;
+}
+
+.favoritas-section .section-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto; /* Asegura que el margen esté balanceado */
 }
 
 .favoritas-slider {
@@ -759,11 +781,11 @@ html, body {
 }
 
 .category-header-centered h2 {
-    font-family: var(--font-titulos, 'Playfair Display', serif);
-    font-style: italic; /* Lo hace cursiva */
-    font-size: 2.5rem;
+    font-family: var(--font-cursiva); /* Usamos la nueva variable */
+    font-size: 3.5rem; /* Subile un poco el tamaño, las cursivas puras suelen verse más chicas */
     color: var(--color-negro, #111);
-    font-weight: 500;
+    font-weight: 400; /* Las cursivas puras suelen verse mejor sin negrita extra */
     margin: 0;
-    letter-spacing: 1px;
+    /* BORRAR: font-style: italic; */
+    /* BORRAR: letter-spacing; (el espaciado rompe la conexión de las letras) */
 }

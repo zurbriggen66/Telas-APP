@@ -142,8 +142,8 @@ const Productos = () => {
                 <header className="catalogo-header">
                     <span className="catalogo-breadcrumb">INICIO / CATÁLOGO</span>
                     <h1 className="catalogo-title">
-                        {filtroCategoria === 'Todas' ? 'Catálogo Completo' : filtroCategoria.toUpperCase()}
-                    </h1>
+    {filtroCategoria === 'Todas' ? 'Catálogo' : filtroCategoria}
+</h1>
                 </header>
 
                 <div className="categorias-slider-container">

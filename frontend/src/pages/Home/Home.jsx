@@ -230,7 +230,7 @@ const Home = () => {
                 {/* ── SECCIÓN FAVORITAS ── */}
 <section className="favoritas-section reveal-section" ref={revealRef}>
     <div className="category-header-centered">
-        <h2 className="section-title">Nuestras Favoritas</h2>
+        <h2 className="section-title">Favoritas</h2>
        
     </div>
 
@@ -323,8 +323,8 @@ const Home = () => {
                             }}
                         />
                         <div className="taller-content">
-                            <h2>Vení a conocer nuestro taller de diseño y costura</h2>
-                            <p>Un espacio pensado para inspirarte. Descubrí de cerca la calidad de nuestras telas y recibí asesoramiento personalizado para tus creaciones.</p>
+                            <h2>Encontranos en nuestro local</h2>
+                            <p>📍 Jorge Newery 67, San Guillermo, Santa Fe</p>
                         </div>
                     </div>
                 </section>

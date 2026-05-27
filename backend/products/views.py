@@ -1,3 +1,4 @@
+from .whatsapp import enviar_notificacion_dueño
 from rest_framework.decorators import api_view, parser_classes, action, api_view, permission_classes    
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -778,3 +779,21 @@ def eliminar_pedido_api(request, pedido_id):
         return JsonResponse({"message": "Pedido eliminado correctamente"}, status=200)
     
     return JsonResponse({"error": "Método no permitido"}, status=405)
+
+class ConfirmarPedidoView(APIView):
+    def post(self, request):
+        # ... acá ya tenés tu código donde validás el pago y guardás el pedido ...
+        
+        # Simulamos que ya buscaste el pedido en tu base de datos:
+        pedido = Pedido.objects.get(id=request.data['pedido_id'])
+        pedido.estado = 'Aprobado'
+        pedido.save()
+
+        # 👇 ACÁ EJECUTAMOS EL WHATSAPP 👇
+        # Obtenemos el número del dueño (lo podés traer de un modelo Tienda o de una variable de entorno)
+        import os
+        telefono_del_dueño = os.environ.get("NUMERO_DUENO", "5493544630650") 
+        
+        enviar_notificacion_dueño(pedido, telefono_del_dueño)
+
+        return Response({"mensaje": "Pedido confirmado y alerta de WhatsApp enviada al dueño."})
