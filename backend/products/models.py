@@ -37,6 +37,17 @@ def optimize_store_images(sender, instance, **kwargs):
     if instance.imagen_secundaria_1: instance.imagen_secundaria_1 = optimize_image(instance.imagen_secundaria_1, max_width=1200, max_height=1200, quality=85)
     if instance.imagen_secundaria_2: instance.imagen_secundaria_2 = optimize_image(instance.imagen_secundaria_2, max_width=1200, max_height=1200, quality=85)
 
+class UsoTela(models.Model):
+    nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre del Uso (Ej: Eventos, Pantalones)")
+    
+    class Meta:
+        verbose_name = "Uso de Tela"
+        verbose_name_plural = "Usos de Telas"
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
 class StoreConfiguration(models.Model):
     title = models.CharField(max_length=100, default="Bienvenido a Telas-APP")
     
@@ -124,6 +135,13 @@ class Producto(models.Model):
     es_favorito = models.BooleanField(default=False, verbose_name="Tela Favorita/Destacada")
 
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos', verbose_name="Color Principal")
+
+    usos = models.ManyToManyField(
+        UsoTela,
+        related_name='telas',
+        blank=True,
+        verbose_name="Telas para..."
+    )
     
     precio_por_metro = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Precio por Metro")
     ancho_cm = models.PositiveIntegerField(verbose_name="Ancho (cm)", help_text="Ejemplo: 150, 180, 300")

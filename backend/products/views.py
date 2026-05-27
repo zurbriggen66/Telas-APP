@@ -7,8 +7,8 @@ import mercadopago
 import requests
 import os
 # revisar luego si todos los import son necesarios o si quedaron algunos de pruebas anteriores
-from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal, Color
-from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, Producto
+from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal, Color, UsoTela
+from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, Producto, UsoTelaSerializer
 from .serializers import ProductoDesplegableSerializer, TarifaLocalSerializer, ColorSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer
 from decimal import Decimal
 from rest_framework import status, viewsets, generics
@@ -50,9 +50,13 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     # ⚠️ Quitamos el select_related('categoria_padre')
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
+    
+class UsoTelaViewSet(viewsets.ModelViewSet):
+    queryset = UsoTela.objects.all().order_by('nombre')
+    serializer_class = UsoTelaSerializer
 
 class ProductoViewSet(viewsets.ModelViewSet):
-    queryset = Producto.objects.prefetch_related('categorias').all()
+    queryset = Producto.objects.prefetch_related('categorias', 'usos').all()
     serializer_class = ProductoSerializer
 
     def create(self, request, *args, **kwargs):
@@ -63,6 +67,10 @@ class ProductoViewSet(viewsets.ModelViewSet):
         categorias_ids = request.data.getlist('categorias')
         if categorias_ids:
             producto.categorias.set(categorias_ids)
+        
+        usos_ids = request.data.getlist('usos')
+        if usos_ids:
+            producto.usos.set(usos_ids)
             
         self._guardar_imagenes_galeria(request, producto)
         return response
@@ -91,6 +99,13 @@ class ProductoViewSet(viewsets.ModelViewSet):
             else:
                 categorias_ids = request.data.get('categorias', [])
             producto.categorias.set(categorias_ids) 
+
+        if 'usos' in request.data:
+            if hasattr(request.data, 'getlist'):
+                usos_ids = request.data.getlist('usos')
+            else:
+                usos_ids = request.data.get('usos', [])
+            producto.usos.set(usos_ids)
             
         self._guardar_imagenes_galeria(request, producto)
         return response

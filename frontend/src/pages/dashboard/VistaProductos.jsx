@@ -60,7 +60,6 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
           
-          {/* 👇 NUEVO: Mostrar el circulito de color en la lista 👇 */}
           <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {prod.color_hex && (
               <div title={prod.color_nombre} style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: prod.color_hex, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }}></div>
@@ -69,6 +68,12 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
               {prod.categorias_nombres && prod.categorias_nombres.length > 0 ? prod.categorias_nombres.join(' • ') : 'Sin categoría'} • {prod.ancho_cm}cm ancho
             </span>
           </div>
+          {/* Opcional: Mostrar usos debajo (Telas para...) */}
+          {prod.usos_nombres && prod.usos_nombres.length > 0 && (
+             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', fontWeight: 600 }}>
+               Para: {prod.usos_nombres.join(', ')}
+             </div>
+          )}
         </div>
       </div>
 
@@ -177,10 +182,9 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
 const VistaProductos = () => {
   const [showForm, setShowForm] = useState(false);
   
-  // 👇 NUEVO: Agregamos 'color' al estado inicial del formulario
   const [form, setForm] = useState({ 
     nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', 
-    stock_metros: '', categorias: [], color: '', es_favorito: false 
+    stock_metros: '', categorias: [], usos: [], color: '', es_favorito: false 
   });
   
   const [images, setImages] = useState([]);
@@ -189,7 +193,8 @@ const VistaProductos = () => {
   
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
-  const [colores, setColores] = useState([]); // 👇 NUEVO ESTADO PARA COLORES
+  const [colores, setColores] = useState([]); 
+  const [usosDisponibles, setUsosDisponibles] = useState([]); 
 
   const [fetching, setFetching] = useState(true);
   const [editando, setEditando] = useState(null); 
@@ -207,17 +212,18 @@ const VistaProductos = () => {
   const fetchData = async () => {
     setFetching(true);
     try {
-      // 👇 NUEVO: Hacemos fetch también de los colores
-      const [prodRes, catRes, colRes] = await Promise.all([
+      const [prodRes, catRes, colRes, usosRes] = await Promise.all([
         axios.get(`${API}/productos/`),
         axios.get(`${API}/categorias/`),
         axios.get(`${API}/colores/`),
+        axios.get(`${API}/usos/`),
       ]);
       setProductos(Array.isArray(prodRes.data) ? prodRes.data : prodRes.data.results || []);
       setCategorias(Array.isArray(catRes.data) ? catRes.data : catRes.data.results || []);
       setColores(Array.isArray(colRes.data) ? colRes.data : colRes.data.results || []);
+      setUsosDisponibles(Array.isArray(usosRes.data) ? usosRes.data : usosRes.data.results || []);
     } catch {
-      setProductos([]); setCategorias([]); setColores([]);
+      setProductos([]); setCategorias([]); setColores([]); setUsosDisponibles([]);
     } finally {
       setFetching(false);
     }
@@ -260,7 +266,8 @@ const VistaProductos = () => {
       ancho_cm: prod.ancho_cm, 
       stock_metros: prod.stock_metros, 
       categorias: prod.categorias || [],
-      color: prod.color || '', // 👇 NUEVO: Cargamos el color actual al editar
+      usos: prod.usos || [],
+      color: prod.color || '', 
       es_favorito: prod.es_favorito || false
     });
 
@@ -279,7 +286,7 @@ const VistaProductos = () => {
 
   const resetForm = () => {
     setShowForm(false);
-    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], color: '', es_favorito: false });
+    setForm({ nombre: '', precio_por_metro: '', descripcion: '', ancho_cm: '', stock_metros: '', categorias: [], usos: [], color: '', es_favorito: false });
     setImages([]); setImagenesOriginales([]); setEditando(null); setStatusMsg('');
   };
 
@@ -297,7 +304,6 @@ const VistaProductos = () => {
       formData.append('descripcion', form.descripcion);
       formData.append('es_favorito', form.es_favorito ? 'True' : 'False');
       
-      // 👇 NUEVO: Enviamos el color seleccionado (o cadena vacía si lo quitó)
       if (form.color) {
         formData.append('color', form.color);
       } else {
@@ -307,6 +313,12 @@ const VistaProductos = () => {
       if (form.categorias && form.categorias.length > 0) {
         form.categorias.forEach(catId => {
           formData.append('categorias', catId);
+        });
+      }
+
+      if (form.usos && form.usos.length > 0) {
+        form.usos.forEach(usoId => {
+          formData.append('usos', usoId);
         });
       }
       
@@ -425,7 +437,42 @@ const VistaProductos = () => {
               </div>
             </div>
 
-            {/* 👇 NUEVA SECCIÓN: Selector Visual de Colores 👇 */}
+            {/* 👇 NUEVA SECCIÓN: Selector de Usos (Telas para...) 👇 */}
+            <div style={{ gridColumn: '1/-1' }}>
+              <label style={labelStyle}>Telas Para... (Etiquetas de uso opcionales)</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '4px' }}>
+                {usosDisponibles.map(uso => {
+                  const isSelected = form.usos && form.usos.includes(uso.id);
+                  return (
+                    <button
+                      key={uso.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setForm(prev => ({
+                          ...prev,
+                          usos: isSelected 
+                            ? prev.usos.filter(id => id !== uso.id) 
+                            : [...(prev.usos || []), uso.id] 
+                        }));
+                      }}
+                      style={{
+                        padding: '6px 14px', borderRadius: '20px',
+                        border: isSelected ? '1.5px solid #d97706' : '1.5px solid #e2e8f0',
+                        background: isSelected ? '#fef3c7' : '#f8fafc',
+                        color: isSelected ? '#b45309' : '#64748b',
+                        fontWeight: 600, fontSize: '13px', cursor: 'pointer',
+                        transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '6px'
+                      }}
+                    >
+                      {isSelected && <Icon d={icons.check} size={14} color="#b45309" />}
+                      {uso.nombre}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div style={{ gridColumn: '1/-1' }}>
               <label style={{...labelStyle, marginBottom: 2}}>Color Principal (Opcional)</label>
               <p style={{ fontSize: 12, color: '#94a3b8', margin: '0 0 8px 0' }}>El cliente podrá filtrar por este color.</p>

@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Categoria, Color, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem, TarifaLocal
+from .models import Categoria, Color, Pedido, Producto, ProductoImagen, StoreConfiguration, PedidoItem, TarifaLocal, UsoTela
+
 
 # 1. Serializer para la configuración (Banner)
 class StoreConfigurationSerializer(serializers.ModelSerializer):
@@ -19,13 +20,18 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = Categoria
         fields = ['id', 'nombre', 'descripcion', 'imagen']
 
+class UsoTelaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsoTela
+        fields = ['id', 'nombre']
+
 # 4. Serializer para los Productos (Telas)
 class ProductoSerializer(serializers.ModelSerializer):
     imagenes_galeria = ProductoImagenSerializer(many=True, read_only=True)
     
     # ⚠️ NUEVO: Enviaremos a React un array con los nombres de las categorías para que sea fácil mostrarlas
     categorias_nombres = serializers.StringRelatedField(many=True, source='categorias', read_only=True)
-
+    usos_nombres = serializers.StringRelatedField(many=True, source='usos', read_only=True)
     class Meta:
         model = Producto
         fields = [
@@ -33,7 +39,7 @@ class ProductoSerializer(serializers.ModelSerializer):
             'ancho_cm', 'stock_metros', 'es_favorito',
             'categorias', # Recibe/envía un array de IDs (ej: [11, 15])
             'categorias_nombres', # Envía a React un array de nombres (ej: ["Gamuza", "Algodón"])
-            'imagen', 'imagenes_galeria', 'color'
+            'imagen', 'imagenes_galeria', 'color', 'usos_nombres'
         ]
 
 class PedidoItemSerializer(serializers.ModelSerializer):
