@@ -12,6 +12,7 @@ router.register(r'colores', views.ColorViewSet) # 👈 NUEVA RUTA
 router.register(r'usos', views.UsoTelaViewSet)
 # ...
 # una linea de comentario
+#otra linea de comentario mas la anterior
 
 urlpatterns = [
     path('api/banner/', views.get_main_banner, name='main-banner'),
