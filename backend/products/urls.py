@@ -11,6 +11,7 @@ router.register(r'tarifas-locales', views.TarifaLocalViewSet)
 router.register(r'colores', views.ColorViewSet) # 👈 NUEVA RUTA
 router.register(r'usos', views.UsoTelaViewSet)
 # ...
+# una linea de comentario
 
 urlpatterns = [
     path('api/banner/', views.get_main_banner, name='main-banner'),
