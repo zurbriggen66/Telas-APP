@@ -23,6 +23,7 @@ const Productos = () => {
     // Captura el color de la URL
     const [searchParams] = useSearchParams();
     const colorFiltroURL = searchParams.get('color');
+    const usoFiltroURL = searchParams.get('uso');
 
     // NUEVO: Estado para el menú desplegable personalizado
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -47,10 +48,22 @@ const Productos = () => {
             setLoading(true);
             try {
                 // Construimos la URL dinámica
+                // Construimos la URL dinámica
                 let url = `${API}/productos/`;
+                const params = new URLSearchParams();
+                
                 if (colorFiltroURL) {
-                    url += `?color=${colorFiltroURL}`;
+                    params.append('color', colorFiltroURL);
                 }
+                if (usoFiltroURL) {
+                    params.append('uso', usoFiltroURL); // 👈 Agregamos el filtro de uso
+                }
+
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
+
 
                 // Llamada única a la API
                 const response = await axios.get(url);
@@ -77,7 +90,7 @@ const Productos = () => {
             }
         };
         fetchProductos();
-    }, [colorFiltroURL]); // <-- Se ejecuta cada vez que cambia el color en la URL
+    }, [colorFiltroURL, usoFiltroURL]); // <-- Se ejecuta cada vez que cambia el color o el uso en la URL
 
     // Cerrar el dropdown al hacer clic afuera
     useEffect(() => {

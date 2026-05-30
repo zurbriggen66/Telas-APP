@@ -119,9 +119,15 @@ class ProductoViewSet(viewsets.ModelViewSet):
         
         # Leemos si la URL trae un filtro de color (ej: /api/productos/?color=3)
         color_id = self.request.query_params.get('color', None)
+        uso_id = self.request.query_params.get('uso', None)
         
         if color_id:
             queryset = queryset.filter(color_id=color_id)
+
+        if uso_id:
+            queryset = queryset.filter(usos__id=uso_id)
+
+        
             
         return queryset
     

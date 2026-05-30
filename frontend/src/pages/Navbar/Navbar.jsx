@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown, Palette } from 'lucide-react';
+import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown, Palette, Grid } from 'lucide-react';
 import './Navbar.css';
 
 const Navbar = ({ cartCount = 0 }) => {
@@ -24,6 +24,11 @@ const Navbar = ({ cartCount = 0 }) => {
     const [isColorDropdownOpen, setIsColorDropdownOpen] = useState(false);
     const [isMobileColorOpen, setIsMobileColorOpen] = useState(false);
 
+    // ESTADOS PARA DESPLEGABLE USOS (TELAS PARA...)
+    const [usos, setUsos] = useState([]);
+    const [isUsosDropdownOpen, setIsUsosDropdownOpen] = useState(false);
+    const [isMobileUsosOpen, setIsMobileUsosOpen] = useState(false);
+
     // 2. FUNCIONES
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
     
@@ -31,6 +36,7 @@ const Navbar = ({ cartCount = 0 }) => {
         setIsMenuOpen(false);
         setIsMobileAzOpen(false);
         setIsMobileColorOpen(false);
+        setIsMobileUsosOpen(false); // Cierra también este acordeón
     };
 
     // 3. EFECTOS (Llamadas a la API y eventos)
@@ -55,6 +61,11 @@ const Navbar = ({ cartCount = 0 }) => {
         axios.get(`${import.meta.env.VITE_API_URL}/api/colores/`)
             .then(res => setColores(Array.isArray(res.data) ? res.data : res.data.results || []))
             .catch(err => console.error("Error cargando colores", err));
+
+        // Cargar los usos para el menú (Telas para...)
+        axios.get(`${import.meta.env.VITE_API_URL}/api/usos/`)
+            .then(res => setUsos(Array.isArray(res.data) ? res.data : res.data.results || []))
+            .catch(err => console.error("Error cargando usos", err));
     }, []);
 
     useEffect(() => {
@@ -102,7 +113,37 @@ const Navbar = ({ cartCount = 0 }) => {
                         <Link to="/" className="nav-link">Inicio</Link>
                         <Link to="/productos" className="nav-link">Productos</Link>
                         
-                        {/* 🌟 DESPLEGABLE COLORES (DESKTOP) 🌟 */}
+                        {/* 🌟 DESPLEGABLE TELAS PARA... (DESKTOP) 🌟 */}
+                        <div 
+                            className="nav-dropdown-container"
+                            onMouseEnter={() => setIsUsosDropdownOpen(true)}
+                            onMouseLeave={() => setIsUsosDropdownOpen(false)}
+                        >
+                            <span className="nav-link nav-link--az" style={{ cursor: 'pointer' }}>
+                                <Grid size={14} strokeWidth={1.5} /> Telas Para...
+                            </span>
+                            
+                            {isUsosDropdownOpen && (
+                                <div className="dropdown-menu">
+                                    {usos.length > 0 ? (
+                                        usos.map(uso => (
+                                            <Link 
+                                                key={uso.id} 
+                                                to={`/productos?uso=${uso.id}`} 
+                                                className="dropdown-item"
+                                                onClick={() => setIsUsosDropdownOpen(false)}
+                                            >
+                                                {uso.nombre}
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <span className="dropdown-item">Cargando...</span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* DESPLEGABLE COLORES (DESKTOP) */}
                         <div 
                             className="nav-dropdown-container"
                             onMouseEnter={() => setIsColorDropdownOpen(true)}
@@ -204,7 +245,38 @@ const Navbar = ({ cartCount = 0 }) => {
 
                     <div className="drawer-divider" />
 
-                    {/* 🌟 ACORDEÓN COLORES (MÓVIL) 🌟 */}
+                    {/* 🌟 ACORDEÓN TELAS PARA... (MÓVIL) 🌟 */}
+                    <div className="drawer-accordion">
+                        <button 
+                            className="drawer-link drawer-link--az w-100" 
+                            onClick={() => setIsMobileUsosOpen(!isMobileUsosOpen)}
+                            style={{ background: 'none', border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left' }}
+                        >
+                            <span className="az-inner">
+                                <Grid size={18} strokeWidth={1.5} /> Telas Para...
+                            </span>
+                            <ChevronDown 
+                                size={18} 
+                                strokeWidth={1.5} 
+                                style={{ transform: isMobileUsosOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }} 
+                            />
+                        </button>
+                        
+                        <div className={`mobile-dropdown-list ${isMobileUsosOpen ? 'open' : ''}`}>
+                            {usos.map(uso => (
+                                <Link 
+                                    key={uso.id} 
+                                    to={`/productos?uso=${uso.id}`} 
+                                    className="mobile-dropdown-item" 
+                                    onClick={closeMenu}
+                                >
+                                    {uso.nombre}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* ACORDEÓN COLORES (MÓVIL) */}
                     <div className="drawer-accordion">
                         <button 
                             className="drawer-link drawer-link--az w-100" 
