@@ -2,7 +2,7 @@
 
 # 1. AGRUPACIÓN DE PROVINCIAS (Origen: Córdoba)
 ZONAS_LOGISTICAS = {
-    'LOCAL': ['CB'], # Córdoba
+    'LOCAL': ['SF'], # Córdoba
     'REGIONAL': ['SF', 'BA', 'CABA', 'LP', 'SL', 'LR', 'CA', 'SE'], # Provincias limítrofes
     'NACIONAL_2': ['NQ', 'RN', 'CU', 'SC', 'TF'], # Patagonia (Costo extendido)
     # El resto caerá por defecto en NACIONAL_1
@@ -12,7 +12,7 @@ ZONAS_LOGISTICAS = {
 # Si aumenta el correo, solo tocás los números de este diccionario y se actualiza en toda la web.
 TARIFARIO = {
     'LOCAL': {
-        'sucursal': 4500,
+        'sucursal': 5650,
         'domicilio': 6000
     },
     'REGIONAL': {

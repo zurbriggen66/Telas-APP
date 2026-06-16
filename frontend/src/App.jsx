@@ -10,6 +10,7 @@ import VistaProductos from './pages/dashboard/VistaProductos';
 import VistaCategorias from './pages/dashboard/VistaCategorias';
 import VistaDiseno from './pages/dashboard/Vistadiseno';
 import VistaStats from './pages/dashboard/VistaStats';
+import OrdenesEnvios from './pages/dashboard/OrdenesEnvios';
 import VistaPedidos from './pages/dashboard/VistaPedidos';
 import VistaTransferencias from './pages/dashboard/VistaTransferencias';
 import VistaPuntosEntrega from './pages/dashboard/VistaPuntosEntrega';
@@ -92,6 +93,7 @@ function App() {
           <Route path="puntos-entrega" element={<VistaPuntosEntrega />} />
           <Route path="venta-local" element={<VentasLocal />} />
           <Route path="configuracion" element={<VistaConfiguracion />} />
+          <Route path="ordenes-envios" element={<OrdenesEnvios />} />
         </Route>
 
       </Routes>

@@ -1,0 +1,271 @@
+/* Contenedor principal */
+.ordenes-container {
+  padding: 40px; /* Más aire en pantallas grandes */
+  max-width: 1200px;
+  margin-left: 200px;
+  margin: 0 auto;
+  font-family: 'DM Sans', sans-serif;
+  background-color: #fafafa;
+  min-height: 100vh;
+  box-sizing: border-box; /* Evita que el padding expanda la página horizontalmente */
+}
+
+/* Ajuste específico para celulares y pantallas divididas (evita el menú hamburguesa) */
+@media (max-width: 768px) {
+  .ordenes-container {
+    padding: 0px 8px 30px 8px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+.ordenes-header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.ordenes-header p {
+  color: #64748b;
+  font-size: 15px;
+  margin-bottom: 32px;
+}
+
+/* Estado de lista vacía */
+.ordenes-empty {
+  text-align: center;
+  padding: 80px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  color: #94a3b8;
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px dashed #cbd5e1;
+}
+
+/* Grilla de tarjetas */
+.ordenes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Tarjeta individual */
+.pedido-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pedido-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Encabezado de la tarjeta */
+.pedido-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.pedido-id {
+  margin: 0;
+  font-size: 18px;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.badge-aprobado {
+  background: #dcfce7;
+  color: #166534;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Cuerpo de la tarjeta (Datos) */
+.pedido-body {
+  flex: 1;
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 20px;
+}
+
+.dato-fila {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.dato-icon {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.dato-text strong {
+  color: #334155;
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.productos-box {
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  white-space: pre-line;
+  border: 1px solid #e2e8f0;
+  margin-top: 8px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+/* Sección de Despacho (Input y Botón) */
+.despacho-section label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tracking-input {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-family: inherit;
+  color: #0f172a;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tracking-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.btn-despachar {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  background: #4f46e5;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-despachar:hover:not(:disabled) {
+  background: #4338ca;
+}
+
+.btn-despachar:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-despachar:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* --- TOAST NOTIFICATION --- */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.toast {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  border-left: 4px solid #10b981;
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast.error {
+  border-left-color: #ef4444;
+}
+
+.toast-icon {
+  font-size: 20px;
+}
+
+.toast-message {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 14px;
+  flex: 1;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+
+/* Banner informativo */
+.info-banner {
+  background-color: #eff6ff; /* Fondo azul muy suave */
+  border-left: 4px solid #3b82f6; /* Borde azul destacado */
+  padding: 16px 20px;
+  margin-bottom: 32px;
+  border-radius: 8px;
+  color: #1e3a8a;
+  font-size: 14.5px;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.info-banner-icon {
+  font-size: 20px;
+  margin-top: 2px;
+}
+
+.info-banner strong {
+  font-weight: 700;
+  color: #1e40af;
+  display: block;
+  margin-bottom: 4px;
+}

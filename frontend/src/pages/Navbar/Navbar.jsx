@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { ShoppingCart, Store, User, X, ChevronRight, ArrowUpDown, ChevronDown, Palette, Grid, Truck } from 'lucide-react';
 import './Navbar.css';
@@ -8,6 +8,13 @@ const Navbar = ({ cartCount = 0 }) => {
     // 1. ESTADOS
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+
+    const location = useLocation();
+
+    // 👇 Si estamos en el dashboard, devolvemos null (no renderiza NADA, no ocupa espacio)
+    if (location.pathname.includes('/dashboard')) {
+        return null;
+    }
     
     // Intentamos cargar el logo de la memoria primero para que sea instantáneo
     const [logoUrl, setLogoUrl] = useState(() => sessionStorage.getItem('telasLogo') || null);

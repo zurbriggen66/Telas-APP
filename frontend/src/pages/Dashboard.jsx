@@ -89,34 +89,58 @@ const Dashboard = () => {
   return (
     <div className="dashboard-root" style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', width: '100vw', marginLeft: 'calc(-50vw + 50%)', margin: 0, padding: 0, top: 0, left: 0, background: '#f8fafc', position: 'relative', fontFamily: "'DM Sans', sans-serif" }}>
       
-      {/* 🌟 BOTÓN MENÚ FLOTANTE MÓVIL (Reemplaza a la barra superior oscura) 🌟 */}
+      {/* 🌟 BARRA SUPERIOR MÓVIL CON LOGO Y MENÚ 🌟 */}
       {isMobile && (
-        <button 
-          onClick={() => setMenuAbierto(true)}
-          style={{ 
-            position: 'fixed', 
-            top: '16px', 
-            left: '16px', 
-            zIndex: 40,
-            background: 'rgba(255, 255, 255, 0.8)', 
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(0, 0, 0, 0.05)', 
-            borderRadius: '12px',
-            padding: '10px', 
-            cursor: 'pointer', 
-            display: 'flex', 
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '60px',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 16px',
+          zIndex: 40,
+          boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+        }}>
+          {/* Botón de menú hamburguesa */}
+          <button 
+            onClick={() => setMenuAbierto(true)}
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              padding: '8px', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center',
+              position: 'relative'
+            }}
+          >
+            <Icon d={icons.menu} size={24} color="#0f172a" strokeWidth="2" />
+            {/* Puntito rojo de notificación */}
+            {(transferenciasCount > 0 || pedidosNuevosCount > 0) && (
+              <span style={{ width: 10, height: 10, background: '#ef4444', border: '2px solid white', borderRadius: '50%', position: 'absolute', top: 4, right: 4 }} />
+            )}
+          </button>
+
+          {/* Logo / Nombre  */}
+          <div style={{ 
+            fontSize: '18px', 
+            fontWeight: '800', 
+            color: '#0f172a', 
+            letterSpacing: '-0.5px',
+            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-          }}
-        >
-          <Icon d={icons.menu} size={24} color="#0f172a" strokeWidth="2" />
-          {/* Puntito rojo de notificación en el botón flotante */}
-          {(transferenciasCount > 0 || pedidosNuevosCount > 0) && (
-            <span style={{ width: 10, height: 10, background: '#ef4444', border: '2px solid white', borderRadius: '50%', position: 'absolute', top: -2, right: -2 }} />
-          )}
-        </button>
+            gap: '6px'
+          }}>
+            Tienda<span style={{ color: '#6366f1' }}>IA</span>
+          </div>
+        </div>
       )}
 
       {/* OVERLAY OSCURO */}
@@ -177,7 +201,13 @@ const Dashboard = () => {
           <button style={getLinkStyle('/dashboard/pedidos')} onClick={() => navigate('/dashboard/pedidos')}>
             <Icon d={icons.orders} size={18} color={isActive('/dashboard/pedidos') ? '#6366f1' : '#94a3b8'} /> Ventas & Pedidos
             <Badge count={pedidosNuevosCount} />
+
           </button>
+
+          <button style={getLinkStyle('/dashboard/ordenes-envios')} onClick={() => navigate('/dashboard/ordenes-envios')}>
+  <Icon d={icons.package} size={18} color={isActive('/dashboard/ordenes-envios') ? '#6366f1' : '#94a3b8'} /> Órdenes y Envíos
+</button>
+
           <button style={getLinkStyle('/dashboard/transferencias')} onClick={() => navigate('/dashboard/transferencias')}>
             <Icon d={icons.orders} size={18} color={isActive('/dashboard/transferencias') ? '#6366f1' : '#94a3b8'} /> Transferencias
             <Badge count={transferenciasCount} />
@@ -189,7 +219,6 @@ const Dashboard = () => {
 
           <div style={{ fontSize: '11px', fontWeight: 700, color: '#475569', margin: '24px 0 8px 16px', textTransform: 'uppercase', letterSpacing: '1px' }}>Ajustes</div>
           <button style={getLinkStyle('/dashboard/configuracion')} onClick={() => navigate('/dashboard/configuracion')}>
-            {/* Si no tienes un ícono de engranaje en tu archivo icons, puedes usar la librería de lucide-react agregando import { Settings } from 'lucide-react' arriba */}
             <Icon d={icons.design} size={18} color={isActive('/dashboard/configuracion') ? '#6366f1' : '#94a3b8'} /> Configuración General
           </button>
           
@@ -197,10 +226,10 @@ const Dashboard = () => {
       </aside>
 
       {/* 🌟 CONTENEDOR PRINCIPAL (MAIN) 🌟 */}
-      {/* Se agrega un padding-top extra en móviles (64px) para que el botón flotante no pise tu contenido */}
+      {/* Se agregó padding de 80px superior en móviles para no pisar el Top Bar, y 16px de márgenes laterales seguros */}
       <main style={{
         flex: 1, 
-        padding: isMobile ? '64px 16px 24px' : '20px 40px',
+        padding: isMobile ? '80px 16px 24px' : '20px 40px',
         maxWidth: '100vw', 
         boxSizing: 'border-box', 
         overflowX: 'hidden', 

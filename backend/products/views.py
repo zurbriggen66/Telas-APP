@@ -35,6 +35,10 @@ from .services_envia import buscar_sucursales_cercanas, calcular_costo_envio, ra
 # ⚠️ IMPORTAMOS EL NUEVO MODELO 'Pedido'
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem
 from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, ProductoSerializer, ProductoImagenSerializer, PedidoSerializer, ColorSerializer
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .services_tarifas import determinar_zona, calcular_precio_envio
 
 @api_view(['GET', 'POST'])
 @parser_classes([MultiPartParser, FormParser])
@@ -275,6 +279,41 @@ class PedidoViewSet(viewsets.ModelViewSet):
         pedido.save()
 
         return Response({"mensaje": "Pedido marcado como enviado por comisionista"}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def despachar_pedido(self, request, pk=None):
+        pedido = self.get_object()
+        tracking_number = request.data.get('tracking_number')
+
+        if not tracking_number:
+            return Response({"error": "Debe proporcionar un número de seguimiento"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if pedido.estado == 'Aprobado' or pedido.estado == 'APROBADO':
+            pedido.estado = 'Despachado'
+            pedido.tracking_number = tracking_number
+            pedido.save()
+
+            try:
+                asunto_cliente = f"📦 ¡Tu pedido ya fue despachado!"
+                mensaje_cliente = (
+                    f"¡Hola {pedido.nombre_cliente}!\n\n"
+                    f"Te avisamos que tu pedido ya fue despachado y está en camino.\n\n"
+                    f"Tu número de seguimiento es: {tracking_number}\n\n"
+                    f"Ingresá al siguiente link y digitá el número de arriba para consultar el estado de tu envío en la página oficial de Correo Argentino:\n"
+                    f"👉 https://www.correoargentino.com.ar/formularios/e-commerce\n\n"
+                    f"Detalle de las telas enviadas:\n{pedido.detalle_items}\n\n"
+                    f"📍 Destino: {pedido.direccion_envio}\n\n"
+                    f"¡Gracias por elegir Telas APP!"
+                )
+                send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
+            except Exception as e:
+                print(f"⚠️ Error al enviar correo de despacho: {e}")
+
+            return Response({"mensaje": "Pedido despachado y correo enviado exitosamente"}, status=status.HTTP_200_OK)
+        
+        return Response({"error": "El pedido debe estar Aprobado para poder despacharse."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
 
 # =========================================================================
 #  3. VISTA PARA CREAR EL PEDIDO DESDE EL CHECKOUT DE REACT
@@ -622,13 +661,7 @@ class ProductoAZList(generics.ListAPIView):
     queryset = Producto.objects.all().order_by('nombre')
     serializer_class = ProductoDesplegableSerializer
 
-import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .services_correo import buscar_por_cp
-from .services_tarifas import determinar_zona, calcular_precio_envio
+
 
 # ==========================================
 # 1. BÚSQUEDA DE SUCURSALES
@@ -810,6 +843,8 @@ class ConfirmarPedidoView(APIView):
         enviar_notificacion_dueño(pedido, telefono_del_dueño)
 
         return Response({"mensaje": "Pedido confirmado y alerta de WhatsApp enviada al dueño."})
+
+        
     
 # ventas en local
 
@@ -1086,3 +1121,5 @@ def api_dashboard_inicio(request):
         "a_despachar": a_despachar_lista, # Cambiamos el nombre de la variable
         "stock_bajo": stock_bajo_lista
     })
+
+
