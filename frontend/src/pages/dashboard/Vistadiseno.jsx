@@ -7,7 +7,8 @@ import { Icon, icons } from '../../components/Icons';
 
 const API = import.meta.env.VITE_API_URL + '/api';
 
-const ImageUploadBox = ({ title, fieldName, fileData, onFileChange, recomendacion }) => {
+// 👇 NUEVO: Se agregó onRemoveImage a las propiedades 👇
+const ImageUploadBox = ({ title, fieldName, fileData, onFileChange, onRemoveImage, recomendacion }) => {
   const [dragging, setDragging] = useState(false);
 
   return (
@@ -21,17 +22,33 @@ const ImageUploadBox = ({ title, fieldName, fileData, onFileChange, recomendacio
         onDragOver={e => { e.preventDefault(); setDragging(true); }}
         onDragLeave={() => setDragging(false)}
         onDrop={e => { e.preventDefault(); setDragging(false); onFileChange(fieldName, e.dataTransfer.files[0]); }}
-        onClick={() => document.getElementById(`file-${fieldName}`).click()}
+        // 👇 NUEVO: Evitamos abrir el selector de archivos si ya hay una imagen 👇
+        onClick={() => !fileData.preview && document.getElementById(`file-${fieldName}`).click()}
         style={{
           width: '100%', height: 160, borderRadius: 10,
           border: dragging ? '2px dashed #6366f1' : '2px dashed #e2e8f0',
           background: dragging ? '#f0f0ff' : '#f8fafc',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s',
+          overflow: 'hidden', cursor: fileData.preview ? 'default' : 'pointer', transition: 'all 0.2s',
+          position: 'relative' // 👇 NUEVO: Necesario para posicionar el botón de eliminar 👇
         }}
       >
         {fileData.preview ? (
-          <img src={fileData.preview} alt={title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 10 }} />
+          <>
+            <img src={fileData.preview} alt={title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 10 }} />
+            {/* 👇 NUEVO: Botón de eliminar (Tachito/Cruz) 👇 */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onRemoveImage(fieldName); }}
+              style={{
+                position: 'absolute', top: 10, right: 10, background: '#ef4444', border: 'none',
+                borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+              }}
+              title="Eliminar imagen"
+            >
+              <Icon d={icons.x} size={16} color="white" />
+            </button>
+          </>
         ) : (
           <div style={{ textAlign: 'center', color: '#94a3b8' }}>
             <Icon d={icons.upload} size={28} color="#cbd5e1" />
@@ -55,7 +72,7 @@ const VistaDiseno = () => {
   const [loadingColor, setLoadingColor] = useState(false);
   const [mostrarPicker, setMostrarPicker] = useState(false);
 
-  // 👇 NUEVO: ESTADOS PARA USOS (TELAS PARA...) 👇
+  // ESTADOS PARA USOS
   const [usos, setUsos] = useState([]);
   const [nuevoUso, setNuevoUso] = useState('');
   const [loadingUso, setLoadingUso] = useState(false);
@@ -93,7 +110,7 @@ const VistaDiseno = () => {
     }).catch(() => {});
 
     fetchColores();
-    fetchUsos(); // 👇 Cargar los usos al iniciar
+    fetchUsos(); 
   }, []);
 
   const fetchColores = async () => {
@@ -103,7 +120,6 @@ const VistaDiseno = () => {
     } catch (error) { console.error("Error colores:", error); }
   };
 
-  // 👇 NUEVO: FUNCIONES PARA GESTIONAR USOS 👇
   const fetchUsos = async () => {
     try {
       const res = await axios.get(`${API}/usos/`);
@@ -132,8 +148,7 @@ const VistaDiseno = () => {
       setUsos(usos.filter(u => u.id !== id));
     } catch (error) { alert("No se pudo eliminar."); }
   };
-  // 👆 FIN FUNCIONES USOS 👆
-
+  
   const handleAddColor = async () => {
     if (!nuevoColor.nombre.trim()) return alert("El nombre es obligatorio.");
     setLoadingColor(true);
@@ -153,9 +168,15 @@ const VistaDiseno = () => {
   };
 
   const handleTextChange = (e) => setTextData({ ...textData, [e.target.name]: e.target.value });
+  
   const handleImageChange = (fieldName, file) => {
     if (!file) return;
     setImages(prev => ({ ...prev, [fieldName]: { file: file, preview: URL.createObjectURL(file) } }));
+  };
+
+  // 👇 NUEVO: Función para limpiar la imagen seleccionada 👇
+  const handleRemoveImage = (fieldName) => {
+    setImages(prev => ({ ...prev, [fieldName]: { file: null, preview: null } }));
   };
 
   const handleGuardarTodo = async () => {
@@ -165,6 +186,8 @@ const VistaDiseno = () => {
     formData.append('telefono', textData.telefono);
 
     Object.keys(images).forEach(key => {
+      // Nota: Si el backend requiere explícitamente saber que una imagen existente 
+      // fue eliminada, podrías necesitar enviar un flag adicional aquí.
       if (images[key].file) formData.append(key, images[key].file);
     });
 
@@ -186,7 +209,6 @@ const VistaDiseno = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, marginBottom: 24 }}>
-        {/* TARJETA DE COLORES */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <div style={{ background: '#f0fdf4', padding: '6px', borderRadius: '8px' }}><Icon d={icons.tag} size={20} color="#16a34a" /></div>
@@ -199,7 +221,6 @@ const VistaDiseno = () => {
                 <input value={nuevoColor.nombre} onChange={e => setNuevoColor({...nuevoColor, nombre: e.target.value})} placeholder="Ej: Verde Oliva" style={{ ...inputStyle, marginBottom: 0 }} />
              </div>
              
-             {/* 👇 INICIO DEL NUEVO SELECTOR DE COLOR 👇 */}
              <div style={{ width: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', ...inputStyle, marginBottom: 0, padding: '7px 8px', position: 'relative' }}>
                 <div 
                     onClick={() => setMostrarPicker(!mostrarPicker)}
@@ -226,7 +247,6 @@ const VistaDiseno = () => {
                     </div>
                 )}
              </div>
-             {/* 👆 FIN DEL NUEVO SELECTOR DE COLOR 👆 */}
 
              <button onClick={handleAddColor} disabled={loadingColor} style={{ background: '#10b981', color: 'white', border: 'none', borderRadius: 8, padding: '0 16px', fontWeight: 700, cursor: 'pointer', height: 42 }}>{loadingColor ? '...' : 'Añadir'}</button>
           </div>
@@ -242,7 +262,6 @@ const VistaDiseno = () => {
           </div>
         </Card>
 
-        {/* 👇 NUEVO: TARJETA DE USOS (TELAS PARA...) 👇 */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <div style={{ background: '#fef3c7', padding: '6px', borderRadius: '8px' }}><Icon d={icons.grid} size={20} color="#d97706" /></div>
@@ -268,7 +287,6 @@ const VistaDiseno = () => {
         </Card>
       </div>
 
-      {/* GRID EN 2 COLUMNAS (Banners y Redes) - SIN CAMBIOS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <Card>
@@ -287,8 +305,9 @@ const VistaDiseno = () => {
               <Icon d={icons.image} size={20} color="#6366f1" />
               <h3 style={{ margin: 0, fontSize: 16, color: '#0f172a' }}>Logotipos</h3>
             </div>
-            <ImageUploadBox title="Logo Principal" fieldName="logo" fileData={images.logo} onFileChange={handleImageChange} />
-            <ImageUploadBox title="Logo del Desarrollador" fieldName="logo_desarrollador" fileData={images.logo_desarrollador} onFileChange={handleImageChange} />
+            {/* 👇 NUEVO: Se agregó onRemoveImage={handleRemoveImage} a todos los ImageUploadBox 👇 */}
+            <ImageUploadBox title="Logo Principal" fieldName="logo" fileData={images.logo} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+            <ImageUploadBox title="Logo del Desarrollador" fieldName="logo_desarrollador" fileData={images.logo_desarrollador} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
           </Card>
         </div>
 
@@ -298,22 +317,21 @@ const VistaDiseno = () => {
               <Icon d={icons.grid} size={20} color="#6366f1" />
               <h3 style={{ margin: 0, fontSize: 16, color: '#0f172a' }}>Banners (Carrusel Principal)</h3>
             </div>
-            <ImageUploadBox title="Banner Principal 1" fieldName="banner_1" fileData={images.banner_1} onFileChange={handleImageChange} />
-            <ImageUploadBox title="Banner Principal 2" fieldName="banner_2" fileData={images.banner_2} onFileChange={handleImageChange} />
-            <ImageUploadBox title="Banner Principal 3" fieldName="banner_3" fileData={images.banner_3} onFileChange={handleImageChange} />
+            <ImageUploadBox title="Banner Principal 1" fieldName="banner_1" fileData={images.banner_1} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+            <ImageUploadBox title="Banner Principal 2" fieldName="banner_2" fileData={images.banner_2} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+            <ImageUploadBox title="Banner Principal 3" fieldName="banner_3" fileData={images.banner_3} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
           </Card>
           <Card>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
               <Icon d={icons.grid} size={20} color="#6366f1" />
               <h3 style={{ margin: 0, fontSize: 16, color: '#0f172a' }}>Imágenes Secundarias</h3>
             </div>
-            <ImageUploadBox title="Imagen Secundaria 1" fieldName="imagen_secundaria_1" fileData={images.imagen_secundaria_1} onFileChange={handleImageChange} />
-            <ImageUploadBox title="Imagen Secundaria 2" fieldName="imagen_secundaria_2" fileData={images.imagen_secundaria_2} onFileChange={handleImageChange} />
+            <ImageUploadBox title="Imagen Secundaria 1" fieldName="imagen_secundaria_1" fileData={images.imagen_secundaria_1} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
+            <ImageUploadBox title="Imagen Secundaria 2" fieldName="imagen_secundaria_2" fileData={images.imagen_secundaria_2} onFileChange={handleImageChange} onRemoveImage={handleRemoveImage} />
           </Card>
         </div>
       </div>
 
-      {/* BARRA FLOTANTE DE GUARDADO */}
       <div style={{ position: 'fixed', bottom: isMobile ? 16 : 20, right: isMobile ? 16 : 20, left: isMobile ? 16 : 270, padding: isMobile ? '12px' : '16px 24px', background: 'white', borderRadius: 12, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: isMobile ? 'center' : 'space-between', zIndex: 100, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)' }}>
         {!isMobile && (
           <div>
