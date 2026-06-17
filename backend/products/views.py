@@ -454,9 +454,18 @@ class CrearPedidoView(APIView):
                 }, status=status.HTTP_201_CREATED)
 
             elif metodo_pago == 'Mercado Pago':
-                sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
-                items_for_mp = []
 
+               # Buscamos la configuración activa en la base de datos
+                config = StoreConfiguration.objects.filter(is_active=True).first()
+            
+            # Verificamos que exista y tenga el token guardado
+                if not config or not config.mp_access_token:
+                    return Response({"error": "La tienda no ha vinculado su cuenta de Mercado Pago."}, status=status.HTTP_400_BAD_REQUEST) 
+                # Inicializamos el SDK con el token dinámico del cliente
+                sdk = mercadopago.SDK(config.mp_access_token)
+
+                items_for_mp = []
+               
                 for item in cart_items:
                     items_for_mp.append({
                         "id": str(item.get('id', '1')),
@@ -517,6 +526,7 @@ class CrearPedidoView(APIView):
             return Response({"error": str(ve)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": f"Error interno del servidor: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 #  4. WEBHOOKS Y REDIRECTS DE MERCADO PAGO
 # =========================================================================
 @api_view(['GET'])
