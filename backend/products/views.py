@@ -485,8 +485,7 @@ class CrearPedidoView(APIView):
                         "currency_id": "ARS",
                     })
 
-                ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
-
+                dominio_url = "https://ignaciozurbriggen.pythonanywhere.com"
                 preference_data = {
                     "items": items_for_mp,
                     "payer": {
@@ -502,7 +501,7 @@ class CrearPedidoView(APIView):
                         "nombre_contacto": pedido.nombre_cliente
                     },
                     "back_urls": {
-                        "success": f"{ngrok_url}/api/mercadopago/success/", 
+                        "success": f"{dominio_url}/api/mercadopago/success/", 
                         "failure": "http://localhost:5173/checkout",
                         "pending": "http://localhost:5173/checkout"
                     },
@@ -544,7 +543,7 @@ def webhook_mercadopago(request):
             if PagoProcesado.objects.filter(pago_id=payment_id).exists():
                 return Response({"status": "ya procesado"}, status=status.HTTP_200_OK)
 
-            sdk = mercadopago.SDK("APP_USR-1917487181339285-051122-426205322cae03264b84dd8070b963b0-3151002850")
+            sdk = mercadopago.SDK(config.mp_access_token)
             payment_info = sdk.payment().get(payment_id)
             
             if payment_info["status"] == 200:
