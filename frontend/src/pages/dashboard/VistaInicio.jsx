@@ -21,12 +21,25 @@ const VistaInicio = () => {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
+    
+    // 1. Si viene de vincular, mostramos la alerta
     if (searchParams.get('success') === 'mp_vinculado') {
-      setEstaVinculadoMp(true);
+      alert('¡Cuenta de Mercado Pago vinculada exitosamente! Ya puedes recibir pagos.');
+      
+      // Limpiamos la URL para que la alerta no vuelva a salir si apretamos F5
+      window.history.replaceState(null, '', window.location.pathname);
     }
 
+    // 2. Pedimos los datos al backend
     axios.get(`${API}/dashboard/inicio/`)
-      .then(res => setData(res.data))
+      .then(res => {
+        setData(res.data);
+        
+        // 3. Leemos el estado real desde la base de datos
+        if (res.data.mp_conectado) {
+          setEstaVinculadoMp(true);
+        }
+      })
       .catch(err => console.error("Error cargando dashboard:", err));
   }, [location.search]);
 

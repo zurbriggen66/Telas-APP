@@ -1062,7 +1062,6 @@ def mercadopago_callback(request):
         print("Error de Mercado Pago:", mp_data) # Ideal para mirar en la terminal si algo falla
         return redirect(f"{URL_FRONTEND}?error=token_failed")
     
-
 @api_view(['GET'])
 def api_dashboard_inicio(request):
     hoy = timezone.now().date()
@@ -1104,7 +1103,7 @@ def api_dashboard_inicio(request):
     a_despachar_lista = [{
         "cliente": p.nombre_cliente,
         "fecha": p.fecha_creacion.strftime("%d %b"),
-        "envio": p.tipo_envio if p.tipo_envio else "Retiro / Envío", # Para mostrar cómo entregarlo
+        "envio": p.tipo_envio if p.tipo_envio else "Retiro / Envío", 
         "total": float(p.total)
     } for p in pedidos_a_despachar]
 
@@ -1117,6 +1116,10 @@ def api_dashboard_inicio(request):
         "precio": float(p.precio_por_metro) if p.precio_por_metro else 0 
     } for p in stock_bajo]
 
+    # 👇 5. NUEVO: VERIFICAMOS SI ESTÁ CONECTADO A MP 👇
+    config = StoreConfiguration.objects.filter(is_active=True).first()
+    mp_conectado = bool(config and config.mp_access_token)
+
     return Response({
         "stats": {
             "productos": total_productos,
@@ -1124,8 +1127,7 @@ def api_dashboard_inicio(request):
             "ventas_totales": float(ventas_totales_mes),
         },
         "grafico": ventas_por_dia,
-        "a_despachar": a_despachar_lista, # Cambiamos el nombre de la variable
-        "stock_bajo": stock_bajo_lista
+        "a_despachar": a_despachar_lista, 
+        "stock_bajo": stock_bajo_lista,
+        "mp_conectado": mp_conectado  # <-- Se lo enviamos a React
     })
-
-
