@@ -15,6 +15,7 @@ import requests
 from rest_framework.permissions import AllowAny
 from .services_correo import buscar_por_cp
 import os
+import traceback
 # revisar luego si todos los import son necesarios o si quedaron algunos de pruebas anteriores
 from .models import Producto, StoreConfiguration, Categoria, ProductoImagen, PagoProcesado, Pedido, PedidoItem, TarifaLocal, Color, UsoTela
 from .serializers import CategoriaSerializer, ProductoDesplegableSerializer, StoreConfigurationSerializer, Producto, UsoTelaSerializer, TarifaLocalSerializer
@@ -502,8 +503,8 @@ class CrearPedidoView(APIView):
                     },
                     "back_urls": {
                         "success": f"{dominio_url}/api/mercadopago/success/", 
-                        "failure": "http://localhost:5173/checkout",
-                        "pending": "http://localhost:5173/checkout"
+                        "failure": "https://www.modaytelas.com.ar/checkout",
+                        "pending": "https://www.modaytelas.com.ar/checkout"
                     },
                     "auto_return": "approved",
                     "binary_mode": True,
@@ -530,8 +531,7 @@ class CrearPedidoView(APIView):
 # =========================================================================
 @api_view(['GET'])
 def success_redirect(request):
-    return redirect("http://localhost:5173/success")
-
+    return redirect("https://www.modaytelas.com.ar/success")
 @api_view(['POST'])
 def webhook_mercadopago(request):
     try:
@@ -543,7 +543,12 @@ def webhook_mercadopago(request):
             if PagoProcesado.objects.filter(pago_id=payment_id).exists():
                 return Response({"status": "ya procesado"}, status=status.HTTP_200_OK)
 
-            sdk = mercadopago.SDK(config.mp_access_token)   
+            # Buscamos el token del cliente
+            config = StoreConfiguration.objects.filter(is_active=True).first()
+            if not config or not config.mp_access_token:
+                return Response({"error": "Tienda sin token"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            sdk = mercadopago.SDK(config.mp_access_token)
             payment_info = sdk.payment().get(payment_id)
             
             if payment_info["status"] == 200:
@@ -555,60 +560,52 @@ def webhook_mercadopago(request):
                     pedido_id = metadata.get("pedido_id")
 
                     if pedido_id:
-                        try:
-                            pedido = Pedido.objects.get(id=pedido_id)
-                            
-                            if pedido.estado != 'Aprobado':
-                                pedido.estado = 'Aprobado'
-                                pedido.mp_id = payment_id
-                                pedido.save()
-
-                                config = StoreConfiguration.objects.filter(is_active=True).first()
-                                correo_dueño = config.correo_contacto if config and config.correo_contacto else 'nachozubri15@gmail.com'
-
-                                # Correos informativos automáticos
-                                try:
-                                    asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
-                                    mensaje_cliente = f"¡Hola! Muchas gracias por tu compra.\n\nTu pago por ${pedido.total} ha sido procesado con éxito mediante Mercado Pago.\n\nDetalle de las telas:\n{pedido.detalle_items}\nNos comunicaremos pronto para coordinar el envío."
-                                    send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
-
-                                    asunto_dueno = f"🚀 ¡NUEVA VENTA MP! - ${pedido.total} (Pedido #{pedido.id})"
-                                    mensaje_dueno = f"¡Hola! Tienes una nueva venta aprobada vía Mercado Pago.\n\n💰 Monto: ${pedido.total}\n👤 Cliente: {pedido.nombre_cliente}\n📦 Detalle:\n{pedido.detalle_items}"
-                                    send_mail(asunto_dueno, mensaje_dueno, settings.DEFAULT_FROM_EMAIL, [correo_dueño], fail_silently=False)
-                                except Exception as e_mail:
-                                    print(f"⚠️ Error al enviar correos: {e_mail}")
-
-                                # Disparo automático de la plantilla de WhatsApp al dueño
-                                try:
-                                    detalle_envio = getattr(pedido, 'direccion_envio', 'No especificado')
-
-                                    datos_plantilla = [
-                                        str(pedido.nombre_cliente),                         # {{1}}
-                                        str(pedido.telefono_cliente or 'No especificado'),  # {{2}}
-                                        str(pedido.email_cliente),                          # {{3}}
-                                        str(pedido.detalle_items),                          # {{4}}
-                                        str(pedido.total),                                  # {{5}}
-                                        str(detalle_envio)                                  # {{6}}
-                                    ]
-                                    
-                                    enviar_plantilla_whatsapp("543544630650", "confirmacion_venta", datos_plantilla)
-                                    
-                                except Exception as e_wpp:
-                                    print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
-
-                                
-
-                        except Pedido.DoesNotExist:
-                            print(f"⚠️ Alerta: Se recibió pago de MP para el Pedido #{pedido_id} pero no existe en la BD.")
-        
+                        pedido = Pedido.objects.get(id=pedido_id)
                         
+                        if pedido.estado != 'Aprobado':
+                            pedido.estado = 'Aprobado'
+                            pedido.mp_id = payment_id
+                            pedido.save()
 
-                        
+                            correo_dueño = config.correo_contacto if config and config.correo_contacto else 'nachozubri15@gmail.com'
+
+                            # ⚠️ Nota sobre correos: PythonAnywhere gratuito bloquea puertos SMTP estándar.
+                            # Si esto falla, el except lo atrapará y el pedido seguirá Aprobado.
+                            try:
+                                asunto_cliente = "¡Tu pago fue aprobado! Gracias por elegir Telas APP 🧵✨"
+                                mensaje_cliente = f"¡Hola! Muchas gracias por tu compra.\n\nTu pago por ${pedido.total} ha sido procesado con éxito mediante Mercado Pago.\n\nDetalle de las telas:\n{pedido.detalle_items}\nNos comunicaremos pronto para coordinar el envío."
+                                send_mail(asunto_cliente, mensaje_cliente, settings.DEFAULT_FROM_EMAIL, [pedido.email_cliente], fail_silently=False)
+
+                                asunto_dueno = f"🚀 ¡NUEVA VENTA MP! - ${pedido.total} (Pedido #{pedido.id})"
+                                mensaje_dueno = f"¡Hola! Tienes una nueva venta aprobada vía Mercado Pago.\n\n💰 Monto: ${pedido.total}\n👤 Cliente: {pedido.nombre_cliente}\n📦 Detalle:\n{pedido.detalle_items}"
+                                send_mail(asunto_dueno, mensaje_dueno, settings.DEFAULT_FROM_EMAIL, [correo_dueño], fail_silently=False)
+                            except Exception as e_mail:
+                                print(f"⚠️ Error al enviar correos: {e_mail}")
+
+                            try:
+                                detalle_envio = getattr(pedido, 'direccion_envio', 'No especificado')
+                                datos_plantilla = [
+                                    str(pedido.nombre_cliente),
+                                    str(pedido.telefono_cliente or 'No especificado'),
+                                    str(pedido.email_cliente),
+                                    str(pedido.detalle_items),
+                                    str(pedido.total),
+                                    str(detalle_envio)
+                                ]
+                                enviar_plantilla_whatsapp("543544630650", "confirmacion_venta", datos_plantilla)
+                            except Exception as e_wpp:
+                                print(f"⚠️ Error al enviar WhatsApp: {e_wpp}")
 
         return Response({"status": "recibido"}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({"error": "Fallo en webhook"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    except Pedido.DoesNotExist:
+        print(f"⚠️ Alerta: Pedido no existe en la BD.")
+        return Response({"error": "Pedido no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        
+    except Exception as e:
+        print("❌ ERROR CRÍTICO EN WEBHOOK:")
+        traceback.print_exc() # Esto enviará el detalle exacto al archivo error.log
+        return Response({"error": "Fallo en webhook"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # =========================================================================
 #  5. CLASE DE PREFERENCIA INDEPENDIENTE DE MERCADO PAGO (OPCIONAL)
@@ -647,8 +644,8 @@ class MercadoPagoPreferenceView(APIView):
                 },
                 "back_urls": {
                     "success": f"{dominio_url}/api/mercadopago/success/", 
-                    "failure": "http://localhost:5173/checkout",
-                    "pending": "http://localhost:5173/checkout"
+                    "failure": "https://www.modaytelas.com.ar/checkout",
+                    "pending": "https://www.modaytelas.com.ar/checkout"
                 },
                 "auto_return": "approved",
                 "binary_mode": True,
