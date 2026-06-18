@@ -507,7 +507,7 @@ class CrearPedidoView(APIView):
                     },
                     "auto_return": "approved",
                     "binary_mode": True,
-                    "notification_url": f"{ngrok_url}/api/mercadopago/webhook/"
+                    "notification_url": f"{dominio_url}/api/mercadopago/webhook/"
                 }
 
                 preference_response = sdk.preference().create(preference_data)
@@ -543,7 +543,7 @@ def webhook_mercadopago(request):
             if PagoProcesado.objects.filter(pago_id=payment_id).exists():
                 return Response({"status": "ya procesado"}, status=status.HTTP_200_OK)
 
-            sdk = mercadopago.SDK(config.mp_access_token)
+            sdk = mercadopago.SDK(config.mp_access_token)   
             payment_info = sdk.payment().get(payment_id)
             
             if payment_info["status"] == 200:
@@ -630,7 +630,7 @@ class MercadoPagoPreferenceView(APIView):
                     "currency_id": "ARS",
                 })
 
-            ngrok_url = "https://untouching-morally-amaya.ngrok-free.dev"
+            dominio_url = "https://ignaciozurbriggen.pythonanywhere.com"
 
             preference_data = {
                 "items": items_for_mp,
@@ -646,13 +646,13 @@ class MercadoPagoPreferenceView(APIView):
                     "nombre_contacto": f"{payer_data.get('nombre', '')} {payer_data.get('apellido', '')}"
                 },
                 "back_urls": {
-                    "success": f"{ngrok_url}/api/mercadopago/success/", 
+                    "success": f"{dominio_url}/api/mercadopago/success/", 
                     "failure": "http://localhost:5173/checkout",
                     "pending": "http://localhost:5173/checkout"
                 },
                 "auto_return": "approved",
                 "binary_mode": True,
-                "notification_url": f"{ngrok_url}/api/mercadopago/webhook/"
+                "notification_url": f"{dominio_url}/api/mercadopago/webhook/"
             }
 
             preference_response = sdk.preference().create(preference_data)
