@@ -45,7 +45,7 @@ EMAIL_HOST_USER = 'resend' # ahora aqui va resend, en production deberías usar 
 EMAIL_HOST_PASSWORD = 're_ay23At3J_C1cz8Lwkfko7u3mw37you1f9'  # PEGA ACÁ TU API KEY DE RESEND (EMPIEZA CON "re_") 
 # DEFAULT_FROM_EMAIL = 'Telas APP <nachozubri15@gmail.com>'
 # Como aún no verificaste un dominio propio, DEBES usar este remitente de prueba:
-DEFAULT_FROM_EMAIL = 'onboarding@resend.dev'
+DEFAULT_FROM_EMAIL = "Telas APP <ventas@modaytelas.com.ar>"
 
 # Application definition
 
