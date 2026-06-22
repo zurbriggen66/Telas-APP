@@ -1,5 +1,5 @@
 /* Importamos fuentes elegantes para un look de boutique */
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
 
 /* ===== DETALLE PRODUCTO PAGE ===== */
 .detalle-page {
@@ -67,7 +67,7 @@
     background-color: #F8F8F8;
     border-radius: 4px;
     overflow: hidden;
-    height: 600px; 
+    aspect-ratio: 3 / 4; 
     width: 100%;
 }
 
@@ -75,7 +75,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover; 
-    object-position: center top; 
+    object-position: center; 
     transition: transform 0.6s ease;
 }
 
@@ -201,6 +201,130 @@
     font-weight: 300;
 }
 
+/* =========================================
+   NUEVO: SECCIÓN DE COLOR CENTRADA
+========================================= */
+.detalle-color-box {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed #eaeaea;
+}
+
+.detalle-color-box h4 {
+    font-size: 0.75rem !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #888888 !important;
+    margin-bottom: 12px !important;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.color-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #F8F8F8;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+    border: 1px solid #eaeaea;
+}
+
+.color-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* =========================================
+   NUEVO: CAJA DE COMPRA SOFISTICADA
+========================================= */
+.compra-box {
+    margin-top: 1.5rem;
+    background: #FFFFFF;
+    border: 1px solid #EAEAEA;
+    border-radius: 4px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
+}
+
+.compra-box-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: #555;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    margin-top: 0;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.cantidad-sofisticada {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.cantidad-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #1A1A1A;
+    background: transparent;
+    color: #1A1A1A;
+    font-size: 1.5rem;
+    font-weight: 300;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0;
+    margin: 0;
+    line-height: 1; /* Esto arregla que el + y - queden descentrados */
+}
+
+.cantidad-btn:hover {
+    background: #1A1A1A;
+    color: #FFFFFF;
+    transform: scale(1.05);
+}
+
+.cantidad-valor {
+    font-size: 1.8rem;
+    font-weight: 600;
+    font-family: 'Playfair Display', serif;
+    color: #1A1A1A;
+    min-width: 90px;
+    text-align: center;
+}
+
+.cantidad-unidad {
+    font-size: 1rem;
+    color: #888;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+.precio-total {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1A1A1A;
+    border-top: 1px solid #F0F0F0;
+    padding-top: 20px;
+    margin-bottom: 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+
 /* ===== BOTÓN AGREGAR CARRITO ===== */
 .btn-agregar-carrito {
     display: flex;
@@ -220,7 +344,7 @@
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 2px;
-    margin-top: 1.5rem;
+    margin-top: 0;
 }
 
 .btn-agregar-carrito:hover {
@@ -236,10 +360,12 @@
     min-height: 80vh;
     background-color: #FDFCFB;
 }
-/* ===== RESPONSIVE DESIGN CELULARES (ESTILO LIBRAFEMME) ===== */
+
+/* =========================================
+   RESPONSIVE DESIGN CELULARES
+========================================= */
 @media (max-width: 768px) {
     .detalle-page {
-        /* 1. Le devolvemos el margen blanco a los costados para que respire */
         padding: 1.5rem; 
         margin-top: 60px;
         background-color: #FFFFFF;
@@ -256,35 +382,32 @@
 
     .detalle-grid {
         grid-template-columns: 1fr;
-        gap: 2rem; /* Espacio entre las fotos y el título */
+        gap: 2rem; 
     }
 
-    /* 2. Centramos todo el bloque de imágenes */
     .detalle-galeria-wrapper {
         position: relative; 
         top: 0;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Esto centra la foto y las miniaturas */
+        align-items: center; 
         gap: 1rem;
         width: 100%;
     }
 
-    /* 3. Imagen vertical, sin tocar los bordes */
     .detalle-imagen-container {
         width: 100%; 
-        max-width: 400px; /* Evita que sea inmensa en celulares muy anchos */
+        max-width: 400px; 
         height: auto;
-        aspect-ratio: 3 / 4; /* Bien vertical, como Librafemme */
-        border-radius: 4px; /* Un borde súper sutil */
+        aspect-ratio: 3 / 4; 
+        border-radius: 4px; 
         background-color: #F8F8F8;
         margin: 0 auto;
     }
 
-    /* 4. Miniaturas centradas justo debajo */
     .detalle-miniaturas {
         display: flex;
-        justify-content: center; /* Las agrupa en el centro */
+        justify-content: center; 
         padding: 0; 
         gap: 1rem;
         width: 100%;
@@ -296,7 +419,6 @@
         border-radius: 4px;
     }
 
-    /* Textos y botones */
     .detalle-info {
         padding: 0;
         gap: 0.8rem; 
@@ -319,37 +441,17 @@
         padding: 1rem 0; 
     }
 
+    /* Ajuste para la caja en móvil */
+    .compra-box {
+        padding: 20px 15px;
+    }
+
     .btn-agregar-carrito {
         padding: 1rem;
-        margin-top: 0.5rem;
         border-radius: 8px; 
     }
 }
 
-
-/* ===== ETIQUETA INFORMATIVA DE CARRITO ===== */
-.pd-cart-info-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background-color: #f0f9ff; /* Fondo celeste/azul muy suave */
-    color: #0369a1; /* Texto azul profundo y elegante */
-    padding: 12px 16px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    margin-bottom: 15px;
-    border-left: 3px solid #7dd3fc; /* Borde lateral para darle jerarquía */
-    font-family: 'Montserrat', sans-serif;
-}
-
-.pd-cart-info-badge svg {
-    flex-shrink: 0; /* Evita que el ícono se aplaste en celulares */
-    color: #0284c7;
-}
-
-.pd-cart-info-badge strong {
-    font-weight: 700;
-}
 /* =========================================
    ALERTA FLOTANTE (ESTILO ML)
 ========================================= */
@@ -357,7 +459,7 @@
     position: fixed;
     bottom: 24px;
     left: 24px;
-    background-color: #f5f5f5; /* Gris muy clarito de la foto */
+    background-color: #f5f5f5; 
     border: 1px solid #e5e5e5;
     border-radius: 4px;
     padding: 16px 20px;
@@ -379,7 +481,7 @@
 
 .alerta-texto {
     font-size: 1rem;
-    color: #4b5563; /* Gris oscuro para el texto */
+    color: #4b5563; 
     font-weight: 500;
     font-family: system-ui, -apple-system, sans-serif;
 }
@@ -410,7 +512,6 @@
     }
 }
 
-/* Ajuste para celulares: que flote centrada abajo o ocupe todo el ancho */
 @media (max-width: 768px) {
     .alerta-flotante {
         bottom: 16px;

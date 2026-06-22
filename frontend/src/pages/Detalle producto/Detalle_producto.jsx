@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingBag, ArrowLeft, Ruler, Layers, AlertTriangle, CheckCircle, X } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Ruler, AlertTriangle, CheckCircle, X } from 'lucide-react';
 import Navbar from '../Navbar/Navbar';
 import './Detalle_producto.css';
 
@@ -9,21 +9,19 @@ const DetalleProducto = () => {
     const navigate = useNavigate();
     
     const [producto, setProducto] = useState(null);
+    const [colores, setColores] = useState([]); // <-- NUEVO ESTADO PARA LOS COLORES
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [imagenActiva, setImagenActiva] = useState(null); 
 
-    // NUEVOS ESTADOS: Control de Metros y Carrito
-    const [metros, setMetros] = useState(1);
+    const [metros, setMetros] = useState(1.0);
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
 
-    // NUEVO ESTADO: Notificación delicada
     const [notification, setNotification] = useState({ show: false, message: '', type: '' });
 
-    // FUNCIÓN PARA MOSTRAR Y OCULTAR AUTOMÁTICAMENTE
     const showDelicateNotification = (message, type = 'error') => {
         if (window.notifTimeout) clearTimeout(window.notifTimeout);
         setNotification({ show: true, message, type });
@@ -32,17 +30,23 @@ const DetalleProducto = () => {
         }, 4000);
     };
 
-    // Cargar los datos del producto
+    // ACÁ HACEMOS LA MAGIA DE TRAER PRODUCTO + COLORES
     useEffect(() => {
-        const fetchProducto = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/${id}/`);
-                if (!response.ok) {
-                    throw new Error('No se pudo cargar el producto');
-                }
-                const data = await response.json();
-                setProducto(data);
-                setImagenActiva(data.imagen); 
+                // Traemos el producto
+                const resProd = await fetch(`${import.meta.env.VITE_API_URL}/api/productos/${id}/`);
+                if (!resProd.ok) throw new Error('No se pudo cargar el producto');
+                const dataProd = await resProd.json();
+                
+                // Traemos los colores de la base de datos
+                const resCol = await fetch(`${import.meta.env.VITE_API_URL}/api/colores/`);
+                const dataCol = resCol.ok ? await resCol.json() : [];
+                const coloresArray = Array.isArray(dataCol) ? dataCol : (dataCol.results || []);
+
+                setProducto(dataProd);
+                setColores(coloresArray);
+                setImagenActiva(dataProd.imagen); 
                 setLoading(false);
             } catch (err) {
                 setError(err.message);
@@ -50,86 +54,70 @@ const DetalleProducto = () => {
             }
         };
 
-        fetchProducto();
+        fetchData();
     }, [id]);
 
-    // Guardar el carrito en LocalStorage cada vez que se actualiza
     useEffect(() => {
         localStorage.setItem('cart', JSON.stringify(cart));
     }, [cart]);
 
-    // Lógica para agregar al carrito
+    const incrementarMetros = () => {
+        setMetros(prev => {
+            const nuevo = prev + 0.5;
+            return nuevo > Number(producto.stock_metros) ? prev : nuevo;
+        });
+    };
+
+    const decrementarMetros = () => {
+        setMetros(prev => (prev > 0.5 ? prev - 0.5 : 0.5));
+    };
+
     const agregarAlCarrito = () => {
-        const metrosEnteros = parseInt(metros);
+        const metrosFloat = parseFloat(metros);
         
-        // Validación 1: Debe ser un número válido mayor a 0
-        if (isNaN(metrosEnteros) || metrosEnteros <= 0) {
+        if (isNaN(metrosFloat) || metrosFloat <= 0) {
             showDelicateNotification("Por favor, ingresá una cantidad válida de metros.", "error");
             return;
         }
 
-        // 👇 NUEVA LÓGICA DE STOCK 👇
-        // 1. Nos fijamos si esta tela ya está en el carrito y cuántos metros tiene
         const itemEnCarrito = cart.find(item => item.id === producto.id);
-        const cantidadYaEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
-        
-        // 2. Sumamos lo que quiere agregar AHORA + lo que YA TIENE guardado
-        const cantidadTotalDeseada = metrosEnteros + cantidadYaEnCarrito;
+        const cantidadYaEnCarrito = itemEnCarrito ? parseFloat(itemEnCarrito.cantidad) : 0;
+        const cantidadTotalDeseada = metrosFloat + cantidadYaEnCarrito;
+        const stockDisponible = parseFloat(producto.stock_metros);
 
-        // Validación 2: No superar el stock disponible (contando la bolsa)
-        if (cantidadTotalDeseada > Number(producto.stock_metros)) {
+        if (cantidadTotalDeseada > stockDisponible) {
             if (cantidadYaEnCarrito > 0) {
-                const metrosRestantes = Number(producto.stock_metros) - cantidadYaEnCarrito;
-                
-                // 👇 Atajamos el caso de que ya tenga todo el stock en la bolsa 👇
+                const metrosRestantes = stockDisponible - cantidadYaEnCarrito;
                 if (metrosRestantes === 0) {
                     showDelicateNotification(`Ya agregaste todo nuestro stock disponible (${cantidadYaEnCarrito}m) a tu bolsa.`, "error");
                 } else {
-                    // Si todavía le queda un poquito por agregar:
                     showDelicateNotification(`Ya tenés ${cantidadYaEnCarrito}m en tu bolsa. Solo podés sumar ${metrosRestantes}m más.`, "error");
                 }
             } else {
-                // Si no tenía nada en el carrito, el mensaje normal
-                showDelicateNotification(`Lo sentimos, solo nos quedan ${producto.stock_metros} metros en stock de esta tela.`, "error");
+                showDelicateNotification(`Lo sentimos, solo nos quedan ${stockDisponible} metros en stock de esta tela.`, "error");
             }
             return;
         }
-        // 👆 FIN DE NUEVA LÓGICA 👆
 
         setCart(prev => {
             const existe = prev.find(item => item.id === producto.id);
             if (existe) {
                 return prev.map(item => 
-                    item.id === producto.id ? {...item, cantidad: item.cantidad + metrosEnteros} : item
+                    item.id === producto.id ? {...item, cantidad: parseFloat(item.cantidad) + metrosFloat} : item
                 );
             }
-            return [...prev, {...producto, cantidad: metrosEnteros}];
+            return [...prev, {...producto, cantidad: metrosFloat}];
         });
         
-        showDelicateNotification(`¡Listo! Se agregaron ${metrosEnteros} metro(s) de ${producto.nombre} a tu carrito.`, "success");
+        showDelicateNotification(`¡Listo! Se agregaron ${metrosFloat} metro(s) de ${producto.nombre} a tu carrito.`, "success");
     };
 
-    // Calculamos si ya tiene esta tela en el carrito para mostrar el aviso
-    const itemEnCarrito = cart.find(item => item.id === producto?.id);
-    const cantidadYaEnCarrito = itemEnCarrito ? itemEnCarrito.cantidad : 0;
-
     if (loading) {
-        return (
-            <>
-                <Navbar cartCount={cart.length} />
-                <div className="loader-container"><div className="loader"></div></div>
-            </>
-        );
+        return <><Navbar cartCount={cart.length} /><div className="loader-container"><div className="loader"></div></div></>;
     }
 
     if (error || !producto) {
-        return (
-            <>
-                {/* CORRECCIÓN: Estaba el reduce viejo acá */}
-                <Navbar cartCount={cart.length} />
-                <div className="error-message">{error ? `Error: ${error}` : 'Producto no encontrado.'}</div>
-            </>
-        );
+        return <><Navbar cartCount={cart.length} /><div className="error-message">{error ? `Error: ${error}` : 'Producto no encontrado.'}</div></>;
     }
 
     const todasLasImagenes = [
@@ -137,9 +125,16 @@ const DetalleProducto = () => {
         ...(producto.imagenes_galeria?.map(img => img.imagen) || [])
     ].filter(Boolean); 
 
+    const precioTotal = (parseFloat(producto.precio_por_metro) * parseFloat(metros)).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // 👇 IDENTIFICAMOS EL COLOR CRUZANDO EL ID 👇
+    let colorObj = null;
+    if (producto.color) {
+        colorObj = colores.find(c => c.id === producto.color);
+    }
+
     return (
         <>
-            {/* CORRECCIÓN: Estaba el reduce viejo acá también */}
             <Navbar cartCount={cart.length} />
             <div className="detalle-page">
                 <div className="detalle-container">
@@ -182,56 +177,52 @@ const DetalleProducto = () => {
                             
                             <p className="detalle-precio">${parseFloat(producto.precio_por_metro).toLocaleString('es-AR')} <span style={{fontSize: '1rem', color: '#666'}}>/ Metro</span></p>
                             
-                            <div className="detalle-talle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <Ruler size={18} />
-                                    <span>Ancho de fábrica: <strong>{producto.ancho_cm} cm</strong></span>
-                                </div>
-                                
+                            <div className="detalle-talle">
+                                <Ruler size={18} />
+                                <span>Ancho de fábrica: <strong>{producto.ancho_cm} cm</strong></span>
                             </div>
                             
                             <div className="detalle-descripcion">
                                 <h3>Descripción</h3>
-                                <p>{producto.descripcion}</p>
+                                <p>{producto.descripcion || 'Sin descripción detallada.'}</p>
+
+                                {/* 👇 SECCIÓN DE COLOR ARREGLADA 👇 */}
+                                {colorObj && (
+                                    <div className="detalle-color-box">
+                                        <h4>Color de la tela</h4>
+                                        <div className="color-chip">
+                                            {colorObj.codigo_hex && (
+                                                <span className="color-circle" style={{ backgroundColor: colorObj.codigo_hex }}></span>
+                                            )}
+                                            {colorObj.nombre || 'Definido en imagen'}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
-                            <div style={{ marginTop: '10px', padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
-                                {/* NOTIFICACIÓN DELICADA */}
-                            
-                                <label style={{ display: 'block', marginBottom: '12px', fontWeight: '700', fontSize: '0.85rem', color: '#475569', letterSpacing: '0.5px' }}>
-                                    ¿CUÁNTOS METROS NECESITÁS? (ENTEROS)
-                                </label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                    <input 
-                                        type="number" 
-                                        min="1" 
-                                        max={Math.floor(Number(producto.stock_metros))} 
-                                        step="1"
-                                        value={metros}
-                                        onChange={(e) => setMetros(e.target.value)}
-                                        style={{ 
-                                            width: '80px', padding: '12px', border: '2px solid #cbd5e1', 
-                                            borderRadius: '6px', fontSize: '1.2rem', textAlign: 'center', 
-                                            fontWeight: 'bold', outline: 'none'
-                                        }}
-                                    />
-                                    <span style={{ fontWeight: '600', color: '#64748b' }}>metros totales</span>
+                            <div className="compra-box">
+                                <h4 className="compra-box-title">¿CUÁNTOS METROS NECESITÁS?</h4>
+                                <div className="cantidad-sofisticada">
+                                    <button className="cantidad-btn" onClick={decrementarMetros}>-</button>
+                                    <div className="cantidad-valor">
+                                        {Number(metros).toFixed(1)} <span className="cantidad-unidad">mts</span>
+                                    </div>
+                                    <button className="cantidad-btn" onClick={incrementarMetros}>+</button>
                                 </div>
-                                <p style={{ marginTop: '16px', fontSize: '1.2rem', fontWeight: '700', color: '#0f172a' }}>
-                                    Total a pagar: ${(producto.precio_por_metro * (parseInt(metros) || 0)).toLocaleString('es-AR')}
-                                </p>
+                                <div className="precio-total">
+                                    Total a pagar: ${precioTotal}
+                                </div>
+                                <button className="btn-agregar-carrito" onClick={agregarAlCarrito}>
+                                    <ShoppingBag size={20} />
+                                    Agregar al carrito
+                                </button>
                             </div>
 
-                            <button className="btn-agregar-carrito" onClick={agregarAlCarrito} style={{ marginTop: '10px' }}>
-                                <ShoppingBag size={20} />
-                                Agregar al carrito
-                            </button>
                         </div>
                     </div>
                 </div>
-            </div> {/* Cierre de detalle-page */}
+            </div>
 
-            {/* 👇 NUEVA ALERTA FLOTANTE ESTILO MERCADO LIBRE 👇 */}
             {notification.show && (
                 <div className="alerta-flotante">
                     <div className="alerta-contenido">
