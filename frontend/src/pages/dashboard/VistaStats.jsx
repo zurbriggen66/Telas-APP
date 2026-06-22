@@ -1,7 +1,67 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { DollarSign, ShoppingBag, Users, Calendar, Store, Globe, ChevronDown, Receipt, Eye, Smartphone, Monitor } from 'lucide-react';
+import { DollarSign, ShoppingBag, Users, Calendar, Store, Globe, ChevronDown, Receipt, Eye, HelpCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend } from 'recharts';
 import './Estadisticas.css';
+
+// ─── COMPONENTE TOOLTIP DE AYUDA ───
+const InfoTooltip = ({ texto }) => {
+    const [visible, setVisible] = useState(false);
+
+    return (
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+            <button
+                onClick={() => setVisible(!visible)}
+                onMouseEnter={() => setVisible(true)}
+                onMouseLeave={() => setVisible(false)}
+                style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '2px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: '#94a3b8',
+                }}
+                title={texto}
+            >
+                <HelpCircle size={15} />
+            </button>
+            {visible && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: 'calc(100% + 8px)',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    backgroundColor: '#1e293b',
+                    color: '#f1f5f9',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '1.5',
+                    width: '200px',
+                    textAlign: 'center',
+                    zIndex: 999,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                    pointerEvents: 'none',
+                }}>
+                    {texto}
+                    <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderLeft: '6px solid transparent',
+                        borderRight: '6px solid transparent',
+                        borderTop: '6px solid #1e293b',
+                    }} />
+                </div>
+            )}
+        </div>
+    );
+};
 
 const EstadisticasDashboard = () => {
     const [stats, setStats] = useState(null);
@@ -9,13 +69,10 @@ const EstadisticasDashboard = () => {
     const [error, setError] = useState(false);
     const [mesConsulta, setMesConsulta] = useState("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-    // ✅ CORRECCIÓN 1: Estado dedicado para usuarios en tiempo real
     const [usuariosEnLinea, setUsuariosEnLinea] = useState(0);
 
     const chartWrapperRef = useRef(null);
 
-    // Carga inicial de estadísticas
     useEffect(() => {
         const fetchStats = async () => {
             try {
@@ -24,7 +81,6 @@ const EstadisticasDashboard = () => {
                 const data = await response.json();
                 setStats(data);
                 setMesConsulta(data.mes_actual.id_mes);
-                // Tomamos el valor inicial de tiempo real que ya viene en el response
                 setUsuariosEnLinea(data.analytics?.usuarios_tiempo_real || 0);
             } catch (error) {
                 console.error("Error:", error);
@@ -36,7 +92,6 @@ const EstadisticasDashboard = () => {
         fetchStats();
     }, []);
 
-    // ✅ CORRECCIÓN 2: Polling independiente al endpoint /realtime/ cada 30 segundos
     useEffect(() => {
         const fetchRealtime = async () => {
             try {
@@ -45,20 +100,14 @@ const EstadisticasDashboard = () => {
                 const data = await res.json();
                 setUsuariosEnLinea(data.usuarios_tiempo_real || 0);
             } catch (e) {
-                // Silenciamos el error para no interrumpir la UI
                 console.error("Error realtime GA4:", e);
             }
         };
-
-        // Primera llamada inmediata, luego cada 30 segundos
         fetchRealtime();
         const intervalo = setInterval(fetchRealtime, 30000);
-
-        // Limpieza al desmontar el componente
         return () => clearInterval(intervalo);
     }, []);
 
-    // Auto-scroll del gráfico al cargar
     useEffect(() => {
         if (stats && chartWrapperRef.current) {
             setTimeout(() => {
@@ -70,7 +119,6 @@ const EstadisticasDashboard = () => {
     if (loading) return <div className="loading-spinner">Cargando métricas...</div>;
     if (error || !stats) return <div className="error-banner">Error al cargar las estadísticas.</div>;
 
-    // ─── LÓGICA DE DATOS MENSUALES ───
     const datosMesSeleccionado = stats.historial_12_meses.find(m => m.id_mes === mesConsulta) || stats.mes_actual;
 
     const ticketPromedio = datosMesSeleccionado.ventas > 0
@@ -89,9 +137,7 @@ const EstadisticasDashboard = () => {
         { name: 'Web', value: ventasWebMes }
     ];
 
-    const PIE_COLORS = ['#f59e0b', '#4f46e5', '#10b981'];
-    const DEVICE_COLORS = ['#0ea5e9', '#6366f1', '#8b5cf6'];
-
+    const PIE_COLORS = ['#f59e0b', '#4f46e5'];
     const analytics = stats.analytics || { visitas_30_dias: 0, vistas_pagina: 0, dispositivos: [] };
 
     return (
@@ -138,10 +184,13 @@ const EstadisticasDashboard = () => {
                     </div>
                 </div>
 
-                {/* Ventas del mes seleccionado */}
+                {/* Ventas del mes */}
                 <div className="metric-card highlight-card">
                     <div className="metric-header">
-                        <h3>Ventas de {datosMesSeleccionado.mes_label}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>Ventas de {datosMesSeleccionado.mes_label}</h3>
+                            <InfoTooltip texto="Pedidos cobrados y confirmados en el mes seleccionado, tanto por web como en el local físico." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: 'rgba(255,255,255,0.2)', color: '#fff' }}>
                             <ShoppingBag size={20} />
                         </div>
@@ -157,7 +206,10 @@ const EstadisticasDashboard = () => {
                 {/* Ticket promedio */}
                 <div className="metric-card">
                     <div className="metric-header">
-                        <h3>Ticket Promedio ({datosMesSeleccionado.mes_label})</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>Ticket Promedio ({datosMesSeleccionado.mes_label})</h3>
+                            <InfoTooltip texto="Gasto promedio por venta en el mes. Se calcula dividiendo los ingresos totales por la cantidad de ventas cerradas." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: '#fef3c7', color: '#d97706' }}>
                             <Receipt size={20} />
                         </div>
@@ -168,7 +220,10 @@ const EstadisticasDashboard = () => {
                 {/* Visitantes únicos */}
                 <div className="metric-card">
                     <div className="metric-header">
-                        <h3>Visitantes Únicos (30d)</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>Visitantes Únicos (30d)</h3>
+                            <InfoTooltip texto="Personas distintas que entraron a tu tienda online en los últimos 30 días según Google Analytics. Un usuario que vuelve varias veces cuenta solo una vez." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: '#e0f2fe', color: '#0284c7' }}>
                             <Users size={20} />
                         </div>
@@ -179,7 +234,10 @@ const EstadisticasDashboard = () => {
                 {/* Vistas de catálogo */}
                 <div className="metric-card">
                     <div className="metric-header">
-                        <h3>Vistas de Catálogo (30d)</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>Vistas de Catálogo (30d)</h3>
+                            <InfoTooltip texto="Total de páginas vistas en tu tienda en los últimos 30 días. Si un cliente navega 5 productos, suma 5. Refleja qué tan explorado es tu catálogo." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: '#f3e8ff', color: '#7c3aed' }}>
                             <Eye size={20} />
                         </div>
@@ -195,7 +253,10 @@ const EstadisticasDashboard = () => {
                 {/* Ingresos históricos */}
                 <div className="metric-card">
                     <div className="metric-header">
-                        <h3>Ingresos Históricos</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>Ingresos Históricos</h3>
+                            <InfoTooltip texto="Suma de todas las ventas aprobadas desde que empezaste a usar la app, sin filtro de fecha. Es el total acumulado." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: '#d1fae5', color: '#059669' }}>
                             <DollarSign size={20} />
                         </div>
@@ -203,16 +264,15 @@ const EstadisticasDashboard = () => {
                     <h2 className="metric-value">${(stats.ingresos_totales).toLocaleString('es-AR')}</h2>
                 </div>
 
-                {/* ✅ CORRECCIÓN 3: Tarjeta "En Línea Ahora" dentro del metrics-grid,
-                    usando el estado 'usuariosEnLinea' que se actualiza por polling */}
+                {/* En línea ahora */}
                 <div className="metric-card">
                     <div className="metric-header">
-                        <h3>En Línea Ahora</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <h3>En Línea Ahora</h3>
+                            <InfoTooltip texto="Clientes navegando tu tienda online en este momento, según Google Analytics en tiempo real. Se refresca automáticamente cada 30 segundos." />
+                        </div>
                         <div className="metric-icon" style={{ backgroundColor: '#fef2f2', color: '#ef4444' }}>
-                            <span style={{
-                                fontSize: '12px',
-                                animation: 'pulse 1.5s ease-in-out infinite'
-                            }}>●</span>
+                            <span style={{ fontSize: '12px', animation: 'pulse 1.5s ease-in-out infinite' }}>●</span>
                         </div>
                     </div>
                     <h2 className="metric-value">{usuariosEnLinea}</h2>
@@ -261,11 +321,9 @@ const EstadisticasDashboard = () => {
                 </div>
             </div>
 
-            {/* Gráficos de torta: origen de ventas y dispositivos */}
-            <div className="charts-grid secondary-charts" style={{ marginTop: '24px', gridTemplateColumns: '1fr 1fr' }}>
-
-                {/* Origen de ventas del mes */}
-                <div className="content-section">
+            {/* Solo gráfico de Origen de Ventas — dispositivos eliminado */}
+            <div style={{ marginTop: '24px' }}>
+                <div className="content-section" style={{ maxWidth: '600px' }}>
                     <h2 className="section-title">Origen de Ventas ({datosMesSeleccionado.mes_label})</h2>
                     {ventasDelMes > 0 ? (
                         <>
@@ -306,57 +364,8 @@ const EstadisticasDashboard = () => {
                         <div className="no-data-pie">No hubo ventas registradas en este mes.</div>
                     )}
                 </div>
-
-                {/* Dispositivos de tráfico GA4 */}
-                <div className="content-section">
-                    <h2 className="section-title">Dispositivos de Tráfico (GA4)</h2>
-                    {analytics.dispositivos && analytics.dispositivos.length > 0 ? (
-                        <>
-                            <div style={{ width: '100%', height: 260 }}>
-                                <ResponsiveContainer>
-                                    <PieChart>
-                                        <Pie
-                                            data={analytics.dispositivos}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={70}
-                                            outerRadius={100}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                        >
-                                            {analytics.dispositivos.map((entry, index) => (
-                                                <Cell key={`cell-dev-${index}`} fill={DEVICE_COLORS[index % DEVICE_COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip
-                                            formatter={(value) => [`${value} Usuarios`, 'Tráfico']}
-                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                                        />
-                                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <div className="pie-legend-details">
-                                {analytics.dispositivos.find(d => d.name === "Celular") && (
-                                    <div className="legend-item">
-                                        <Smartphone size={16} color={DEVICE_COLORS[0]} /> Celular
-                                    </div>
-                                )}
-                                {analytics.dispositivos.find(d => d.name === "PC") && (
-                                    <div className="legend-item">
-                                        <Monitor size={16} color={DEVICE_COLORS[1]} /> PC
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="no-data-pie" style={{ textAlign: 'center', color: '#94a3b8', padding: '40px 0' }}>
-                            Recopilando datos de Google Analytics...
-                        </div>
-                    )}
-                </div>
-
             </div>
+
         </div>
     );
 };
