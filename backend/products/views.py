@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Count, Sum
 from django.utils.timezone import now
 from google.analytics.data_v1beta import BetaAnalyticsDataClient
-from google.analytics.data_v1beta.types import DateRange, Metric, RunReportRequest
+from google.analytics.data_v1beta.types import DateRange, Metric, RunReportRequest, Dimension, RunRealtimeReportRequest
 from .whatsapp import enviar_notificacion_dueño
 from rest_framework.decorators import api_view, parser_classes, action, api_view, permission_classes    
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -748,6 +748,7 @@ def cotizar_envio_api(request):
     ]
 
     return Response({"opciones": opciones}, status=200)
+
 def api_estadisticas(request):
     # 1. Filtramos solo los pedidos consolidados (ventas reales)
     pedidos_exitosos = Pedido.objects.filter(estado__in=['Aprobado', 'Despachado', 'APROBADO', 'ENVIADO'])
@@ -785,43 +786,101 @@ def api_estadisticas(request):
             "ventas": ventas_mes
         })
 
-    # 5. Consultar Google Analytics 4
-    def obtener_visitas_ga4():
+
+    def obtener_realtime_ga4():
         try:
             PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID")
-            if not PROPERTY_ID or "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+            credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+            if not PROPERTY_ID or not credentials_path:
                 return 0
             
             client = BetaAnalyticsDataClient()
-            request = RunReportRequest(
+            
+            # ✅ CORRECCIÓN: Variable renombrada a 'rt_request' para evitar
+            #    conflicto con el parámetro 'request' de la vista padre
+            rt_request = RunRealtimeReportRequest(
+                property=f"properties/{PROPERTY_ID}",
+                metrics=[Metric(name="activeUsers")],
+            )
+            
+            rt_response = client.run_realtime_report(rt_request)
+            
+            if rt_response.rows:
+                return int(rt_response.rows[0].metric_values[0].value)
+            return 0
+        except Exception as e:
+            print(f"Error GA4 Realtime: {e}")
+            return 0
+
+
+    # 5. Consultar Google Analytics 4 (Versión Mejorada)
+    def obtener_datos_ga4():
+        try:
+            PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID")
+            # ✅ CORRECCIÓN: Verificamos que la variable exista Y que el archivo exista
+            credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+            if not PROPERTY_ID or not credentials_path:
+                return {"visitas_30_dias": 0, "vistas_pagina": 0, "dispositivos": []}
+            
+            client = BetaAnalyticsDataClient()
+            
+            req_general = RunReportRequest(
                 property=f"properties/{PROPERTY_ID}",
                 dimensions=[],
+                metrics=[Metric(name="activeUsers"), Metric(name="screenPageViews")],
+                date_ranges=[DateRange(start_date="30daysAgo", end_date="today")],
+            )
+            res_general = client.run_report(req_general)
+            
+            visitas = 0
+            vistas = 0
+            if res_general.rows:
+                visitas = int(res_general.rows[0].metric_values[0].value)
+                vistas = int(res_general.rows[0].metric_values[1].value)
+
+            req_devices = RunReportRequest(
+                property=f"properties/{PROPERTY_ID}",
+                dimensions=[Dimension(name="deviceCategory")],
                 metrics=[Metric(name="activeUsers")],
                 date_ranges=[DateRange(start_date="30daysAgo", end_date="today")],
             )
-            response = client.run_report(request)
-            if response.rows:
-                return int(response.rows[0].metric_values[0].value)
-            return 0
+            res_devices = client.run_report(req_devices)
+            
+            dispositivos = []
+            for row in res_devices.rows:
+                cat = row.dimension_values[0].value
+                nombre_es = "Celular" if cat == "mobile" else "PC" if cat == "desktop" else "Tablet"
+                dispositivos.append({
+                    "name": nombre_es,
+                    "value": int(row.metric_values[0].value)
+                })
+
+            return {
+                "visitas_30_dias": visitas,
+                "vistas_pagina": vistas,
+                "dispositivos": dispositivos
+            }
+            
         except Exception as e:
             print(f"Error GA4: {e}")
-            return 0
+            return {"visitas_30_dias": 0, "vistas_pagina": 0, "dispositivos": []}
 
     data = {
         "ingresos_totales": float(ingresos_totales),
         "historial_12_meses": meses_historial,
-        "mes_actual": meses_historial[-1], # El último de la lista es el mes en curso
+        "mes_actual": meses_historial[-1],
         "origen_ventas": [
             {"name": "Local", "value": ventas_locales_count},
             {"name": "Web", "value": ventas_web_count}
         ],
+        # ✅ CORRECCIÓN PRINCIPAL: Se agrega 'usuarios_tiempo_real' al response
         "analytics": {
-            "visitas_30_dias": obtener_visitas_ga4()
+            **obtener_datos_ga4(),
+            "usuarios_tiempo_real": obtener_realtime_ga4()
         }
     }
     
     return JsonResponse(data)
-
 
 @csrf_exempt  # Para evitar problemas de bloqueo de seguridad desde React
 def eliminar_pedido_api(request, pedido_id):
@@ -1131,3 +1190,26 @@ def api_dashboard_inicio(request):
         "stock_bajo": stock_bajo_lista,
         "mp_conectado": mp_conectado  # <-- Se lo enviamos a React
     })
+
+
+# ✅ NUEVO: Endpoint dedicado para polling de tiempo real (cada 30 seg desde el frontend)
+@api_view(['GET'])
+def api_realtime_usuarios(request):
+    try:
+        PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID")
+        credentials_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        if not PROPERTY_ID or not credentials_path:
+            return JsonResponse({"usuarios_tiempo_real": 0})
+
+        client = BetaAnalyticsDataClient()
+        rt_request = RunRealtimeReportRequest(
+            property=f"properties/{PROPERTY_ID}",
+            metrics=[Metric(name="activeUsers")],
+        )
+        rt_response = client.run_realtime_report(rt_request)
+        
+        count = int(rt_response.rows[0].metric_values[0].value) if rt_response.rows else 0
+        return JsonResponse({"usuarios_tiempo_real": count})
+    except Exception as e:
+        print(f"Error GA4 Realtime endpoint: {e}")
+        return JsonResponse({"usuarios_tiempo_real": 0})

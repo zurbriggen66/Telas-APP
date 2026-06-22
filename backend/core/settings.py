@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 import locale
 import os
+# ✅ AGREGÁ ESTAS DOS LÍNEAS:
+from dotenv import load_dotenv
+load_dotenv()  # Lee el .env automáticamente
 
 os.environ['PYTHONIOENCODING'] = 'utf-8'
 locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8') # Fuerza el locale de Argentina
