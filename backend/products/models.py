@@ -137,7 +137,7 @@ class Producto(models.Model):
         verbose_name="Categorías"
     )
     nombre = models.CharField(max_length=200, verbose_name="Nombre de la Tela")
-    descripcion = models.TextField(verbose_name="Descripción")
+    descripcion = models.TextField(verbose_name="Descripción",null=True, blank=True)
     es_favorito = models.BooleanField(default=False, verbose_name="Tela Favorita/Destacada")
 
     color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos', verbose_name="Color Principal")
