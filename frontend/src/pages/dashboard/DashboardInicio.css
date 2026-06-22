@@ -62,6 +62,7 @@
   padding: 24px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   border: none;
+  min-width: 0;
 }
 
 .card-header {
@@ -338,4 +339,54 @@
   border-radius: 8px;
   margin: 24px;
   font-weight: bold;
+}
+/* =========================================
+   NUEVO: BANNER AZUL DE REGISTRO
+========================================= */
+.action-banner-blue {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-banner-blue:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3);
+}
+
+.action-banner-blue .stat-info h4 {
+  color: #ffffff;
+  font-size: 20px; /* Un poquito más chico que los números para que entre en una línea */
+}
+
+.action-banner-blue .stat-info p {
+  color: #e0f2fe; /* Celeste claro para que contraste y se lea bien */
+}
+
+/* =========================================
+   NUEVO: SCROLL HORIZONTAL PARA GRÁFICO (MÓVILES)
+========================================= */
+.chart-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px; /* Espacio para que no se coma la barra de scroll */
+  -webkit-overflow-scrolling: touch; /* Scroll fluido en iPhone */
+  
+  /* Estilos para la barrita de scroll (Chrome/Edge/Safari) */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.chart-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.chart-wrapper::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
+}
+
+.chart-scroll-area {
+  min-width: 500px; /* Acá está el secreto: Si la pantalla mide menos de 500px, habilita el scroll */
+  height: 280px; /* Le damos buena altura para que los picos se vean definidos */
 }

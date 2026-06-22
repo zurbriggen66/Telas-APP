@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Package, ShoppingCart, DollarSign, Image as ImageIcon, Store, Truck, CreditCard } from 'lucide-react';
+import { Package, ShoppingCart, DollarSign, Image as ImageIcon, Store, Truck, CreditCard, PlusCircle } from 'lucide-react';
 import './DashboardInicio.css'; 
 
 const API = import.meta.env.VITE_API_URL + '/api';
@@ -46,7 +46,7 @@ const VistaInicio = () => {
   return (
     <div className="dashboard-container">
       
-      {/* 1. TARJETAS SUPERIORES (Ahora son 3) */}
+      {/* 1. TARJETAS SUPERIORES */}
       <div className="stats-grid">
         <div className="stat-card">
           <div className="stat-icon" style={{ background: '#e0e7ff', color: '#4f46e5' }}>
@@ -58,13 +58,14 @@ const VistaInicio = () => {
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
-            <ShoppingCart size={24} />
+        {/* 👇 NUEVA TARJETA AZUL DE ACCESO RÁPIDO 👇 */}
+        <div className="stat-card action-banner-blue" onClick={() => navigate('/dashboard/productos')}>
+          <div className="stat-icon" style={{ background: 'rgba(255, 255, 255, 0.2)', color: '#ffffff' }}>
+            <PlusCircle size={28} />
           </div>
           <div className="stat-info">
-            <h4>{data.stats.pedidos_pendientes}</h4>
-            <p>Pagos pendientes</p>
+            <h4>Registrá tus telas</h4>
+            <p>Hacé clic aquí para cargar</p>
           </div>
         </div>
 
@@ -73,7 +74,7 @@ const VistaInicio = () => {
             <DollarSign size={24} />
           </div>
           <div className="stat-info">
-            <h4>${data.stats.ventas_totales.toLocaleString()}</h4>
+            <h4>${data.stats.ventas_totales.toLocaleString('es-AR')}</h4>
             <p>Ingresos del mes</p>
           </div>
         </div>
@@ -85,16 +86,19 @@ const VistaInicio = () => {
           <div className="card-header">
             <h3>Ventas de este mes</h3>
           </div>
-          <div style={{ height: 250, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data.grafico}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
-                <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `$${value}`} width={45} />
-                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} formatter={(value) => [`$${value}`, 'Ventas']} />
-                <Line type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={3} dot={{r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff'}} />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* 👇 CONTENEDOR DE GRÁFICO MEJORADO PARA MÓVILES 👇 */}
+          <div className="chart-wrapper">
+            <div className="chart-scroll-area">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data.grafico}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="fecha" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(value) => `$${value}`} width={65} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }} formatter={(value) => [`$${value}`, 'Ventas']} />
+                  <Line type="monotone" dataKey="total" stroke="#4f46e5" strokeWidth={3} dot={{r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff'}} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -148,7 +152,6 @@ const VistaInicio = () => {
           </div>
         </div>
 
-        {/* Acciones Rápidas rediseñadas */}
         <div className="dashboard-card">
           <div className="card-header">
             <h3>Acciones Rápidas</h3>
@@ -176,4 +179,4 @@ const VistaInicio = () => {
   );
 };
 
-export default VistaInicio; 
+export default VistaInicio;
