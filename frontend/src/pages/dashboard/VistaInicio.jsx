@@ -167,7 +167,7 @@ const VistaInicio = () => {
              </div>
              
              <div className={`action-box ${estaVinculadoMp ? 'success' : 'mp'}`}
-                  onClick={() => { if(!estaVinculadoMp) window.confirm("¿Vincular con Mercado Pago?") && (window.location.href = `https://auth.mercadopago.com/authorization?client_id=${import.meta.env.VITE_MP_APP_ID}&response_type=code&platform_id=mp&state=1&redirect_uri=https://ignaciozurbriggen.pythonanywhere.com/api/mercadopago/callback/`); }}>
+                  onClick={() => { if(!estaVinculadoMp) window.confirm("¿Vincular con Mercado Pago?") && (window.location.href = `https://auth.mercadopago.com/authorization?client_id=${import.meta.env.VITE_MP_APP_ID}&response_type=code&platform_id=mp&state=1&redirect_uri=https://www.modaytelas.store/api/mercadopago/callback/`); }}>
                 <CreditCard size={22} />
                 <span>{estaVinculadoMp ? 'MP Vinculado' : 'Cobrar con MP'}</span>
              </div>

@@ -486,7 +486,7 @@ class CrearPedidoView(APIView):
                         "currency_id": "ARS",
                     })
 
-                dominio_url = "https://ignaciozurbriggen.pythonanywhere.com"
+                dominio_url = "https://www.modaytelas.store"
                 preference_data = {
                     "items": items_for_mp,
                     "payer": {
@@ -627,7 +627,7 @@ class MercadoPagoPreferenceView(APIView):
                     "currency_id": "ARS",
                 })
 
-            dominio_url = "https://ignaciozurbriggen.pythonanywhere.com"
+            dominio_url = "https://www.modaytelas.store"
 
             preference_data = {
                 "items": items_for_mp,
@@ -1092,7 +1092,7 @@ def mercadopago_callback(request):
         "grant_type": "authorization_code",
         "code": codigo_autorizacion,
         # ESTA URL TIENE QUE SER EXACTAMENTE LA MISMA QUE PUSIMOS EN MP
-        "redirect_uri": "https://ignaciozurbriggen.pythonanywhere.com/api/mercadopago/callback/"
+        "redirect_uri": "https://www.modaytelas.com.ar/api/mercadopago/callback/"
     }
 
     headers = {

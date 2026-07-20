@@ -1,5 +1,5 @@
 // Usamos tu dominio real de PythonAnywhere como URL por defecto
-const API_URL = import.meta.env.VITE_API_URL || 'https://ignaciozurbriggen.pythonanywhere.com/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://www.modaytelas.store/api';
 
 export const fetchTrackingStatus = async (trackingNumber) => {
     try {
