@@ -35,7 +35,7 @@ const ImageUploadBox = ({ title, fieldName, fileData, onFileChange, onRemoveImag
       >
         {fileData.preview ? (
           <>
-            <img src={fileData.preview} alt={title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 10 }} />
+            <img loading="lazy" src={fileData.preview} alt={title} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 10 }} />
             {/* 👇 NUEVO: Botón de eliminar (Tachito/Cruz) 👇 */}
             <button
               onClick={(e) => { e.stopPropagation(); onRemoveImage(fieldName); }}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import Header from '../../components/Header';
 import Card from '../../components/Card';
@@ -55,7 +55,7 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
       {/* SECCIÓN 1: Imagen y Títulos */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: isMobile ? 'none' : 1, minWidth: 0 }}>
         <div style={{ width: 64, height: 64, borderRadius: 12, overflow: 'hidden', background: '#e2e8f0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {prod.imagen ? <img src={prod.imagen} alt={prod.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon d={icons.image} size={24} color="#cbd5e1" />}
+          {prod.imagen ? <img loading="lazy" src={prod.imagen} alt={prod.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon d={icons.image} size={24} color="#cbd5e1" />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 800, fontSize: '15px', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{prod.nombre}</div>
@@ -361,9 +361,10 @@ const VistaProductos = () => {
     }
   };
 
-  const productosFiltrados = categoriaFiltro === 'todas' 
-    ? productos 
-    : productos.filter(p => p.categorias && p.categorias.includes(categoriaFiltro));
+  const productosFiltrados = useMemo(() => {
+    if (categoriaFiltro === 'todas') return productos;
+    return productos.filter(p => p.categorias && p.categorias.includes(categoriaFiltro));
+  }, [productos, categoriaFiltro]);
 
   const inputStyle = { width: '100%', padding: '11px 14px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: "'DM Sans', sans-serif", outline: 'none', color: '#1e293b', background: 'white', boxSizing: 'border-box' };
   const labelStyle = { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'block' };
@@ -625,9 +626,9 @@ const VistaProductos = () => {
                       display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s'
                     }}
                   >
-                    {cat.imagen && (
+                        {cat.imagen && (
                       <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#e2e8f0', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src={cat.imagen} alt={cat.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img loading="lazy" src={cat.imagen} alt={cat.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     )}
                     {cat.nombre}

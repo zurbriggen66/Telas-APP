@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Store, Search, Trash2, History, ShoppingBag, CheckCircle2, X } from 'lucide-react';
 import './VentasLocal.css'; 
 
 const VentasLocal = () => {
     const [productos, setProductos] = useState([]);
-    const [busqueda, setBusqueda] = useState('');
+    const [busqueda, setBusqueda] = useState(''); // valor usado para filtrar (debounced)
+    const [searchTerm, setSearchTerm] = useState(''); // valor inmediato del input
     const [cargando, setCargando] = useState(true);
     
     const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -32,10 +33,21 @@ const VentasLocal = () => {
             });
     }, []);
 
-    const productosFiltrados = productos.filter(p => {
-        const nombreTela = p.nombre || p.name || p.title || ''; 
-        return nombreTela.toLowerCase().includes(busqueda.toLowerCase());
-    });
+    // Debounce simple: actualiza `busqueda` 200ms después de que el usuario deje de tipear
+    useEffect(() => {
+        const id = setTimeout(() => setBusqueda(searchTerm), 200);
+        return () => clearTimeout(id);
+    }, [searchTerm]);
+
+    // Memoiza el filtrado para evitar recalcularlo en cada render innecesario
+    const productosFiltrados = useMemo(() => {
+        const q = (busqueda || '').toLowerCase();
+        if (!q) return productos;
+        return productos.filter(p => {
+            const nombreTela = p.nombre || p.name || p.title || ''; 
+            return nombreTela.toLowerCase().includes(q);
+        });
+    }, [productos, busqueda]);
 
     // Función para remover la selección si te equivocaste de tela
     const cancelarSeleccion = () => {
@@ -79,6 +91,7 @@ const VentasLocal = () => {
 
             cancelarSeleccion();
             setBusqueda('');
+            setSearchTerm('');
             
             setTimeout(() => setMensaje({ tipo: '', texto: '' }), 4000);
         } catch (err) {
@@ -113,8 +126,8 @@ const VentasLocal = () => {
                         type="text" 
                         className="input-moderno"
                         placeholder="Ej: Suete Roja, Gamuza..." 
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
 
                     <div className="lista-productos">
@@ -128,7 +141,7 @@ const VentasLocal = () => {
                                     onClick={() => setProductoSeleccionado(p)}
                                 >
                                     <div className="producto-item-left">
-                                        <img src={p.imagen || 'https://via.placeholder.com/60'} alt="tela" className="producto-thumb"/>
+                                        <img loading="lazy" src={p.imagen || 'https://via.placeholder.com/60'} alt="tela" className="producto-thumb"/>
                                         <div className="producto-info">
                                             <span className="nombre">{p.nombre || p.name || 'Tela'}</span>
                                             <span className="precio">${p.precio_por_metro || 0} /m</span>
@@ -154,7 +167,6 @@ const VentasLocal = () => {
                 <div className="ventas-card caja-card">
                     <h3 className="ventas-card-title"><ShoppingBag size={18}/> Cobro en Mostrador</h3>
                     
-                    {/* Alerta movida aquí adentro */}
                     {mensaje.texto && (
                         <div className={`alert ${mensaje.tipo === 'success' ? 'alert-success' : 'alert-error'}`} style={{ marginBottom: '20px' }}>
                             {mensaje.tipo === 'success' ? <CheckCircle2 size={20}/> : '⚠️'} 
@@ -166,7 +178,7 @@ const VentasLocal = () => {
                         <form onSubmit={handleSubmit} className="form-caja">
                             <div className="ticket-producto">
                                 <div className="ticket-detalle-container">
-                                    <img src={productoSeleccionado.imagen || 'https://via.placeholder.com/80'} alt="tela" className="ticket-img"/>
+                                    <img loading="lazy" src={productoSeleccionado.imagen || 'https://via.placeholder.com/80'} alt="tela" className="ticket-img"/>
                                     <div className="ticket-info">
                                         <span className="ticket-label">TELA SELECCIONADA</span>
                                         <span className="ticket-title">{productoSeleccionado.nombre || productoSeleccionado.name}</span>

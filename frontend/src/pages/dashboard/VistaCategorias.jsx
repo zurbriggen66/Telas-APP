@@ -240,7 +240,7 @@ const VistaCategorias = () => {
               >
                 {/* 1. Columna de Imagen */}
                 <div style={{ width: 48, height: 48, borderRadius: 8, overflow: 'hidden', background: '#e2e8f0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {cat.imagen ? <img src={cat.imagen} alt={cat.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon d={icons.image} size={20} color="#cbd5e1" />}
+                  {cat.imagen ? <img loading="lazy" src={cat.imagen} alt={cat.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <Icon d={icons.image} size={20} color="#cbd5e1" />}
                 </div>
                 
                 {/* 2. Columna Nombre (y Jerarquía en Móvil) */}
