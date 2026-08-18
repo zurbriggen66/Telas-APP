@@ -138,21 +138,13 @@ const TarjetaProducto = ({ prod, index, isMobile, onEditarCompleto, onEliminar, 
         )}
       </div>
 
-      {/* SECCIÓN 3: Etiqueta Visual y Acciones */}
-      <div style={{ 
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', 
+      {/* SECCIÓN 3: Acciones */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
         gap: '16px', flexShrink: 0,
         borderTop: isMobile ? '1px dashed #e2e8f0' : 'none',
         paddingTop: isMobile ? '16px' : '0'
       }}>
-        <span style={{ 
-          padding: '4px 10px', borderRadius: '20px', fontWeight: 700, fontSize: '11px',
-          background: Number(prod.stock_metros) <= 2 ? '#fef2f2' : '#f0fdf4', 
-          color: Number(prod.stock_metros) <= 2 ? '#ef4444' : '#15803d' 
-        }}>
-          {Number(prod.stock_metros) <= 2 ? 'STOCK BAJO' : 'EN STOCK'}
-        </span>
-
         <div style={{ display: 'flex', gap: '8px' }}>
           <button 
             onClick={(e) => { e.stopPropagation(); onToggleFavorito(prod); }} 

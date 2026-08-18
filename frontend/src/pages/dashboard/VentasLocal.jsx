@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Store, Search, Trash2, History, ShoppingBag, CheckCircle2, X } from 'lucide-react';
 import './VentasLocal.css'; 
@@ -16,13 +16,23 @@ const VentasLocal = () => {
     
     const [historialVentas, setHistorialVentas] = useState([]);
 
+    // Debounce simple: actualiza `busqueda` 200ms después de que el usuario deje de tipear
     useEffect(() => {
-        axios.get(`${import.meta.env.VITE_API_URL}/api/productos/`)
+        const id = setTimeout(() => setBusqueda(searchTerm), 200);
+        return () => clearTimeout(id);
+    }, [searchTerm]);
+
+    // La búsqueda se resuelve en la base de datos (filtro por nombre indexado),
+    // en vez de traer todo el catálogo y filtrar en el navegador.
+    useEffect(() => {
+        setCargando(true);
+        const params = busqueda ? { search: busqueda } : {};
+        axios.get(`${import.meta.env.VITE_API_URL}/api/productos/`, { params })
             .then((res) => {
                 let dataExtraida = [];
-                if (Array.isArray(res.data)) dataExtraida = res.data; 
-                else if (res.data?.results) dataExtraida = res.data.results; 
-                else if (res.data?.data) dataExtraida = res.data.data; 
+                if (Array.isArray(res.data)) dataExtraida = res.data;
+                else if (res.data?.results) dataExtraida = res.data.results;
+                else if (res.data?.data) dataExtraida = res.data.data;
                 setProductos(dataExtraida);
                 setCargando(false);
             })
@@ -31,23 +41,9 @@ const VentasLocal = () => {
                 setMensaje({ tipo: 'error', texto: 'Error de conexión con el servidor.' });
                 setCargando(false);
             });
-    }, []);
+    }, [busqueda]);
 
-    // Debounce simple: actualiza `busqueda` 200ms después de que el usuario deje de tipear
-    useEffect(() => {
-        const id = setTimeout(() => setBusqueda(searchTerm), 200);
-        return () => clearTimeout(id);
-    }, [searchTerm]);
-
-    // Memoiza el filtrado para evitar recalcularlo en cada render innecesario
-    const productosFiltrados = useMemo(() => {
-        const q = (busqueda || '').toLowerCase();
-        if (!q) return productos;
-        return productos.filter(p => {
-            const nombreTela = p.nombre || p.name || p.title || ''; 
-            return nombreTela.toLowerCase().includes(q);
-        });
-    }, [productos, busqueda]);
+    const productosFiltrados = productos;
 
     // Función para remover la selección si te equivocaste de tela
     const cancelarSeleccion = () => {

@@ -24,7 +24,7 @@ const VistaInicio = () => {
     
     // 1. Si viene de vincular, mostramos la alerta
     if (searchParams.get('success') === 'mp_vinculado') {
-      alert('¡Cuenta de Mercado Pago vinculada exitosamente! Ya puedes recibir pagos.');
+      alert('¡Felicidades! Tus cobros ahora se procesarán con Mercado Pago.');
       
       // Limpiamos la URL para que la alerta no vuelva a salir si apretamos F5
       window.history.replaceState(null, '', window.location.pathname);
