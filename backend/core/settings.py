@@ -45,7 +45,7 @@ EMAIL_HOST = 'smtp.resend.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'resend' # ahora aqui va resend, en production deberías usar un correo verificado de resend
-EMAIL_HOST_PASSWORD = 're_ay23At3J_C1cz8Lwkfko7u3mw37you1f9'  # PEGA ACÁ TU API KEY DE RESEND (EMPIEZA CON "re_") 
+EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY', '')  # La API key va en tu .env local, nunca acá
 # DEFAULT_FROM_EMAIL = 'Telas APP <nachozubri15@gmail.com>'
 # Como aún no verificaste un dominio propio, DEBES usar este remitente de prueba:
 DEFAULT_FROM_EMAIL = "Telas APP <ventas@modaytelas.com.ar>"
@@ -155,6 +155,23 @@ CORS_ALLOWED_ORIGINS = [
     "https://modaytelas.com.ar",
     "https://www.modaytelas.com.ar",
 ]
+
+# Autenticación del panel de admin vía JWT (login con usuario/contraseña).
+# El permiso por defecto sigue siendo AllowAny para no romper la tienda pública;
+# las vistas del admin declaran permission_classes=[IsAdminUser] explícitamente.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+from datetime import timedelta
+SIMPLE_JWT = {
+    # Vida larga a propósito: varias vistas del admin usan fetch() nativo,
+    # que no refresca el token solo (solo axios lo hace acá).
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'rea
 
 // Importamos el Layout (el esqueleto)
 import Dashboard from './pages/Dashboard';
+import Login from './pages/dashboard/Login';
+import { isAuthenticated } from './api/auth';
 
 // Importamos las páginas fragmentadas
 import VistaInicio from './pages/dashboard/VistaInicio';
@@ -40,6 +42,11 @@ const ScrollToTop = () => {
   }, [pathname]);
 
   return null; // Este componente es invisible, solo ejecuta la lógica
+};
+
+// GUARDIA DE RUTA: sin token, no hay panel de admin
+const RequireAuth = ({ children }) => {
+  return isAuthenticated() ? children : <Navigate to="/dashboard/login" replace />;
 };
 
 // LAYOUT PÚBLICO (Con Footer y WhatsApp Flotante)
@@ -80,8 +87,11 @@ function App() {
           <Route path="/transferencia-success" element={<TransferenciaSuccess />} />
         </Route>
 
+        {/* === LOGIN DEL ADMIN (fuera del guard, si no ya no se podría llegar) === */}
+        <Route path="/dashboard/login" element={<Login />} />
+
         {/* === RUTA PADRE: DASHBOARD (Aislado, libre del Footer y de WhatsApp) === */}
-        <Route path="/dashboard" element={<Dashboard />}>
+        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>}>
           <Route index element={<Navigate to="inicio" replace />} />
           <Route path="inicio" element={<VistaInicio />} />
           <Route path="productos" element={<VistaProductos />} />

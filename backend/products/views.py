@@ -51,6 +51,8 @@ def get_main_banner(request):
             return Response(serializer.data)
         return Response({"error": "No hay configuración activa"}, status=status.HTTP_404_NOT_FOUND)
     elif request.method == 'POST':
+        if not request.user.is_staff:
+            return Response({"error": "No autorizado"}, status=status.HTTP_401_UNAUTHORIZED)
         if config:
             serializer = StoreConfigurationSerializer(config, data=request.data, partial=True, context={'request': request})
         else:
@@ -60,16 +62,23 @@ def get_main_banner(request):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CategoriaViewSet(viewsets.ModelViewSet):
+class PublicReadAdminWriteMixin:
+    """Cualquiera puede leer (GET), pero crear/editar/borrar requiere estar logueado como admin."""
+    def get_permissions(self):
+        if self.action in ('list', 'retrieve'):
+            return [AllowAny()]
+        return [IsAdminUser()]
+
+class CategoriaViewSet(PublicReadAdminWriteMixin, viewsets.ModelViewSet):
     # ⚠️ Quitamos el select_related('categoria_padre')
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
-    
-class UsoTelaViewSet(viewsets.ModelViewSet):
+
+class UsoTelaViewSet(PublicReadAdminWriteMixin, viewsets.ModelViewSet):
     queryset = UsoTela.objects.all().order_by('nombre')
     serializer_class = UsoTelaSerializer
 
-class ProductoViewSet(viewsets.ModelViewSet):
+class ProductoViewSet(PublicReadAdminWriteMixin, viewsets.ModelViewSet):
     queryset = Producto.objects.prefetch_related('categorias', 'usos').all()
     serializer_class = ProductoSerializer
 
@@ -151,7 +160,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
 # =========================================================================
 #  VIEWSET PARA COLORES
 # =========================================================================
-class ColorViewSet(viewsets.ModelViewSet):
+class ColorViewSet(PublicReadAdminWriteMixin, viewsets.ModelViewSet):
     queryset = Color.objects.all().order_by('nombre')
     serializer_class = ColorSerializer
 
@@ -210,6 +219,7 @@ def enviar_plantilla_whatsapp(numero_destino, nombre_plantilla, parametros):
 #  2. VIEWSET PARA EL ADMIN/DASHBOARD (MANEJO MANUAL DE PEDIDOS)
 # =========================================================================
 class PedidoViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
     queryset = Pedido.objects.all().order_by('-fecha_creacion')
     serializer_class = PedidoSerializer
 
@@ -751,6 +761,8 @@ def cotizar_envio_api(request):
 
     return Response({"opciones": opciones}, status=200)
 
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
 def api_estadisticas(request):
     # 1. Filtramos solo los pedidos consolidados (ventas reales)
     pedidos_exitosos = Pedido.objects.filter(estado__in=['Aprobado', 'Despachado', 'APROBADO', 'ENVIADO'])
@@ -916,8 +928,8 @@ class ConfirmarPedidoView(APIView):
 # ventas en local
 
 class RegistrarVentaLocalView(APIView):
-    # 🔒 Opcional: Podés agregar permission_classes = [IsAdminUser] si querés protegerlo
-    
+    permission_classes = [IsAdminUser]
+
     def post(self, request):
         try:
             producto_id = request.data.get('producto_id')
@@ -1019,6 +1031,7 @@ class RastrearPedidoView(APIView):
         return Response(resultado["data"], status=status.HTTP_200_OK)
     
 class TarifaLocalViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAdminUser]
     queryset = TarifaLocal.objects.all().order_by('localidad')
     serializer_class = TarifaLocalSerializer
 
@@ -1124,6 +1137,7 @@ def mercadopago_callback(request):
         return redirect(f"{URL_FRONTEND}?error=token_failed")
     
 @api_view(['GET'])
+@permission_classes([IsAdminUser])
 def api_dashboard_inicio(request):
     hoy = timezone.now().date()
     
@@ -1196,6 +1210,7 @@ def api_dashboard_inicio(request):
 
 # ✅ NUEVO: Endpoint dedicado para polling de tiempo real (cada 30 seg desde el frontend)
 @api_view(['GET'])
+@permission_classes([IsAdminUser])
 def api_realtime_usuarios(request):
     try:
         PROPERTY_ID = os.environ.get("GA4_PROPERTY_ID")

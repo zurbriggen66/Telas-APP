@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Icon, icons } from '../components/Icons'; 
+import { Icon, icons } from '../components/Icons';
+import { logout } from '../api/auth';
+import { LogOut } from 'lucide-react';
 
 const Dashboard = () => {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -221,7 +223,19 @@ const Dashboard = () => {
           <button style={getLinkStyle('/dashboard/configuracion')} onClick={() => navigate('/dashboard/configuracion')}>
             <Icon d={icons.design} size={18} color={isActive('/dashboard/configuracion') ? '#6366f1' : '#94a3b8'} /> Configuración General
           </button>
-          
+
+          <button
+            style={{
+              display: 'flex', alignItems: 'center', gap: '12px', width: '100%',
+              padding: '12px 16px', marginTop: 'auto', marginBottom: '6px', borderRadius: '8px',
+              border: 'none', cursor: 'pointer', fontSize: '14px', fontWeight: '600',
+              textAlign: 'left', backgroundColor: 'transparent', color: '#f87171'
+            }}
+            onClick={logout}
+          >
+            <LogOut size={18} color="#f87171" /> Cerrar sesión
+          </button>
+
         </nav>
       </aside>
 
